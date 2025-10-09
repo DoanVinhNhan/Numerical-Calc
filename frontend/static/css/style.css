@@ -144,3 +144,7 @@ body {
 }
 .svd-tab-btn { margin-right: 8px; padding: 6px 16px; border-radius: 4px; background: #e0e7ff; border: none; }
 .svd-tab-btn:hover { background: #a5b4fc; }
+
+.augmented-separator {
+    border-left: 2px solid #718096; /* Một đường kẻ màu xám */
+}

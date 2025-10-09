@@ -13,12 +13,10 @@ export function setupDirectMethodsHandlers() {
         calculateGaussBtn.addEventListener('click', handleGaussCalculation);
     }
     
-    // Bạn có thể thêm các trình xử lý cho các nút khác (Gauss-Jordan, LU, Cholesky) ở đây
-    // Ví dụ:
-    // const calculateGJButton = document.getElementById('calculate-gj-btn');
-    // if (calculateGJButton) {
-    //     calculateGJButton.addEventListener('click', handleGaussJordanCalculation);
-    // }
+    const calculateGJButton = document.getElementById('calculate-gj-btn');
+    if (calculateGJButton) {
+        calculateGJButton.addEventListener('click', handleGaussJordanCalculation);
+    }
 }
 
 /**
@@ -46,6 +44,25 @@ async function handleGaussCalculation() {
         showError(error.message);
     } finally {
         // Dù thành công hay thất bại, luôn ẩn chỉ báo đang tải khi hoàn tất
+        hideLoading();
+    }
+}
+
+async function handleGaussJordanCalculation() {
+    const matrixA = document.getElementById('matrix-a-input-hpt').value;
+    const matrixB = document.getElementById('matrix-b-input-hpt').value;
+    const zeroTolerance = document.getElementById('setting-zero-tolerance').value;
+    const resultsArea = document.getElementById('results-area');
+
+    showLoading();
+    
+    try {
+        // Gọi API với method là 'gauss-jordan'
+        const data = await solveLinearSystem('gauss-jordan', matrixA, matrixB, zeroTolerance);
+        renderMatrixSolution(resultsArea, data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
         hideLoading();
     }
 }

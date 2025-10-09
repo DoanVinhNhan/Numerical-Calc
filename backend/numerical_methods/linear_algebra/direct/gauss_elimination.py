@@ -4,20 +4,10 @@ from backend.utils.helpers import zero_small
 
 def gauss_elimination(A, b, tol):
     """
-    Giải hệ phương trình tuyến tính Ax = b bằng phương pháp khử Gauss,
-    sử dụng chiến lược hoán vị-nếu-trụ-bằng-0.
-    Hàm này xử lý các trường hợp vô nghiệm và vô số nghiệm.
-
-    Args:
-        A (np.ndarray): Ma trận hệ số.
-        b (np.ndarray): Vector/Ma trận hằng số.
-        tol (float): Ngưỡng để coi một số là zero. Giá trị này được
-                     truyền từ API route dựa trên cài đặt của người dùng.
-
-    Returns:
-        dict: Một từ điển chứa kết quả tính toán có cấu trúc.
+    Giải hệ phương trình tuyến tính Ax = b bằng phương pháp khử Gauss.
+    Hàm này đã được sửa để xử lý đúng các ma trận không vuông.
     """
-    # --- 1. Chuẩn bị ---
+    # --- 1. Chuẩn bị (Không đổi) ---
     A_float = A.copy().astype(float)
     b_float = b.copy().astype(float)
     if b_float.ndim == 1:
@@ -27,14 +17,10 @@ def gauss_elimination(A, b, tol):
     num_rows, num_cols_aug = augmented_matrix.shape
     num_vars = A.shape[1]
     
-    steps = []
-    pivot_columns = []
-    pivot_row = 0
-    col_index = 0
+    steps, pivot_columns, pivot_row, col_index = [], [], 0, 0
 
-    # --- 2. Quá trình khử xuôi (Forward Elimination) ---
+    # --- 2. Quá trình khử xuôi (Không đổi) ---
     while pivot_row < num_rows and col_index < num_vars:
-        # Nếu phần tử trụ bằng 0, tìm một hàng khác để hoán vị
         if abs(augmented_matrix[pivot_row, col_index]) < tol:
             swap_with_row = -1
             for k in range(pivot_row + 1, num_rows):
@@ -51,20 +37,17 @@ def gauss_elimination(A, b, tol):
 
         pivot_element = augmented_matrix[pivot_row, col_index]
 
-        # Nếu phần tử trụ vẫn bằng 0 (cả cột dưới nó đều là 0), bỏ qua cột này
         if abs(pivot_element) < tol:
             col_index += 1
             continue
 
         pivot_columns.append(col_index)
         
-        # Khử các phần tử bên dưới trụ
         for i in range(pivot_row + 1, num_rows):
             factor = augmented_matrix[i, col_index] / pivot_element
             if abs(factor) > tol:
                 augmented_matrix[i, :] -= factor * augmented_matrix[pivot_row, :]
         
-        # Sử dụng hàm tiện ích để làm tròn các giá trị nhỏ về 0
         augmented_matrix = zero_small(augmented_matrix, tol=tol)
         steps.append({
             "type": "elimination", "pivot_row": pivot_row, "pivot_col": col_index,
@@ -76,16 +59,19 @@ def gauss_elimination(A, b, tol):
 
     rank = len(pivot_columns)
 
-    # --- 3. Kiểm tra nghiệm ---
-    for r in range(rank, num_rows):
-        if np.any(np.abs(augmented_matrix[r, num_vars:]) > tol):
-            return {"status": "no_solution", "steps": steps}
-
-    # --- 4. Quá trình thế ngược (Back Substitution) ---
+    # --- 3. Kiểm tra nghiệm (Không đổi) ---
+    # Logic này sẽ được bổ sung ở bước 4 cho trường hợp rank == num_vars
+    
+    # --- 4. Quá trình thế ngược (ĐÃ SỬA ĐỔI) ---
     # Vô số nghiệm
     if rank < num_vars:
-        free_vars_indices = [i for i in range(num_vars) if i not in pivot_columns]
+        # Kiểm tra tính nhất quán cho trường hợp vô số nghiệm
+        for r in range(rank, num_rows):
+            if np.any(np.abs(augmented_matrix[r, num_vars:]) > tol):
+                return {"status": "no_solution", "steps": steps}
         
+        # Logic tính nghiệm vô số nghiệm (vẫn đúng)
+        free_vars_indices = [i for i in range(num_vars) if i not in pivot_columns]
         particular_solution = np.zeros((num_vars, b_float.shape[1]))
         y = augmented_matrix[:, num_vars:]
         for i in range(rank - 1, -1, -1):
@@ -110,15 +96,31 @@ def gauss_elimination(A, b, tol):
             "steps": steps
         }
 
-    # Nghiệm duy nhất
+    # Nghiệm duy nhất hoặc Vô nghiệm (trường hợp rank == num_vars)
     else:
-        solution = np.zeros_like(b_float)
+        # SỬA LỖI 1: Thêm kiểm tra tính nhất quán cho hệ thừa phương trình
+        # Ví dụ: sau khi khử, có hàng [0, 0, 0 | 5], nghĩa là 0 = 5 -> Vô nghiệm
+        for r in range(rank, num_rows):
+            if np.any(np.abs(augmented_matrix[r, num_vars:]) > tol):
+                return {"status": "no_solution", "steps": steps}
+        
+        # SỬA LỖI 2: Khởi tạo ma trận nghiệm với kích thước đúng
+        # Kích thước phải là (số ẩn x số cột của B), không phải shape của B
+        solution = np.zeros((num_vars, b_float.shape[1]))
         backward_steps = []
+        
         for i in range(rank - 1, -1, -1):
-            sum_ax = augmented_matrix[i, i+1:num_vars] @ solution[i+1:, :]
-            x_i_row = (augmented_matrix[i, num_vars:] - sum_ax) / augmented_matrix[i, i]
-            solution[i, :] = x_i_row
-            backward_steps.append({"row": i, "solution_so_far": solution.copy()})
+            pivot_col = pivot_columns[i]
+            # Tính tổng các thành phần đã biết (A_ij * x_j)
+            sum_ax = augmented_matrix[i, pivot_col + 1:num_vars] @ solution[pivot_col + 1:, :]
+            
+            # Tính nghiệm cho biến hiện tại
+            x_i_row = (augmented_matrix[i, num_vars:] - sum_ax) / augmented_matrix[i, pivot_col]
+            
+            # Gán vào đúng vị trí trong ma trận nghiệm
+            solution[pivot_col, :] = x_i_row
+            
+            backward_steps.append({"row": pivot_col, "solution_so_far": solution.copy()})
             
         return {
             "status": "unique_solution",

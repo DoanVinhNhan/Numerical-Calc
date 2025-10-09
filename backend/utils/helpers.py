@@ -4,25 +4,36 @@ import re
 
 def parse_matrix_from_string(matrix_str):
     """
-    Chuyển đổi một chuỗi có các số được phân tách bằng dấu cách hoặc dòng mới
-    thành một mảng NumPy.
+    Chuyển đổi một chuỗi ma trận thành một mảng NumPy.
+    Ném ra lỗi ValueError với thông báo tường minh nếu định dạng sai.
     """
-    # Loại bỏ các ký tự không hợp lệ và chuẩn hóa dấu phân tách
-    cleaned_str = re.sub(r'[;\n,]+', '\n', matrix_str).strip()
-    
+    if not matrix_str.strip():
+        raise ValueError("Lỗi: Dữ liệu đầu vào bị rỗng.")
+
     # Tách chuỗi thành các hàng
-    rows = cleaned_str.split('\n')
-    
-    # Chuyển đổi mỗi hàng thành một danh sách các số float
+    rows = matrix_str.strip().split('\n')
     matrix_list = []
-    for row in rows:
-        # Tách các số trong hàng, bỏ qua các khoảng trắng thừa
-        elements = [float(num) for num in row.split()]
-        if elements:
-            matrix_list.append(elements)
+    num_cols = -1
+
+    for i, row_str in enumerate(rows):
+        try:
+            # Tách các phần tử trong hàng và chuyển đổi sang float
+            row_list = [float(num) for num in row_str.split()]
+        except ValueError:
+            # Nếu có lỗi, nghĩa là có ký tự không phải số
+            raise ValueError(f"Lỗi định dạng ở hàng {i + 1}: Chứa ký tự không phải là số.")
+
+        # Kiểm tra tính nhất quán của số cột
+        if i == 0:
+            num_cols = len(row_list)
+        elif len(row_list) != num_cols:
+            raise ValueError(f"Lỗi định dạng ở hàng {i + 1}: Số lượng cột không đồng nhất (hàng 1 có {num_cols} cột, hàng này có {len(row_list)} cột).")
+        
+        if row_list: # Chỉ thêm nếu hàng không rỗng
+            matrix_list.append(row_list)
     
     if not matrix_list:
-        raise ValueError("Dữ liệu ma trận đầu vào rỗng.")
+        raise ValueError("Lỗi: Dữ liệu đầu vào không chứa số nào.")
         
     return np.array(matrix_list)
 
