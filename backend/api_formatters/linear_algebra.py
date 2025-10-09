@@ -43,3 +43,97 @@ def format_gauss_jordan_result(result):
     elif result['status'] == 'unique_solution':
         return {"method": "Gauss-Jordan", "status": "unique_solution", "message": "Hệ phương trình có nghiệm duy nhất.", "solution": result['solution'].tolist(), "steps": steps_formatted}
     return {"error": "Lỗi không xác định."}
+
+
+def format_lu_result(result):
+    formatted = {"method": "Phân rã LU"}
+    
+    # Định dạng các bước trung gian
+    steps_formatted = []
+    for i, step in enumerate(result.get('lu_steps', [])):
+        steps_formatted.append({
+            "message": f"<b>Bước {i+1}:</b> Tính hàng {i+1} của U và cột {i+1} của L.",
+            "L": step['L'].tolist(), # Dữ liệu đã được làm sạch
+            "U": step['U'].tolist()  # Dữ liệu đã được làm sạch
+        })
+    formatted['steps'] = steps_formatted
+
+    # Xử lý các trạng thái
+    status = result['status']
+    formatted['status'] = status
+    
+    if status == "no_solution":
+        formatted['message'] = f"Hệ vô nghiệm (hạng(A)={result['rank']} < hạng([A|B]))."
+    elif status == "infinite_solutions":
+        formatted['message'] = f"Hệ có vô số nghiệm (hạng(A)={result['rank']} < số ẩn={result['num_vars']})."
+        formatted['general_solution'] = {
+            "particular_solution": result['particular_solution'].tolist(),
+            "null_space_vectors": result['null_space_vectors'].tolist()
+        }
+    elif status == "unique_solution":
+        formatted['message'] = f"Hệ có nghiệm duy nhất (hoặc nghiệm xấp xỉ tốt nhất)."
+        formatted['solution'] = result['solution'].tolist()
+        if 'intermediate_y' in result and result['intermediate_y'] is not None:
+            formatted['intermediate_y'] = result['intermediate_y'].tolist()
+
+    # Thêm ma trận P, L, U nếu có
+    if 'decomposition' in result:
+        decomp = result['decomposition']
+        formatted['decomposition'] = {
+            "P": decomp['P'].tolist(),
+            "L": decomp['L'].tolist(),
+            "U": decomp['U'].tolist()
+        }
+    return formatted
+
+def format_cholesky_result(result):
+    formatted = {
+        "method": "Cholesky",
+        "status": result['status'],
+        "message": "Hệ có nghiệm duy nhất tìm bằng phân tách Cholesky.",
+        "transformation_message": result['transformation_message'],
+        "solution": result['solution'].tolist(),
+        "intermediate_y": result['intermediate_y'].tolist()
+    }
+
+    decomp = result['decomposition']
+    formatted_decomp = {
+        "U": decomp['U'].tolist(),
+        "Ut": decomp['Ut'].tolist()
+    }
+    if decomp.get('M') is not None:
+        formatted_decomp['M'] = decomp['M'].tolist()
+    if decomp.get('d') is not None:
+        formatted_decomp['d'] = decomp['d'].tolist()
+    
+    formatted['decomposition'] = formatted_decomp
+    return formatted
+
+def format_inverse_gauss_jordan_result(result):
+    """
+    Định dạng kết quả tính ma trận nghịch đảo bằng phương pháp Gauss-Jordan.
+    """
+    formatted = {
+        "method": "Ma trận nghịch đảo (Gauss-Jordan)",
+        "status": "success",
+        "message": f"Tính ma trận nghịch đảo thành công cho ma trận {result['num_vars']}x{result['num_vars']}.",
+        "inverse": result['inverse'].tolist()
+    }
+
+    # Định dạng các bước tính toán
+    num_vars = result.get('num_vars', -1)
+    steps_formatted = []
+    step_counter = 1
+    for step_data in result['steps']:
+        message = ""
+        if step_data['type'] == 'pivot_selection':
+            pv, pr, pc = step_data['pivot_value'], step_data['pivot_row'] + 1, step_data['pivot_col'] + 1
+            message = f"<b>Bước {step_counter}:</b> Chọn pivot là {pv:.4f} tại ({pr}, {pc})."
+        elif step_data['type'] == 'elimination':
+            pc = step_data['pivot_col'] + 1
+            message = f"<b>Bước {step_counter}:</b> Chuẩn hóa hàng pivot và khử các phần tử trong cột {pc}."
+        steps_formatted.append({"message": message, "matrix": step_data['matrix'].tolist(), "num_vars": num_vars})
+        step_counter += 1
+
+    formatted['steps'] = steps_formatted
+    return formatted

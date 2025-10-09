@@ -17,6 +17,14 @@ export function setupDirectMethodsHandlers() {
     if (calculateGJButton) {
         calculateGJButton.addEventListener('click', handleGaussJordanCalculation);
     }
+    const calculateLUBtn = document.getElementById('calculate-lu-btn');
+    if (calculateLUBtn) {
+        calculateLUBtn.addEventListener('click', handleLuCalculation);
+    }
+    const calculateCholeskyBtn = document.getElementById('calculate-cholesky-btn');
+    if (calculateCholeskyBtn) {
+        calculateCholeskyBtn.addEventListener('click', handleCholeskyCalculation);
+    }
 }
 
 /**
@@ -59,6 +67,42 @@ async function handleGaussJordanCalculation() {
     try {
         // Gọi API với method là 'gauss-jordan'
         const data = await solveLinearSystem('gauss-jordan', matrixA, matrixB, zeroTolerance);
+        renderMatrixSolution(resultsArea, data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleLuCalculation() {
+    const matrixA = document.getElementById('matrix-a-input-hpt').value;
+    const matrixB = document.getElementById('matrix-b-input-hpt').value;
+    const zeroTolerance = document.getElementById('setting-zero-tolerance').value;
+    const resultsArea = document.getElementById('results-area');
+
+    showLoading();
+    
+    try {
+        const data = await solveLinearSystem('lu', matrixA, matrixB, zeroTolerance);
+        renderMatrixSolution(resultsArea, data); // Dùng lại hàm render cũ
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleCholeskyCalculation() {
+    const matrixA = document.getElementById('matrix-a-input-hpt').value;
+    const matrixB = document.getElementById('matrix-b-input-hpt').value;
+    const zeroTolerance = document.getElementById('setting-zero-tolerance').value;
+    const resultsArea = document.getElementById('results-area');
+
+    showLoading();
+    
+    try {
+        const data = await solveLinearSystem('cholesky', matrixA, matrixB, zeroTolerance);
         renderMatrixSolution(resultsArea, data);
     } catch (error) {
         showError(error.message);

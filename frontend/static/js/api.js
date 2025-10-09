@@ -30,3 +30,30 @@ export async function solveLinearSystem(method, matrixA, matrixB, zeroTolerance)
     
     return response.json();
 }
+
+/**
+ * Gửi yêu cầu tính ma trận nghịch đảo đến backend.
+ * @param {string} method - Tên phương pháp (ví dụ: 'gauss-jordan').
+ * @param {string} matrixA - Chuỗi biểu diễn ma trận A.
+ * @param {string} zeroTolerance - Ngưỡng làm tròn về 0.
+ * @returns {Promise<object>} - Dữ liệu JSON trả về từ API.
+ */
+export async function calculateInverse(method, matrixA, zeroTolerance) {
+    const response = await fetch(`${API_BASE_URL}/linear-algebra/inverse/${method}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            matrix_a: matrixA,
+            zero_tolerance: zeroTolerance
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định từ máy chủ.');
+    }
+    
+    return response.json();
+}

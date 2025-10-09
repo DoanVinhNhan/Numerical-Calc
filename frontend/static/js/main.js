@@ -1,5 +1,6 @@
 // frontend/static/js/main.js
 import { setupDirectMethodsHandlers } from './handlers/direct_methods_handler.js';
+import { setupInverseMethodsHandlers } from './handlers/inverse_methods_handler.js';
 
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Thiết lập các trình xử lý sự kiện cho các nút tính toán
     setupDirectMethodsHandlers();
+    setupInverseMethodsHandlers();
     
     // Thêm các hàm setup khác cho các phương pháp khác ở đây
     // Ví dụ: setupIterativeMethodsHandlers();
@@ -98,7 +100,7 @@ function rebindEventHandlers(container) {
     // Chỉ cần gọi lại hàm setup cho nhóm phương pháp tương ứng
     // Trong trường hợp này là các phương pháp trực tiếp
     setupDirectMethodsHandlers();
-    
+    setupInverseMethodsHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();

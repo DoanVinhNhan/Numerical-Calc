@@ -78,7 +78,7 @@ def gauss_jordan(A, b, tol):
         is_A_part_zero = np.all(np.abs(augmented_matrix[r, :num_vars]) < tol)
         is_b_part_nonzero = np.any(np.abs(augmented_matrix[r, num_vars:]) > tol)
         if is_A_part_zero and is_b_part_nonzero:
-            return {"status": "no_solution", "steps": steps}
+            return {"status": "no_solution", "steps": steps, "num_vars": num_vars}
 
     # Sắp xếp lại các pivot để dễ dàng truy xuất
     pivots_map = sorted(zip(pivoted_cols, pivoted_rows))
@@ -105,7 +105,8 @@ def gauss_jordan(A, b, tol):
             "status": "infinite_solutions", "rank": rank, "num_vars": num_vars,
             "particular_solution": zero_small(particular_solution, tol=tol),
             "null_space_vectors": zero_small(null_space_vectors, tol=tol),
-            "steps": steps
+            "steps": steps,
+            "num_vars": num_vars
         }
     
     # Nghiệm duy nhất
@@ -118,5 +119,6 @@ def gauss_jordan(A, b, tol):
         return {
             "status": "unique_solution",
             "solution": zero_small(solution, tol=tol),
-            "steps": steps
+            "steps": steps,
+            "num_vars": num_vars
         }

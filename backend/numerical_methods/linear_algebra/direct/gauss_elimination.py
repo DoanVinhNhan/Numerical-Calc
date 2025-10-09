@@ -68,7 +68,7 @@ def gauss_elimination(A, b, tol):
         # Kiểm tra tính nhất quán cho trường hợp vô số nghiệm
         for r in range(rank, num_rows):
             if np.any(np.abs(augmented_matrix[r, num_vars:]) > tol):
-                return {"status": "no_solution", "steps": steps}
+                return {"status": "no_solution", "steps": steps, "num_vars": num_vars}
         
         # Logic tính nghiệm vô số nghiệm (vẫn đúng)
         free_vars_indices = [i for i in range(num_vars) if i not in pivot_columns]
@@ -93,7 +93,8 @@ def gauss_elimination(A, b, tol):
             "status": "infinite_solutions", "rank": rank, "num_vars": num_vars,
             "particular_solution": zero_small(particular_solution, tol=tol),
             "null_space_vectors": zero_small(np.array(null_space_vectors).T, tol=tol),
-            "steps": steps
+            "steps": steps,
+            "num_vars": num_vars
         }
 
     # Nghiệm duy nhất hoặc Vô nghiệm (trường hợp rank == num_vars)
@@ -102,7 +103,7 @@ def gauss_elimination(A, b, tol):
         # Ví dụ: sau khi khử, có hàng [0, 0, 0 | 5], nghĩa là 0 = 5 -> Vô nghiệm
         for r in range(rank, num_rows):
             if np.any(np.abs(augmented_matrix[r, num_vars:]) > tol):
-                return {"status": "no_solution", "steps": steps}
+                return {"status": "no_solution", "steps": steps, "num_vars": num_vars}
         
         # SỬA LỖI 2: Khởi tạo ma trận nghiệm với kích thước đúng
         # Kích thước phải là (số ẩn x số cột của B), không phải shape của B
@@ -126,5 +127,6 @@ def gauss_elimination(A, b, tol):
             "status": "unique_solution",
             "solution": zero_small(solution, tol=tol),
             "steps": steps, 
-            "backward_steps": backward_steps
+            "backward_steps": backward_steps,
+            "num_vars": num_vars
         }
