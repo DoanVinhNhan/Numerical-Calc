@@ -156,28 +156,43 @@ export function renderInverse(container, data) {
     const errorMessageDiv = document.getElementById('error-message');
     if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
 
-    // 1. Tiêu đề và thông báo trạng thái
     let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
     html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
 
-    // 2. Hiển thị ma trận nghịch đảo
     if (data.inverse) {
         html += `
-            <div class="mt-6">
+            <div class="my-6">
                 <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận nghịch đảo (A⁻¹):</h3>
                 <div class="matrix-display">${formatMatrix(data.inverse, 'A⁻¹')}</div>
             </div>`;
     }
 
-    // 3. Hiển thị các bước tính toán
     if (data.steps && data.steps.length > 0) {
         html += `<h3 class="text-lg font-semibold text-gray-700 my-4">Các bước tính toán:</h3>`;
-        data.steps.forEach((step, index) => {
+        data.steps.forEach(step => {
             html += `
                 <div class="mb-4 p-3 bg-blue-50 rounded-lg shadow-sm">
-                    <p class="text-sm text-gray-800 mb-2">${step.message}</p>
-                    <div class="matrix-display">${formatMatrix(step.matrix, '', step.num_vars)}</div>
-                </div>`;
+                    <p class="text-sm text-gray-800 mb-2">${step.message}</p>`;
+
+            // Vùng hiển thị ma trận
+            html += `<div class="flex flex-wrap items-center justify-center gap-4">`;
+            
+            // Hiển thị các ma trận phân rã P, L, U
+            if (step.P) html += `<div class="matrix-display">${formatMatrix(step.P, 'P')}</div>`;
+            if (step.L) html += `<div class="matrix-display">${formatMatrix(step.L, 'L')}</div>`;
+            if (step.U) html += `<div class="matrix-display">${formatMatrix(step.U, 'U')}</div>`;
+            
+            // Hiển thị ma trận kết quả của một bước (nếu có)
+            if (step.matrix) html += `<div class="matrix-display">${formatMatrix(step.matrix, '', step.num_vars)}</div>`;
+            
+            // Hiển thị các vector cột trong quá trình giải
+            if (step.solve_process) {
+                 html += `<div class="w-full text-center text-sm my-2 font-mono">${step.solve_process}</div>`;
+            }
+            if (step.Y_col) html += `<div class="matrix-display">${formatMatrix(step.Y_col, 'Y')}</div>`;
+            if (step.X_col) html += `<div class="matrix-display">${formatMatrix(step.X_col, 'X')}</div>`;
+
+            html += `</div></div>`;
         });
     }
 

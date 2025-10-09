@@ -12,6 +12,10 @@ export function setupInverseMethodsHandlers() {
     if (calculateGaussJordanInverseBtn) {
         calculateGaussJordanInverseBtn.addEventListener('click', handleGaussJordanInverseCalculation);
     }
+    const calculateLUInverseBtn = document.getElementById('calculate-inv-lu-btn');
+    if (calculateLUInverseBtn) {
+        calculateLUInverseBtn.addEventListener('click', handleLUInverseCalculation);
+    }
 }
 
 /**
@@ -45,6 +49,28 @@ async function handleGaussJordanInverseCalculation() {
         showError(error.message || 'Đã xảy ra lỗi khi tính ma trận nghịch đảo.');
     } finally {
         // Luôn luôn ẩn chỉ báo tải khi hoàn thành
+        hideLoading();
+    }
+}
+
+async function handleLUInverseCalculation() {
+    const matrixA = document.getElementById('matrix-a-input-inv-direct').value;
+    const zeroTolerance = document.getElementById('setting-zero-tolerance').value;
+    const resultsArea = document.getElementById('results-area');
+
+    if (!matrixA.trim()) {
+        showError('Vui lòng nhập ma trận A.');
+        return;
+    }
+
+    showLoading();
+    
+    try {
+        const data = await calculateInverse('lu', matrixA, zeroTolerance);
+        renderInverse(resultsArea, data); // Dùng lại hàm renderInverse
+    } catch (error) {
+        showError(error.message);
+    } finally {
         hideLoading();
     }
 }

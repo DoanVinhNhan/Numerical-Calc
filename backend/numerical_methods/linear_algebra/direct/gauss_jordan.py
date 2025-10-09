@@ -1,3 +1,4 @@
+#backend/numerical_methods/linear_algebra/direct/gauss_jordan.py
 import numpy as np
 from backend.utils.helpers import zero_small
 

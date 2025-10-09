@@ -1,4 +1,6 @@
 # backend/api_formatters/linear_algebra.py
+import numpy as np
+
 def format_gauss_elimination_result(result):
     num_vars = result.get('num_vars', -1)
     steps_formatted = []
@@ -137,3 +139,47 @@ def format_inverse_gauss_jordan_result(result):
 
     formatted['steps'] = steps_formatted
     return formatted
+
+def format_lu_inverse_result(result):
+    """
+    Định dạng kết quả tính ma trận nghịch đảo bằng phân rã LU (phiên bản đã sửa lỗi).
+    """
+    if result.get('status') != 'success':
+        return {"error": result.get('error', 'Lỗi không xác định')}
+
+    decomp = result['decomposition']
+    
+    # Bước 1: Phân rã
+    steps = [{
+        "message": "<b>Bước 1:</b> Phân rã A = PLU",
+        "P": decomp['P'].tolist(),
+        "L": decomp['L'].tolist(),
+        "U": decomp['U'].tolist(),
+    }]
+    
+    # Các bước giải hệ phương trình
+    steps.append({
+        "message": "<b>Bước 2:</b> Với mỗi cột eᵢ của ma trận đơn vị, giải hệ LUX = Pᵀeᵢ để tìm cột xᵢ của A⁻¹."
+    })
+
+    for step_solve in result['steps_solve']:
+        i = step_solve['column_index']
+        steps.append({
+            "message": f"<b>Bước 2.{i}:</b> Tìm cột {i} của A⁻¹",
+            "solve_process": f"Giải LY=Pᵀeᵢ, sau đó UX=Y",
+            "Y_col": np.array(step_solve['y_col']).reshape(-1, 1).tolist(),
+            "X_col": np.array(step_solve['x_col']).reshape(-1, 1).tolist(),
+        })
+
+    # Bước cuối: Ma trận nghịch đảo hoàn chỉnh
+    steps.append({
+        "message": "<b>Bước 3:</b> Ghép các vector cột X đã tìm được để tạo thành ma trận A⁻¹."
+    })
+
+    return {
+        "method": "Ma trận nghịch đảo (Phân rã LU)",
+        "status": "success",
+        "message": f"Tính ma trận nghịch đảo bằng phân rã LU thành công.",
+        "inverse": result['inverse'].tolist(),
+        "steps": steps
+    }

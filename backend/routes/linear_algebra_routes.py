@@ -12,7 +12,8 @@ from backend.numerical_methods.linear_algebra.direct.cholesky import solve_chole
 from backend.api_formatters.linear_algebra import format_cholesky_result
 from backend.numerical_methods.linear_algebra.inverse.gauss_jordan_inverse import gauss_jordan_inverse
 from backend.api_formatters.linear_algebra import format_inverse_gauss_jordan_result
-
+from backend.numerical_methods.linear_algebra.inverse.lu_inverse import lu_inverse
+from backend.api_formatters.linear_algebra import format_lu_inverse_result
 
 linear_algebra_bp = Blueprint('linear_algebra', __name__, url_prefix='/api/linear-algebra')
 
@@ -203,6 +204,39 @@ def inverse_gauss_jordan_route():
         
         # Định dạng kết quả và trả về
         formatted_result = format_inverse_gauss_jordan_result(result)
+        return jsonify(formatted_result), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+
+@linear_algebra_bp.route('/inverse/lu', methods=['POST'])
+def inverse_lu_route():
+    """
+    Route để tính ma trận nghịch đảo bằng phương pháp phân rã LU.
+    """
+    try:
+        data = request.json
+        matrix_a_str = data.get('matrix_a')
+        zero_tolerance_str = data.get('zero_tolerance', '1e-15')
+        
+        try:
+            zero_tolerance = float(zero_tolerance_str)
+        except (ValueError, TypeError):
+            zero_tolerance = 1e-15
+
+        if not matrix_a_str:
+            return jsonify({"error": "Vui lòng nhập ma trận A."}), 400
+
+        A = parse_matrix_from_string(matrix_a_str)
+
+        if A.shape[0] != A.shape[1]:
+            return jsonify({"error": f"Ma trận A phải là ma trận vuông. Kích thước hiện tại là {A.shape[0]}x{A.shape[1]}."}), 400
+
+        result = lu_inverse(A, tol=zero_tolerance)
+        
+        formatted_result = format_lu_inverse_result(result)
         return jsonify(formatted_result), 200
 
     except ValueError as e:
