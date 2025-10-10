@@ -1,5 +1,5 @@
 // frontend/static/js/handlers/iterative_methods_handler.js
-import { solveIterativeLinearSystem } from '../api.js';
+import { solveIterativeLinearSystem, solveSimpleIterationSystem } from '../api.js';
 import { renderIterativeSolution, showLoading, hideLoading, showError } from '../ui.js';
 
 export function setupIterativeMethodsHandlers() {
@@ -10,6 +10,10 @@ export function setupIterativeMethodsHandlers() {
     const calculateGSBtn = document.getElementById('calculate-gs-btn');
     if (calculateGSBtn) {
         calculateGSBtn.addEventListener('click', handleGaussSeidelCalculation);
+    }
+    const calculateSimpleIterBtn = document.getElementById('calculate-simple-iteration-btn');
+    if (calculateSimpleIterBtn) {
+        calculateSimpleIterBtn.addEventListener('click', handleSimpleIterationCalculation);
     }
 }
 
@@ -54,6 +58,31 @@ async function handleGaussSeidelCalculation() {
     
     try {
         const data = await solveIterativeLinearSystem('gauss-seidel', matrixA, matrixB, x0, tolerance, maxIter);
+        renderIterativeSolution(document.getElementById('results-area'), data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleSimpleIterationCalculation() {
+    const matrixB = document.getElementById('matrix-b-input-simple-iter').value;
+    const matrixD = document.getElementById('matrix-d-input-simple-iter').value;
+    const x0 = document.getElementById('x0-input-simple-iter').value;
+    const tolerance = document.getElementById('simple-iter-tolerance').value;
+    const maxIter = document.getElementById('simple-iter-max-iter').value;
+    const normChoice = document.getElementById('simple-iter-norm-choice').value;
+
+    if (!matrixB.trim() || !matrixD.trim()) {
+        showError('Vui lòng nhập đầy đủ ma trận B và vector d.');
+        return;
+    }
+
+    showLoading();
+    
+    try {
+        const data = await solveSimpleIterationSystem(matrixB, matrixD, x0, tolerance, maxIter, normChoice);
         renderIterativeSolution(document.getElementById('results-area'), data);
     } catch (error) {
         showError(error.message);

@@ -88,3 +88,25 @@ export async function solveIterativeLinearSystem(method, matrixA, matrixB, x0, t
     
     return response.json();
 }
+
+export async function solveSimpleIterationSystem(matrixB, matrixD, x0, tolerance, maxIter, normChoice) {
+    const response = await fetch(`${API_BASE_URL}/linear-algebra/solve/simple-iteration`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            matrix_b: matrixB, // Gửi B
+            matrix_d: matrixD, // Gửi d
+            x0: x0,
+            tolerance: tolerance,
+            max_iter: maxIter,
+            norm_choice: normChoice
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định từ máy chủ.');
+    }
+    
+    return response.json();
+}

@@ -323,3 +323,25 @@ def format_gauss_seidel_result(result):
         },
         "steps": [{"table": table}]
     }
+
+def format_simple_iteration_result(result):
+    # Định dạng kết quả từ phương pháp lặp đơn.
+    if result.get('status') != 'success':
+        return {"error": result.get('error', 'Lỗi không xác định')}
+
+    norm_symbol = "∞" if result['norm_used'] == 'inf' else "1"
+    
+    table = [{"k": row['k'], "x_k": row['x_k'].tolist(), "error": row['error']} for row in result['iterations_data']]
+
+    return {
+        "method": "Lặp Đơn",
+        "status": "success",
+        "message": f"Hội tụ sau {result['iterations']} lần lặp.",
+        "solution": result['solution'].tolist(),
+        "convergence_info": {
+            "norm_used": f"Sử dụng chuẩn {norm_symbol}",
+            "contraction_coefficient": result['norm_B'],
+            "warning_message": result['warning_message']
+        },
+        "steps": [{"table": table}]
+    }
