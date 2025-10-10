@@ -110,3 +110,22 @@ export async function solveSimpleIterationSystem(matrixB, matrixD, x0, tolerance
     
     return response.json();
 }
+
+export async function calculateInverseIterative(method, matrixA, tolerance, maxIter, x0Method) {
+    const response = await fetch(`${API_BASE_URL}/linear-algebra/inverse/${method}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            matrix_a: matrixA,
+            tolerance: tolerance,
+            max_iter: maxIter,
+            x0_method: x0Method
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}

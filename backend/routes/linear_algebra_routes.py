@@ -24,6 +24,8 @@ from backend.numerical_methods.linear_algebra.iterative.gauss_seidel import gaus
 from backend.api_formatters.linear_algebra import format_gauss_seidel_result
 from backend.numerical_methods.linear_algebra.iterative.simple_iteration import simple_iteration
 from backend.api_formatters.linear_algebra import format_simple_iteration_result
+from backend.numerical_methods.linear_algebra.inverse.jacobi_inverse import jacobi_inverse
+from backend.api_formatters.linear_algebra import format_jacobi_inverse_result
 
 
 linear_algebra_bp = Blueprint('linear_algebra', __name__, url_prefix='/api/linear-algebra')
@@ -377,6 +379,24 @@ def solve_simple_iteration_route():
         
         result = simple_iteration(B, d, x0, tol=tol, max_iter=max_iter, norm_choice=norm_choice)
         formatted_result = format_simple_iteration_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+    
+@linear_algebra_bp.route('/inverse/jacobi', methods=['POST'])
+def inverse_jacobi_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        x0_method = data.get('x0_method', 'method1')
+        tol = float(data.get('tolerance', 1e-5))
+        max_iter = int(data.get('max_iter', 100))
+        
+        result = jacobi_inverse(A, x0_method=x0_method, tol=tol, max_iter=max_iter)
+        formatted_result = format_jacobi_inverse_result(result)
         return jsonify(formatted_result), 200
 
     except (ValueError, np.linalg.LinAlgError) as e:

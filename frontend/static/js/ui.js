@@ -292,3 +292,61 @@ export function renderIterativeSolution(container, data) {
 
     container.innerHTML = html;
 }
+
+export function renderInverseIterativeSolution(container, data) {
+    // Hiển thị kết quả cho các phương pháp lặp tính ma trận nghịch đảo.
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+    
+    // Thông tin hội tụ
+    if (data.convergence_info) {
+        const { dominance_type, norm_used, contraction_coefficient } = data.convergence_info;
+        html += `<div class="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+            <p class="text-sm">${dominance_type}. ${norm_used}.</p>
+            <p class="text-sm">Hệ số co ||B|| = <strong>${contraction_coefficient.toFixed(6)}</strong></p>
+        </div>`;
+    }
+
+    // Ma trận nghịch đảo
+    if (data.inverse) {
+        html += `<div class="my-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận nghịch đảo (A⁻¹):</h3>
+            <div class="matrix-display">${formatMatrix(data.inverse, 'A⁻¹')}</div>
+        </div>`;
+    }
+
+    // Ma trận ban đầu
+    if (data.initial_matrix) {
+        html += `<div class="my-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận lặp ban đầu (${data.initial_matrix.label}):</h3>
+            <div class="matrix-display">${formatMatrix(data.initial_matrix.matrix, 'X₀')}</div>
+        </div>`;
+    }
+
+    // Bảng lặp
+    if (data.steps && data.steps[0].table) {
+        const table = data.steps[0].table;
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
+        html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">
+            <thead class="text-xs text-gray-800 uppercase bg-gray-100"><tr>
+                <th scope="col" class="px-6 py-3">k</th>
+                <th scope="col" class="px-6 py-3">Xₖ</th>
+                <th scope="col" class="px-6 py-3">||Xₖ - Xₖ₋₁||</th>
+                <th scope="col" class="px-6 py-3">Sai số ước tính</th>
+            </tr></thead><tbody>`;
+        table.forEach(row => {
+            html += `<tr class="bg-white border-b">
+                <td class="px-6 py-4 font-medium">${row.k}</td>
+                <td class="px-6 py-4">${formatMatrix(row.x_k)}</td>
+                <td class="px-6 py-4 font-mono">${row.diff_norm.toExponential(4)}</td>
+                <td class="px-6 py-4 font-mono">${row.error.toExponential(4)}</td>
+            </tr>`;
+        });
+        html += `</tbody></table></div>`;
+    }
+
+    container.innerHTML = html;
+}

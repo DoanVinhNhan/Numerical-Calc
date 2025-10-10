@@ -15,6 +15,32 @@ export function setupIterativeMethodsHandlers() {
     if (calculateSimpleIterBtn) {
         calculateSimpleIterBtn.addEventListener('click', handleSimpleIterationCalculation);
     }
+    // Logic xử lý chuyển tab cho trang phương pháp lặp
+    const iterTabs = document.querySelectorAll('.iter-hpt-tab');
+    iterTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabTarget = tab.dataset.tab;
+
+            // 1. Cập nhật trạng thái active cho các nút tab
+            iterTabs.forEach(t => {
+                t.classList.remove('text-blue-600', 'border-blue-500');
+                t.classList.add('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+            tab.classList.add('text-blue-600', 'border-blue-500');
+            tab.classList.remove('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'hover:border-gray-300');
+
+            // 2. Ẩn tất cả các nội dung tab
+            document.querySelectorAll('.iter-hpt-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // 3. Hiển thị nội dung tab tương ứng
+            const activeContent = document.getElementById(`iter-hpt-${tabTarget}-content`);
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+            }
+        });
+    });
 }
 
 async function handleJacobiCalculation() {

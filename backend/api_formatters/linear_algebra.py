@@ -345,3 +345,30 @@ def format_simple_iteration_result(result):
         },
         "steps": [{"table": table}]
     }
+
+def format_jacobi_inverse_result(result):
+    # Định dạng kết quả cho Jacobi Inverse.
+    if result.get('status') != 'success':
+        return {"error": result.get('error', 'Lỗi không xác định')}
+
+    dominance_msg = "hàng" if result['is_row_dominant'] else "cột"
+    norm_symbol = "∞" if result['norm_used'] == "infinity" else "1"
+    
+    table = [{"k": row['k'], "x_k": row['x_k'].tolist(), "error": row['error'], "diff_norm": row['diff_norm']} for row in result['iterations_data']]
+
+    return {
+        "method": "Lặp Jacobi (Nghịch đảo)",
+        "status": "success",
+        "message": f"Hội tụ sau {result['iterations']} lần lặp.",
+        "inverse": result['inverse'].tolist(),
+        "convergence_info": {
+            "dominance_type": f"Ma trận chéo trội {dominance_msg}",
+            "norm_used": f"Sử dụng chuẩn {norm_symbol}",
+            "contraction_coefficient": result['contraction_coefficient']
+        },
+        "initial_matrix": {
+            "label": result['x0_label'],
+            "matrix": result['x0_matrix'].tolist()
+        },
+        "steps": [{"table": table}]
+    }
