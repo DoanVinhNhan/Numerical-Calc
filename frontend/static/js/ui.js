@@ -217,11 +217,19 @@ export function renderIterativeSolution(container, data) {
 
     // Hiển thị thông tin hội tụ
     if (data.convergence_info) {
-        const { dominance_type, norm_used, contraction_coefficient } = data.convergence_info;
-        html += `<div class="mb-4 p-3 bg-gray-50 rounded-lg text-center">
-            <p class="text-sm">${dominance_type}. ${norm_used}.</p>
-            <p class="text-sm">Hệ số co ||B|| = <strong>${contraction_coefficient.toFixed(6)}</strong></p>
-        </div>`;
+        const { dominance_type, norm_used, contraction_coefficient, coeff_q, coeff_s } = data.convergence_info;
+        let convergenceHtml = `<div class="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+            <p class="text-sm">${dominance_type}. ${norm_used}.</p>`;
+        
+        if (contraction_coefficient !== undefined) {
+             convergenceHtml += `<p class="text-sm">Hệ số co ||B|| = <strong>${contraction_coefficient.toFixed(6)}</strong></p>`;
+        }
+        if (coeff_q !== undefined && coeff_s !== undefined) {
+            convergenceHtml += `<p class="text-sm">Hệ số co: q = <strong>${coeff_q.toFixed(6)}</strong>, s = <strong>${coeff_s.toFixed(6)}</strong></p>`;
+        }
+        
+        convergenceHtml += `</div>`;
+        html += convergenceHtml;
     }
 
     // Hiển thị nghiệm

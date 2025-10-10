@@ -20,6 +20,9 @@ from backend.numerical_methods.linear_algebra.inverse.bordering import bordering
 from backend.api_formatters.linear_algebra import format_bordering_inverse_result
 from backend.numerical_methods.linear_algebra.iterative.jacobi import jacobi
 from backend.api_formatters.linear_algebra import format_jacobi_result
+from backend.numerical_methods.linear_algebra.iterative.gauss_seidel import gauss_seidel
+from backend.api_formatters.linear_algebra import format_gauss_seidel_result
+
 
 linear_algebra_bp = Blueprint('linear_algebra', __name__, url_prefix='/api/linear-algebra')
 
@@ -326,6 +329,26 @@ def solve_jacobi_route():
         
         result = jacobi(A, b, x0, tol=tol, max_iter=max_iter)
         formatted_result = format_jacobi_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+
+@linear_algebra_bp.route('/solve/gauss-seidel', methods=['POST'])
+def solve_gauss_seidel_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        b = parse_matrix_from_string(data.get('matrix_b'))
+        x0 = parse_matrix_from_string(data.get('x0'))
+        
+        tol = float(data.get('tolerance', 1e-5))
+        max_iter = int(data.get('max_iter', 100))
+        
+        result = gauss_seidel(A, b, x0, tol=tol, max_iter=max_iter)
+        formatted_result = format_gauss_seidel_result(result)
         return jsonify(formatted_result), 200
 
     except (ValueError, np.linalg.LinAlgError) as e:

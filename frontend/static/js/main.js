@@ -1,6 +1,7 @@
 // frontend/static/js/main.js
 import { setupDirectMethodsHandlers } from './handlers/direct_methods_handler.js';
 import { setupInverseMethodsHandlers } from './handlers/inverse_methods_handler.js';
+import { setupIterativeMethodsHandlers } from './handlers/iterative_methods_handler.js'; // <<< THÊM DÒNG NÀY
 
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
