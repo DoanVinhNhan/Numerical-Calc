@@ -16,6 +16,14 @@ export function setupInverseMethodsHandlers() {
     if (calculateLUInverseBtn) {
         calculateLUInverseBtn.addEventListener('click', handleLUInverseCalculation);
     }
+    const calculateCholeskyInverseBtn = document.getElementById('calculate-inv-cholesky-btn');
+    if (calculateCholeskyInverseBtn) {
+        calculateCholeskyInverseBtn.addEventListener('click', handleCholeskyInverseCalculation);
+    }
+    const calculateBorderingInverseBtn = document.getElementById('calculate-inv-bordering-btn');
+    if (calculateBorderingInverseBtn) {
+        calculateBorderingInverseBtn.addEventListener('click', handleBorderingInverseCalculation);
+    }
 }
 
 /**
@@ -68,6 +76,51 @@ async function handleLUInverseCalculation() {
     try {
         const data = await calculateInverse('lu', matrixA, zeroTolerance);
         renderInverse(resultsArea, data); // Dùng lại hàm renderInverse
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleCholeskyInverseCalculation() {
+    const matrixA = document.getElementById('matrix-a-input-inv-direct').value;
+    const zeroTolerance = document.getElementById('setting-zero-tolerance').value;
+    const resultsArea = document.getElementById('results-area');
+
+    if (!matrixA.trim()) {
+        showError('Vui lòng nhập ma trận A.');
+        return;
+    }
+
+    showLoading();
+    
+    try {
+        const data = await calculateInverse('cholesky', matrixA, zeroTolerance);
+        renderInverse(resultsArea, data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleBorderingInverseCalculation() {
+    const matrixA = document.getElementById('matrix-a-input-inv-direct').value;
+    const zeroTolerance = document.getElementById('setting-zero-tolerance').value;
+    const resultsArea = document.getElementById('results-area');
+
+    if (!matrixA.trim()) {
+        showError('Vui lòng nhập ma trận A.');
+        return;
+    }
+
+    showLoading();
+    
+    try {
+        // Gọi API với method 'bordering'
+        const data = await calculateInverse('bordering', matrixA, zeroTolerance);
+        renderInverse(resultsArea, data);
     } catch (error) {
         showError(error.message);
     } finally {

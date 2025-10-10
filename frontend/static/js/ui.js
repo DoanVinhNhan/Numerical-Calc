@@ -177,6 +177,8 @@ export function renderInverse(container, data) {
             // Vùng hiển thị ma trận
             html += `<div class="flex flex-wrap items-center justify-center gap-4">`;
             
+            if (step.M) html += `<div class="matrix-display">${formatMatrix(step.M, 'M')}</div>`;
+
             // Hiển thị các ma trận phân rã P, L, U
             if (step.P) html += `<div class="matrix-display">${formatMatrix(step.P, 'P')}</div>`;
             if (step.L) html += `<div class="matrix-display">${formatMatrix(step.L, 'L')}</div>`;
@@ -194,6 +196,65 @@ export function renderInverse(container, data) {
 
             html += `</div></div>`;
         });
+    }
+
+    container.innerHTML = html;
+}
+
+/**
+ * Hiển thị kết quả của phương pháp lặp.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu kết quả từ API.
+ */
+export function renderIterativeSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '4');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+
+    // Hiển thị thông tin hội tụ
+    if (data.convergence_info) {
+        const { dominance_type, norm_used, contraction_coefficient } = data.convergence_info;
+        html += `<div class="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+            <p class="text-sm">${dominance_type}. ${norm_used}.</p>
+            <p class="text-sm">Hệ số co ||B|| = <strong>${contraction_coefficient.toFixed(6)}</strong></p>
+        </div>`;
+    }
+
+    // Hiển thị nghiệm
+    if (data.solution) {
+        html += `
+            <div class="my-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Nghiệm của hệ phương trình (X):</h3>
+                <div class="matrix-display">${formatMatrix(data.solution, 'X')}</div>
+            </div>`;
+    }
+
+    // Hiển thị bảng lặp
+    if (data.steps && data.steps[0].table) {
+        const table = data.steps[0].table;
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
+        html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
+        html += `<thead class="text-xs text-gray-800 uppercase bg-gray-100"><tr>
+            <th scope="col" class="px-6 py-3">k</th>
+            <th scope="col" class="px-6 py-3">Xₖ</th>
+            <th scope="col" class="px-6 py-3">||Xₖ - Xₖ₋₁||</th>
+            <th scope="col" class="px-6 py-3">Sai số ước tính</th>
+        </tr></thead><tbody>`;
+
+        table.forEach(row => {
+            html += `<tr class="bg-white border-b">
+                <td class="px-6 py-4 font-medium">${row.k}</td>
+                <td class="px-6 py-4">${formatMatrix(row.x_k)}</td>
+                <td class="px-6 py-4 font-mono">${row.diff_norm.toExponential(4)}</td>
+                <td class="px-6 py-4 font-mono">${row.error.toExponential(4)}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
     }
 
     container.innerHTML = html;

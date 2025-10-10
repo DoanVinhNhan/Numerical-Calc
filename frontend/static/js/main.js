@@ -101,6 +101,7 @@ function rebindEventHandlers(container) {
     // Trong trường hợp này là các phương pháp trực tiếp
     setupDirectMethodsHandlers();
     setupInverseMethodsHandlers();
+    setupIterativeMethodsHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();

@@ -183,3 +183,119 @@ def format_lu_inverse_result(result):
         "inverse": result['inverse'].tolist(),
         "steps": steps
     }
+
+def format_cholesky_inverse_result(result):
+    """
+    Định dạng kết quả tính ma trận nghịch đảo bằng Cholesky.
+    """
+    inter = result['intermediates']
+    steps = []
+
+    # Bước 1: Thông báo về tính đối xứng và ma trận M
+    steps.append({"message": f"<b>Bước 1:</b> {result['transformation_message']}"})
+    if result['intermediates']['M'] is not None:
+        steps[-1]['M'] = inter['M'].tolist()
+
+    # Bước 2: Phân rã Cholesky
+    steps.append({
+        "message": "<b>Bước 2:</b> Phân rã Cholesky M = UᵀU.",
+        "Ut": inter['Ut'].tolist(),
+        "U": inter['U'].tolist()
+    })
+
+    # Bước 3: Tính U⁻¹
+    steps.append({
+        "message": "<b>Bước 3:</b> Tính U⁻¹ bằng cách giải hệ UX = I.",
+        "matrix": inter['U_inv'].tolist(),
+        "num_vars": result['num_vars']
+    })
+
+    # Bước 4: Tính M⁻¹
+    steps.append({
+        "message": "<b>Bước 4:</b> Tính M⁻¹ = U⁻¹(U⁻¹)ᵀ.",
+        "matrix": inter['M_inv'].tolist(),
+        "num_vars": result['num_vars']
+    })
+
+    # Bước 5 (nếu cần): Tính A⁻¹ từ M⁻¹
+    if not result['is_symmetric']:
+        steps.append({
+            "message": "<b>Bước 5:</b> Tính A⁺ = M⁻¹Aᵀ.",
+            "matrix": result['inverse'].tolist(),
+            "num_vars": result['num_vars']
+        })
+
+    return {
+        "method": "Ma trận nghịch đảo (Cholesky)",
+        "status": "success",
+        "message": result['final_message'],
+        "inverse": result['inverse'].tolist(),
+        "steps": steps
+    }
+
+def format_bordering_inverse_result(result):
+    """
+    Định dạng kết quả tính ma trận nghịch đảo bằng phương pháp viền quanh.
+    """
+    steps_formatted = []
+    for step in result['steps']:
+        k = step['k']
+        if k == 1:
+            message = f"<b>Bước 1:</b> Nghịch đảo của ma trận con cấp 1 A₁ = [[{step['A_k']:.4f}]]"
+        else:
+            message = f"<b>Bước {k}:</b> Tính nghịch đảo cho ma trận con cấp {k}. (θ ≈ {step['theta']:.4f})"
+        
+        steps_formatted.append({
+            "message": message,
+            "matrix": step['inv_A_k'].tolist()
+        })
+    
+    # Thêm bước kiểm tra cuối cùng
+    steps_formatted.append({
+        "message": "<b>Kiểm tra:</b> A * A⁻¹ ≈ I",
+        "matrix": result['check'].tolist()
+    })
+
+    return {
+        "method": "Ma trận nghịch đảo (Viền quanh)",
+        "status": "success",
+        "message": "Tính ma trận nghịch đảo thành công bằng phương pháp viền quanh.",
+        "inverse": result['inverse'].tolist(),
+        "steps": steps_formatted
+    }
+
+def format_jacobi_result(result):
+    """
+    Định dạng kết quả từ phương pháp lặp Jacobi.
+    """
+    if result.get('status') != 'success':
+        return {"error": result.get('error', 'Lỗi không xác định')}
+
+    dominance_msg = "hàng" if result['is_row_dominant'] else "cột"
+    norm_symbol = "∞" if result['norm_used'] == "infinity" else "1"
+    
+    table = []
+    for row in result['iterations_data']:
+        table.append({
+            "k": row['k'],
+            "x_k": row['x_k'].tolist(),
+            "error": row['error'],
+            "diff_norm": row['diff_norm']
+        })
+
+    return {
+        "method": "Lặp Jacobi",
+        "status": "success",
+        "message": f"Hội tụ sau {result['iterations']} lần lặp.",
+        "solution": result['solution'].tolist(),
+        "convergence_info": {
+            "dominance_type": f"Ma trận chéo trội {dominance_msg}",
+            "norm_used": f"Sử dụng chuẩn {norm_symbol}",
+            "contraction_coefficient": result['contraction_coefficient']
+        },
+        "iteration_matrix": {
+            "B": result['matrix_B'].tolist(),
+            "d": result['vector_d'].tolist()
+        },
+        "steps": [{"table": table}]
+    }

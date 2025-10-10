@@ -14,6 +14,12 @@ from backend.numerical_methods.linear_algebra.inverse.gauss_jordan_inverse impor
 from backend.api_formatters.linear_algebra import format_inverse_gauss_jordan_result
 from backend.numerical_methods.linear_algebra.inverse.lu_inverse import lu_inverse
 from backend.api_formatters.linear_algebra import format_lu_inverse_result
+from backend.numerical_methods.linear_algebra.inverse.cholesky_inverse import cholesky_inverse
+from backend.api_formatters.linear_algebra import format_cholesky_inverse_result
+from backend.numerical_methods.linear_algebra.inverse.bordering import bordering_inverse
+from backend.api_formatters.linear_algebra import format_bordering_inverse_result
+from backend.numerical_methods.linear_algebra.iterative.jacobi import jacobi
+from backend.api_formatters.linear_algebra import format_jacobi_result
 
 linear_algebra_bp = Blueprint('linear_algebra', __name__, url_prefix='/api/linear-algebra')
 
@@ -240,6 +246,89 @@ def inverse_lu_route():
         return jsonify(formatted_result), 200
 
     except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+
+@linear_algebra_bp.route('/inverse/cholesky', methods=['POST'])
+def inverse_cholesky_route():
+    """
+    Route để tính ma trận nghịch đảo bằng phương pháp Cholesky.
+    """
+    try:
+        data = request.json
+        matrix_a_str = data.get('matrix_a')
+        zero_tolerance_str = data.get('zero_tolerance', '1e-15')
+        
+        try:
+            zero_tolerance = float(zero_tolerance_str)
+        except (ValueError, TypeError):
+            zero_tolerance = 1e-15
+
+        if not matrix_a_str:
+            return jsonify({"error": "Vui lòng nhập ma trận A."}), 400
+
+        A = parse_matrix_from_string(matrix_a_str)
+
+        if A.shape[0] != A.shape[1]:
+            return jsonify({"error": f"Ma trận A phải là ma trận vuông. Kích thước hiện tại là {A.shape[0]}x{A.shape[1]}."}), 400
+
+        result = cholesky_inverse(A, tol=zero_tolerance)
+        
+        formatted_result = format_cholesky_inverse_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+    
+@linear_algebra_bp.route('/inverse/bordering', methods=['POST'])
+def inverse_bordering_route():
+    """
+    Route để tính ma trận nghịch đảo bằng phương pháp viền quanh.
+    """
+    try:
+        data = request.json
+        matrix_a_str = data.get('matrix_a')
+        zero_tolerance_str = data.get('zero_tolerance', '1e-15')
+        
+        try:
+            zero_tolerance = float(zero_tolerance_str)
+        except (ValueError, TypeError):
+            zero_tolerance = 1e-15
+
+        if not matrix_a_str:
+            return jsonify({"error": "Vui lòng nhập ma trận A."}), 400
+
+        A = parse_matrix_from_string(matrix_a_str)
+
+        result = bordering_inverse(A, tol=zero_tolerance)
+        
+        formatted_result = format_bordering_inverse_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+    
+@linear_algebra_bp.route('/solve/jacobi', methods=['POST'])
+def solve_jacobi_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        b = parse_matrix_from_string(data.get('matrix_b'))
+        x0 = parse_matrix_from_string(data.get('x0'))
+        
+        tol = float(data.get('tolerance', 1e-5))
+        max_iter = int(data.get('max_iter', 100))
+        
+        result = jacobi(A, b, x0, tol=tol, max_iter=max_iter)
+        formatted_result = format_jacobi_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
