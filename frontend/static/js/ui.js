@@ -503,4 +503,99 @@ function formatComplexNumber(num, precision = 4) {
 }
 
 export function renderEigenSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+
+    if (data.message) {
+        html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+    }
+
+    // --- 1. Hiển thị Đa thức đặc trưng (cho Danilevsky) ---
+    if (data.char_poly) {
+        let polyHtml = 'P(λ) = ';
+        const degree = data.char_poly.length - 1;
+        data.char_poly.forEach((coeff, i) => {
+            const power = degree - i;
+            if (Math.abs(coeff.real) < 1e-9 && Math.abs(coeff.imag) < 1e-9) return;
+
+            let coeffStr = formatComplexNumber(coeff, 2);
+            if (i > 0) {
+                 polyHtml += (coeff.real >= 0 && !coeffStr.startsWith('-')) ? ' + ' : ' ';
+            }
+            
+            if (power > 1) {
+                polyHtml += `${coeffStr}λ<sup>${power}</sup>`;
+            } else if (power === 1) {
+                polyHtml += `${coeffStr}λ`;
+            } else {
+                polyHtml += `${coeffStr}`;
+            }
+        });
+        html += `<div class="my-6 text-center"><h3 class="text-lg font-semibold text-gray-700 mb-2">Đa thức đặc trưng:</h3><p class="text-lg font-mono">${polyHtml}</p></div>`;
+    }
+
+    // --- 2. Hiển thị các cặp Giá trị riêng và Vector riêng ---
+    html += `<h3 class="text-xl font-semibold text-gray-800 my-6 text-center">Các cặp Giá trị riêng (λ) và Vector riêng (v)</h3>`;
+    data.eigen_pairs.forEach((pair, index) => {
+        html += `<div class="mb-8 p-4 bg-gray-50 rounded-lg shadow-sm border">
+            <h4 class="text-lg font-semibold text-blue-700 mb-4">Cặp ${index + 1}: λ = ${formatComplexNumber(pair.lambda)}</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                <div>
+                    <h5 class="text-md font-semibold text-gray-700 mb-2 text-center">Vector riêng (v)</h5>
+                    <div class="matrix-display">${formatMatrix(pair.v, 'v')}</div>
+                </div>
+                <div class="md:col-span-2">
+                     <h5 class="text-md font-semibold text-gray-700 mb-2 text-center">Kiểm tra: A*v ≈ λ*v</h5>
+                     <div class="flex flex-wrap items-center justify-center gap-4">
+                        <div class="matrix-display">${formatMatrix(pair.Av_check, 'A*v')}</div>
+                        <span class="font-bold text-2xl">≈</span>
+                        <div class="matrix-display">${formatMatrix(pair.lambda_v_check, 'λ*v')}</div>
+                     </div>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    // --- 3. Hiển thị các bước trung gian ---
+    if (data.steps && data.steps.length > 0) {
+        html += `<h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4 text-center">Các bước tính toán chi tiết</h3>`;
+        
+        if (data.method === "Danilevsky") {
+            data.steps.forEach(step => {
+                html += `<details class="mb-4"><summary class="cursor-pointer text-md font-medium text-gray-800 hover:text-blue-600">${step.desc}</summary>
+                    <div class="mt-2 p-3 bg-blue-50 rounded-lg">
+                        <div class="matrix-display">${formatMatrix(step.matrix)}</div>
+                    </div>
+                </details>`;
+            });
+        } else if (data.method.includes("Power Method (GTR Trội)")) { // Xử lý riêng cho GTR Trội
+            html += `<div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border">
+                <h4 class="text-lg font-semibold text-blue-700 mb-3">Bảng quá trình lặp</h4>
+                <div class="overflow-x-auto mt-2"><table class="w-full text-sm">
+                    <thead class="bg-gray-200"><tr><th class="p-2">k</th><th class="p-2">Vector xₖ</th><th class="p-2">Vector Axₖ</th><th class="p-2">λₖ</th></tr></thead>
+                    <tbody>`;
+            data.steps.forEach(detail => {
+                html += `<tr class="border-b"><td class="p-2">${detail.k}</td><td class="p-2 font-mono">${formatMatrix(detail.x_k)}</td><td class="p-2 font-mono">${formatMatrix(detail.Ax_k)}</td><td class="p-2 font-mono">${detail.lambda_k.toFixed(6)}</td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+        } else if (data.method.includes("Power Method & Deflation")) { // Xử lý cho Xuống thang
+            data.steps.forEach(step => {
+                html += `<div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border">
+                    <h4 class="text-lg font-semibold text-blue-700 mb-3">${step.desc}</h4>
+                    <div class="matrix-display">${formatMatrix(step.matrix)}</div>
+                    <details class="mt-3"><summary class="cursor-pointer text-sm text-blue-600 hover:underline">Xem chi tiết ${step.iteration_details.length} bước lặp Power Method</summary>
+                        <div class="overflow-x-auto mt-2"><table class="w-full text-sm">
+                            <thead class="bg-gray-200"><tr><th class="p-2">k</th><th class="p-2">Vector xₖ</th><th class="p-2">Vector Axₖ</th><th class="p-2">λₖ</th></tr></thead>
+                            <tbody>`;
+                    step.iteration_details.forEach(detail => {
+                        html += `<tr class="border-b"><td class="p-2">${detail.k}</td><td class="p-2 font-mono">${formatMatrix(detail.x_k)}</td><td class="p-2 font-mono">${formatMatrix(detail.Ax_k)}</td><td class="p-2 font-mono">${detail.lambda_k.toFixed(6)}</td></tr>`;
+                    });
+                    html += `</tbody></table></div></details></div>`;
+            });
+        }
+    }
+
+    container.innerHTML = html;
 }
