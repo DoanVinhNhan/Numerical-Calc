@@ -3,13 +3,22 @@ import { calculateInverseIterative } from '../api.js';
 import { renderInverseIterativeSolution, showLoading, hideLoading, showError } from '../ui.js';
 
 export function setupInverseIterativeMethodsHandlers() {
-    const calculateBtn = document.getElementById('calculate-inv-jacobi-btn');
-    if (calculateBtn) {
-        calculateBtn.addEventListener('click', handleJacobiInverseCalculation);
+    const jacobiBtn = document.getElementById('calculate-inv-jacobi-btn');
+    if (jacobiBtn) {
+        jacobiBtn.addEventListener('click', () => handleInverseIterativeCalculation('jacobi'));
+    }
+    const newtonBtn = document.getElementById('calculate-inv-newton-btn');
+    if (newtonBtn) {
+        newtonBtn.addEventListener('click', () => handleInverseIterativeCalculation('newton'));
+    }
+    const gsBtn = document.getElementById('calculate-inv-gauss-seidel-btn');
+    if (gsBtn) {
+        gsBtn.addEventListener('click', () => handleInverseIterativeCalculation('gauss-seidel'));
     }
 }
 
-async function handleJacobiInverseCalculation() {
+// Gộp thành một hàm chung để xử lý
+async function handleInverseIterativeCalculation(method) {
     const matrixA = document.getElementById('matrix-a-input-inv-iter').value;
     const tolerance = document.getElementById('inv-iter-tolerance').value;
     const maxIter = document.getElementById('inv-iter-max-iter').value;
@@ -22,7 +31,7 @@ async function handleJacobiInverseCalculation() {
 
     showLoading();
     try {
-        const data = await calculateInverseIterative('jacobi', matrixA, tolerance, maxIter, x0Method);
+        const data = await calculateInverseIterative(method, matrixA, tolerance, maxIter, x0Method);
         renderInverseIterativeSolution(document.getElementById('results-area'), data);
     } catch (error) {
         showError(error.message);

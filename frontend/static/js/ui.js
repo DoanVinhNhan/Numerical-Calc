@@ -312,3 +312,180 @@ export function renderIterativeSolution(container, data) {
         });
     }
 }
+
+
+/**
+ * Hiển thị kết quả tính ma trận nghịch đảo bằng phương pháp lặp.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu kết quả từ API.
+ */
+export function renderInverseIterativeSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+
+    // Hiển thị thông tin hội tụ
+    if (data.convergence_info) {
+        const { dominance_type, norm_used, contraction_coefficient, coeff_q, coeff_s, x0_label } = data.convergence_info;
+        html += `<div class="mb-4 p-3 bg-gray-50 rounded-lg text-center text-sm">`;
+        if (dominance_type) {
+            html += `<p>${dominance_type}.</p>`;
+        }
+        if (norm_used) {
+            html += `<p>${norm_used}.</p>`;
+        }
+        
+        // Kiểm tra và hiển thị hệ số co tương ứng
+        if (contraction_coefficient !== undefined) {
+             html += `<p>Hệ số co q = <strong>${contraction_coefficient.toFixed(6)}</strong>.</p>`;
+        }
+        if (coeff_q !== undefined && coeff_s !== undefined) {
+             html += `<p>Hệ số: q = <strong>${coeff_q.toFixed(6)}</strong>, s = <strong>${coeff_s.toFixed(6)}</strong>.</p>`;
+        }
+        
+        if (x0_label) {
+            html += `<p>Ma trận ban đầu: ${x0_label}</p>`;
+        }
+        html += `</div>`;
+    }
+
+    // Hiển thị ma trận ban đầu X₀
+    if (data.initial_matrix) {
+        html += `
+            <div class="my-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận lặp ban đầu (X₀):</h3>
+                <div class="matrix-display">${formatMatrix(data.initial_matrix, 'X₀')}</div>
+            </div>`;
+    }
+
+    // Ma trận nghịch đảo và ma trận kiểm tra
+    html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận nghịch đảo (A⁻¹):</h3>
+            <div class="matrix-display">${formatMatrix(data.inverse, 'A⁻¹')}</div>
+        </div>
+        <div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Kiểm tra (A * A⁻¹ ≈ I):</h3>
+            <div class="matrix-display">${formatMatrix(data.check_matrix, 'Check')}</div>
+        </div>
+    </div>`;
+
+    // Bảng quá trình lặp
+    if (data.steps && data.steps[0].table) {
+        const table = data.steps[0].table;
+        let normSymbol, diffNormFormula, errorColName;
+        
+        const q_val = data.convergence_info?.coeff_q ?? data.convergence_info?.contraction_coefficient;
+
+        if (data.method.includes("Newton")) {
+            normSymbol = '2';
+            diffNormFormula = `\\|X_k - X_{k-1}\\|_{${normSymbol}}`;
+            errorColName = q_val < 1 ? `$\\frac{q}{1-q}${diffNormFormula}$` : `$${diffNormFormula}$ (q \\ge 1)`;
+        } else { // Jacobi hoặc Gauss-Seidel
+            normSymbol = data.convergence_info?.norm_used === "infinity" ? '\\infty' : '1';
+            diffNormFormula = `\\|X_k - X_{k-1}\\|_{${normSymbol}}`;
+            
+            if (data.method.includes("Gauss-Seidel")) {
+                const s_val = data.convergence_info?.coeff_s;
+                errorColName = `$\\frac{q}{(1-s)(1-q)}${diffNormFormula}$`;
+            } else { // Jacobi
+                errorColName = q_val < 1 ? `$\\frac{q}{1-q}${diffNormFormula}$` : `$${diffNormFormula}$ (q \\ge 1)`;
+            }
+        }
+
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
+        html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">
+            <thead class="text-xs text-gray-800 bg-gray-100"><tr>
+                <th scope="col" class="px-6 py-3">$k$</th>
+                <th scope="col" class="px-6 py-3">$X_k$</th>
+                <th scope="col" class="px-6 py-3">$${diffNormFormula}$</th>
+                <th scope="col" class="px-6 py-3">${errorColName}</th>
+            </tr></thead><tbody>`;
+
+        const maxRowsToShow = 10;
+        const totalRows = table.length;
+        
+        table.forEach((row, index) => {
+            const error_val = (row.error !== undefined && row.error !== null) ? row.error.toExponential(4) : 'N/A';
+            const estimated_error_val = (row.estimated_error !== undefined && row.estimated_error !== null) ? row.estimated_error.toExponential(4) : 'N/A';
+
+            const rowClass = (totalRows > maxRowsToShow && index >= maxRowsToShow / 2 && index < totalRows - maxRowsToShow / 2) ? 'iteration-row-hidden' : '';
+            html += `<tr class="bg-white border-b ${rowClass}">
+                <td class="px-6 py-4 font-medium">${row.k}</td>
+                <td class="px-6 py-4">${formatMatrix(row.x_k)}</td>
+                <td class="px-6 py-4 font-mono">${error_val}</td>
+                <td class="px-6 py-4 font-mono">${estimated_error_val}</td>
+            </tr>`;
+        });
+        
+        if (totalRows > maxRowsToShow) {
+            html += `<tr class="toggle-row"><td colspan="4" class="text-center"><button class="toggle-table-btn" onclick="this.closest('table').querySelectorAll('.iteration-row-hidden').forEach(r => r.style.display = r.style.display === 'none' ? 'table-row' : 'none'); this.textContent = this.textContent.includes('Xem') ? 'Ẩn bớt' : 'Xem thêm ${totalRows - maxRowsToShow} hàng...';">Xem thêm ${totalRows - maxRowsToShow} hàng...</button></td></tr>`;
+        }
+
+        html += `</tbody></table></div>`;
+    }
+
+    container.innerHTML = html;
+    if (window.katex) {
+        container.querySelectorAll('th, p').forEach(elem => {
+            const matches = elem.innerHTML.match(/\$(.*?)\$/g);
+            if (matches) {
+                matches.forEach(match => {
+                    const formula = match.slice(1, -1).replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                    try {
+                        const renderedFormula = katex.renderToString(formula, { throwOnError: false, displayMode: false });
+                        elem.innerHTML = elem.innerHTML.replace(match, renderedFormula);
+                    } catch (e) { /* Bỏ qua lỗi render */ }
+                });
+            }
+        });
+    }
+}
+
+export function renderSvdSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">Kết quả - Phân tích SVD (${data.method})</h2>`;
+    
+    html += `<h3 class="text-xl font-semibold text-gray-700 mt-6 mb-2 text-center">A ≈ UΣVᵀ</h3>`;
+    html += `<div class="flex flex-wrap items-center justify-center gap-4">
+        <div class="matrix-display">${formatMatrix(data.U, 'U')}</div>
+        <div class="matrix-display">${formatMatrix(data.Sigma, 'Σ')}</div>
+        <div class="matrix-display">${formatMatrix(data.Vt, 'Vᵀ')}</div>
+    </div>`;
+
+    if (data.intermediate_steps && data.intermediate_steps.steps) {
+        const steps = data.intermediate_steps.steps;
+        html += `<h3 class="text-xl font-semibold text-gray-700 mt-8 mb-4">Các bước trung gian (Power Method)</h3>`;
+        html += `<p class="text-center text-sm text-gray-600 mb-4">Làm việc với ma trận: <strong>${data.intermediate_steps.matrix_used_info}</strong></p>`;
+
+        steps.forEach(step => {
+            html += `<div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border">
+                <h4 class="text-lg font-semibold text-blue-700 mb-3">Tìm giá trị kỳ dị thứ ${step.singular_index} (σ = ${step.singular_value.toFixed(4)})</h4>
+                
+                <p class="text-sm mb-2"><strong>1. Dùng Power Method</strong> trên ma trận B<sub>${step.singular_index - 1}</sub> để tìm giá trị riêng lớn nhất λ = ${step.eigenvalue.toFixed(4)} và vector riêng tương ứng.</p>
+                <details class="mb-3">
+                    <summary class="cursor-pointer text-sm text-blue-600 hover:underline">Xem chi tiết ${step.lambda_steps.length} bước lặp Power Method</summary>
+                    <div class="overflow-x-auto mt-2"><table class="w-full text-sm">
+                        <thead class="bg-gray-200"><tr><th class="p-2">k</th><th class="p-2">Vector yₖ</th><th class="p-2">λₖ</th></tr></thead>
+                        <tbody>`;
+            step.lambda_steps.forEach((lambda, i) => {
+                html += `<tr class="border-b"><td class="p-2">${i + 1}</td><td class="p-2 font-mono">${formatMatrix(step.y_steps[i+1])}</td><td class="p-2 font-mono">${lambda.toFixed(6)}</td></tr>`;
+            });
+            html += `</tbody></table></div>
+                </details>
+
+                <p class="text-sm mb-2"><strong>2. Quá trình Deflation:</strong> B<sub>${step.singular_index}</sub> = B<sub>${step.singular_index - 1}</sub> - λ * v * vᵀ</p>
+                <div class="flex flex-wrap items-start justify-center gap-4">
+                    <div><p class="text-xs text-center font-semibold">B<sub>${step.singular_index-1}</sub> (Trước)</p><div class="matrix-display">${formatMatrix(step.matrix_before_deflation)}</div></div>
+                    <div><p class="text-xs text-center font-semibold">B<sub>${step.singular_index}</sub> (Sau)</p><div class="matrix-display">${formatMatrix(step.matrix_after_deflation)}</div></div>
+                </div>
+            </div>`;
+        });
+    }
+
+    container.innerHTML = html;
+}

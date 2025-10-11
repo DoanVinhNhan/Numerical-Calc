@@ -346,3 +346,129 @@ def format_simple_iteration_result(result):
         },
         "steps": [{"table": table}]
     }
+
+def format_inverse_jacobi_result(result):
+    if result.get('status') != 'success':
+        return {"error": result.get('error', 'Lỗi không xác định')}
+
+    dominance_msg = "hàng" if result['is_row_dominant'] else "cột"
+    norm_symbol = "∞" if result['norm_used'] == "infinity" else "1"
+    x0_label = "Aᵀ / ||A||₂²" if result['x0_method'] == 'method1' else "Aᵀ / (||A||₁·||A||∞)"
+
+    table = []
+    for row in result['iterations_data']:
+        table.append({
+            "k": row['k'],
+            "x_k": row['x_k'].tolist(),
+            "error": row['diff_norm'], 
+            "estimated_error": row['error']
+        })
+
+    return {
+        "method": "Lặp Jacobi - Nghịch Đảo",
+        "status": "success",
+        "message": f"Hội tụ sau {result['iterations']} lần lặp.",
+        "inverse": result['inverse'].tolist(),
+        "check_matrix": result['check_matrix'].tolist(),
+        "convergence_info": {
+            "dominance_type": f"Ma trận chéo trội {dominance_msg}",
+            "norm_used": f"Sử dụng chuẩn {norm_symbol}",
+            "contraction_coefficient": result['contraction_coefficient'],
+            "x0_label": f"X₀ = {x0_label}"
+        },
+        "initial_matrix": result['initial_matrix'].tolist(),
+        "steps": [{"table": table}]
+    }
+
+def format_inverse_newton_result(result):
+    if result.get('status') != 'success':
+        return {"error": result.get('error', 'Lỗi không xác định')}
+
+    table = []
+    for row in result['iterations_data']:
+        table.append({
+            "k": row['k'],
+            "x_k": row['x_k'].tolist(),
+            "error": row['diff_norm'], 
+            "estimated_error": row['estimated_error']
+        })
+
+    return {
+        "method": "Lặp tựa Newton - Nghịch Đảo",
+        "status": "success",
+        "message": f"Hội tụ sau {result['iterations']} lần lặp.",
+        "inverse": result['inverse'].tolist(),
+        "check_matrix": result['check_matrix'].tolist(),
+        "convergence_info": {
+            "norm_used": "Sử dụng chuẩn 2", # Newton luôn dùng chuẩn 2
+            "contraction_coefficient": result['contraction_coefficient'],
+            "x0_label": result['x0_label']
+        },
+        "initial_matrix": result['initial_matrix'].tolist(),
+        "steps": [{"table": table}]
+    }
+
+def format_inverse_gauss_seidel_result(result):
+    if result.get('status') != 'success':
+        return {"error": result.get('error', 'Lỗi không xác định')}
+
+    dominance_msg = "hàng" if result['is_row_dominant'] else "cột"
+    norm_symbol = "∞" if result['norm_used'] == "infinity" else "1"
+    x0_label = "Aᵀ / ||A||₂²" if result['x0_method'] == 'method1' else "Aᵀ / (||A||₁·||A||∞)"
+
+    table = []
+    for row in result['iterations_data']:
+        table.append({
+            "k": row['k'],
+            "x_k": row['x_k'].tolist(),
+            "error": row['diff_norm'], 
+            "estimated_error": row['error']
+        })
+
+    return {
+        "method": "Lặp Gauss-Seidel - Nghịch Đảo",
+        "status": "success",
+        "message": f"Hội tụ sau {result['iterations']} lần lặp.",
+        "inverse": result['inverse'].tolist(),
+        "check_matrix": result['check_matrix'].tolist(),
+        "convergence_info": {
+            "dominance_type": f"Ma trận chéo trội {dominance_msg}",
+            "norm_used": f"Sử dụng chuẩn {norm_symbol}",
+            "coeff_q": result['coeff_q'],
+            "coeff_s": result['coeff_s'],
+            "x0_label": f"X₀ = {x0_label}"
+        },
+        "initial_matrix": result['initial_matrix'].tolist(),
+        "steps": [{"table": table}]
+    }
+
+def format_svd_result(result, original_shape):
+    if result.get('status') != 'success':
+        return result
+
+    m, n = original_shape
+    U, s, Vt = result['U'], result['Sigma_diag'], result['Vt']
+    
+    # Tạo ma trận Sigma đầy đủ
+    Sigma = np.zeros((U.shape[1], Vt.shape[0]))
+    np.fill_diagonal(Sigma, s)
+    
+    # Xử lý các bước trung gian (nếu có)
+    intermediate_steps = result.get('intermediate_steps')
+    if intermediate_steps and 'steps' in intermediate_steps:
+        for step in intermediate_steps['steps']:
+            step['matrix_before_deflation'] = step['matrix_before_deflation'].tolist()
+            step['matrix_after_deflation'] = step['matrix_after_deflation'].tolist()
+            step['eigenvector'] = step['eigenvector'].tolist()
+            step['y_steps'] = [y.tolist() for y in step['y_steps']]
+        intermediate_steps['original_matrix'] = intermediate_steps['original_matrix'].tolist()
+
+    return {
+        "method": result['method'],
+        "status": "success",
+        "U": U.tolist(),
+        "Sigma": Sigma.tolist(),
+        "Vt": Vt.tolist(),
+        "Sigma_diag": s.tolist(),
+        "intermediate_steps": intermediate_steps
+    }

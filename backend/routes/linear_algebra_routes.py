@@ -24,6 +24,14 @@ from backend.numerical_methods.linear_algebra.iterative.gauss_seidel import gaus
 from backend.api_formatters.linear_algebra import format_gauss_seidel_result
 from backend.numerical_methods.linear_algebra.iterative.simple_iteration import simple_iteration
 from backend.api_formatters.linear_algebra import format_simple_iteration_result
+from backend.numerical_methods.linear_algebra.inverse.jacobi_inverse import jacobi_inverse
+from backend.api_formatters.linear_algebra import format_inverse_jacobi_result
+from backend.numerical_methods.linear_algebra.inverse.newton_inverse import newton_inverse
+from backend.api_formatters.linear_algebra import format_inverse_newton_result
+from backend.numerical_methods.linear_algebra.inverse.gauss_seidel_inverse import gauss_seidel_inverse
+from backend.api_formatters.linear_algebra import format_inverse_gauss_seidel_result
+from backend.numerical_methods.linear_algebra.eigen.svd import svd_numpy, svd_power_deflation
+from backend.api_formatters.linear_algebra import format_svd_result
 
 
 linear_algebra_bp = Blueprint('linear_algebra', __name__, url_prefix='/api/linear-algebra')
@@ -384,3 +392,56 @@ def solve_simple_iteration_route():
     except Exception as e:
         return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
     
+@linear_algebra_bp.route('/inverse/jacobi', methods=['POST'])
+def inverse_jacobi_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        tol = float(data.get('tolerance', 1e-5))
+        max_iter = int(data.get('max_iter', 100))
+        x0_method = data.get('x0_method', 'method1')
+
+        result = jacobi_inverse(A, tol=tol, max_iter=max_iter, x0_method=x0_method)
+        formatted_result = format_inverse_jacobi_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+    
+@linear_algebra_bp.route('/inverse/newton', methods=['POST'])
+def inverse_newton_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        tol = float(data.get('tolerance', 1e-5))
+        max_iter = int(data.get('max_iter', 100))
+        x0_method = data.get('x0_method', 'method1') # Giữ nguyên 'method1' làm mặc định
+
+        result = newton_inverse(A, tol=tol, max_iter=max_iter, x0_method=x0_method)
+        formatted_result = format_inverse_newton_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+
+@linear_algebra_bp.route('/inverse/gauss-seidel', methods=['POST'])
+def inverse_gauss_seidel_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        tol = float(data.get('tolerance', 1e-5))
+        max_iter = int(data.get('max_iter', 100))
+        x0_method = data.get('x0_method', 'method1')
+
+        result = gauss_seidel_inverse(A, tol=tol, max_iter=max_iter, x0_method=x0_method)
+        formatted_result = format_inverse_gauss_seidel_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500

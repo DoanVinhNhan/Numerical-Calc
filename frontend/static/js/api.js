@@ -129,3 +129,22 @@ export async function calculateInverseIterative(method, matrixA, tolerance, maxI
     }
     return response.json();
 }
+
+export async function calculateSvd(matrixA, method, numSingular, yInit) {
+    const response = await fetch(`${API_BASE_URL}/linear-algebra/svd`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            matrix_a: matrixA,
+            method: method,
+            num_singular: numSingular,
+            y_init: yInit
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định từ máy chủ.');
+    }
+    return response.json();
+}
