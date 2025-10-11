@@ -570,17 +570,25 @@ def format_power_method_result(result, A):
             'lambda_v_check': format_vector_for_json(lambda_v)
         })
 
-    # Format steps
+    # Sửa đổi: Đảm bảo TẤT CẢ ndarray được chuyển thành list
     if 'steps' in result:
         for step in result['steps']:
             if 'iteration_details' in step: # Deflation
-                for iter_detail in step['iteration_details']:
-                    iter_detail['x_k'] = iter_detail['x_k'].flatten().tolist()
-                    iter_detail['Ax_k'] = iter_detail['Ax_k'].flatten().tolist()
-                step['matrix_before_deflation'] = step['matrix_before_deflation'].tolist()
+                step['desc'] = f"<b>Tìm trị riêng thứ {step['eigenvalue_index']}:</b> Ma trận trước khi xuống thang"
+                # Chuyển đổi ma trận sang list
+                step['matrix'] = step['matrix_before_deflation'].tolist()
+                del step['matrix_before_deflation']
+                
+                # Chuyển đổi các ndarray bên trong chi tiết lặp
+                for detail in step['iteration_details']:
+                    detail['x_k'] = detail['x_k'].tolist()
+                    detail['Ax_k'] = detail['Ax_k'].tolist()
             else: # Single
-                step['x_k'] = step['x_k'].flatten().tolist()
-                step['Ax_k'] = step['Ax_k'].flatten().tolist()
+                step['desc'] = f"<b>Bước {step['k']}:</b> Lặp lần thứ {step['k']}"
+                # Chuyển đổi các vector sang list
+                step['x_k'] = step['x_k'].tolist()
+                step['Ax_k'] = step['Ax_k'].tolist()
+                # lambda_k đã là float, không cần chuyển đổi
 
     return {
         "method": method,

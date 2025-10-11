@@ -508,29 +508,32 @@ export function renderEigenSolution(container, data) {
 
     let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
 
-    // Đa thức đặc trưng
-    let polyHtml = 'P(λ) = ';
-    const degree = data.char_poly.length - 1;
-    data.char_poly.forEach((coeff, i) => {
-        const coeffVal = (typeof coeff === 'number') ? coeff : coeff.real;
-        if (Math.abs(coeffVal) < 1e-9 && degree - i !== 0) return;
-        
-        let sign = i > 0 ? (coeffVal >= 0 ? ' + ' : ' - ') : (coeffVal >= 0 ? '' : '- ');
+    // Sửa đổi: Chỉ hiển thị đa thức đặc trưng nếu nó tồn tại trong dữ liệu trả về
+    if (data.char_poly && data.char_poly.length > 0) {
+        let polyHtml = 'P(λ) = ';
+        const degree = data.char_poly.length - 1;
+        data.char_poly.forEach((coeff, i) => {
+            const coeffVal = (typeof coeff === 'number') ? coeff : coeff.real;
+            if (Math.abs(coeffVal) < 1e-9 && degree - i !== 0) return;
+            
+            let sign = i > 0 ? (coeffVal >= 0 ? ' + ' : ' - ') : (coeffVal >= 0 ? '' : '- ');
 
-        let coeffStr = Math.abs(coeffVal).toFixed(4);
-        const power = degree - i;
-        if (Math.abs(parseFloat(coeffStr) - 1) < 1e-9 && power > 0) {
-            coeffStr = '';
-        }
+            let coeffStr = Math.abs(coeffVal).toFixed(4);
+            const power = degree - i;
+            if (Math.abs(parseFloat(coeffStr) - 1) < 1e-9 && power > 0) {
+                coeffStr = '';
+            }
 
-        polyHtml += `${sign}${coeffStr}`;
-        if (power > 1) polyHtml += `λ<sup>${power}</sup>`;
-        else if (power === 1) polyHtml += `λ`;
-    });
-    html += `<div class="my-4 p-3 bg-gray-100 rounded-lg text-center font-mono text-lg">${polyHtml} = 0</div>`;
+            polyHtml += `${sign}${coeffStr}`;
+            if (power > 1) polyHtml += `λ<sup>${power}</sup>`;
+            else if (power === 1) polyHtml += `λ`;
+        });
+        html += `<div class="my-4 p-3 bg-gray-100 rounded-lg text-center font-mono text-lg">${polyHtml} = 0</div>`;
+    }
 
-    // Bảng trị riêng, vector riêng và kiểm tra
+    // Bảng trị riêng, vector riêng và kiểm tra (giữ nguyên phần còn lại)
     html += `<h3 class="text-xl font-semibold text-gray-700 mt-6 mb-2">Trị riêng và Vector riêng</h3>`;
+
     html += `<div class="overflow-x-auto"><table class="w-full text-sm">
         <thead class="bg-gray-200"><tr>
             <th class="p-2">Trị riêng (λ)</th>

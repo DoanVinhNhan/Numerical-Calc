@@ -131,7 +131,8 @@ export async function calculateInverseIterative(method, matrixA, tolerance, maxI
 }
 
 export async function calculateEigen(method, payload) {
-    const response = await fetch(`${API_BASE_URL}/linear-algebra/eigen/${method}`, {
+    const endpoint = method === 'svd' ? 'svd' : `eigen/${method}`;
+    const response = await fetch(`${API_BASE_URL}/linear-algebra/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
