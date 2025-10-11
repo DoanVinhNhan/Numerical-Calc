@@ -1,9 +1,7 @@
 // frontend/static/js/main.js
 import { setupDirectMethodsHandlers } from './handlers/direct_methods_handler.js';
 import { setupInverseMethodsHandlers } from './handlers/inverse_methods_handler.js';
-import { setupIterativeMethodsHandlers } from './handlers/iterative_methods_handler.js'; // <<< THÊM DÒNG NÀY
-import { setupInverseIterativeMethodsHandlers } from './handlers/inverse_iterative_methods_handler.js';
-
+import { setupIterativeMethodsHandlers } from './handlers/iterative_methods_handler.js';
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
  */
@@ -104,7 +102,6 @@ function rebindEventHandlers(container) {
     setupDirectMethodsHandlers();
     setupInverseMethodsHandlers();
     setupIterativeMethodsHandlers();
-    setupInverseIterativeMethodsHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();

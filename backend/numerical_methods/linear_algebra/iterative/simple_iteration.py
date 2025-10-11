@@ -26,7 +26,7 @@ def simple_iteration(B, d, x0, tol=1e-5, max_iter=100, norm_choice='inf'):
             "Quá trình lặp có thể không hội tụ."
         )
 
-    # Điều kiện dừng tiên nghiệm
+    # Điều kiện dừng
     stopping_threshold = tol
     if norm_B < 1:
         stopping_threshold = abs((1 - norm_B) / norm_B) * tol
@@ -49,7 +49,8 @@ def simple_iteration(B, d, x0, tol=1e-5, max_iter=100, norm_choice='inf'):
                 "iterations_data": iterations_data,
                 "norm_B": norm_B,
                 "warning_message": warning_message,
-                "norm_used": norm_choice
+                "norm_used": norm_choice,
+                "stopping_threshold": stopping_threshold
             }
 
     raise ValueError(f"Không hội tụ sau {max_iter} lần lặp. Sai số cuối cùng là {error:.2e}.")

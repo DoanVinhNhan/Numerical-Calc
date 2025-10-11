@@ -213,28 +213,26 @@ export function renderIterativeSolution(container, data) {
     let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
     html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
 
-    // Hiển thị thông tin hội tụ, xử lý các trường hợp khác nhau
+    // Hiển thị thông tin hội tụ
     if (data.convergence_info) {
-        const { dominance_type, norm_used, contraction_coefficient, coeff_q, coeff_s, warning_message } = data.convergence_info;
+        const { dominance_type, norm_used, contraction_coefficient, coeff_q, coeff_s, warning_message, stopping_threshold} = data.convergence_info;
         
         let convergenceHtml = `<div class="mb-4 p-3 bg-gray-50 rounded-lg text-center">`;
-        
         if (dominance_type) {
             convergenceHtml += `<p class="text-sm">${dominance_type}. ${norm_used}.</p>`;
         }
-        
         if (contraction_coefficient !== undefined) {
-             convergenceHtml += `<p class="text-sm">Hệ số co ||B|| = <strong>${contraction_coefficient.toFixed(6)}</strong></p>`;
+             convergenceHtml += `<p class="text-sm">Hệ số co $||B||$ = <strong>${contraction_coefficient.toFixed(6)}</strong></p>`;
         }
-        
         if (coeff_q !== undefined && coeff_s !== undefined) {
-            convergenceHtml += `<p class="text-sm">Hệ số co: q = <strong>${coeff_q.toFixed(6)}</strong>, s = <strong>${coeff_s.toFixed(6)}</strong></p>`;
+            convergenceHtml += `<p class="text-sm">Hệ số co: $q$ = <strong>${coeff_q.toFixed(6)}</strong>, $s$ = <strong>${coeff_s.toFixed(6)}</strong></p>`;
         }
-        
+        if (stopping_threshold !== undefined && data.method === "Lặp Đơn") {
+            convergenceHtml += `<p class="text-sm">Điều kiện dừng: $||X_k - X_{k-1}|| < ${stopping_threshold.toExponential(4)}$</p>`;
+        }
         if (warning_message) {
             convergenceHtml += `<p class="text-sm text-red-600 font-semibold mt-2">${warning_message}</p>`;
         }
-        
         convergenceHtml += `</div>`;
         html += convergenceHtml;
     }
@@ -251,33 +249,34 @@ export function renderIterativeSolution(container, data) {
     // Hiển thị bảng lặp
     if (data.steps && data.steps[0].table) {
         const table = data.steps[0].table;
-        // Đặt tên cột cuối cùng một cách linh hoạt
-        const errorColName = (data.method === "Lặp Đơn") 
-            ? "||Xₖ - Xₖ₋₁||" 
-            : "Sai số ước tính";
-        const diffColName = (data.method !== "Lặp Đơn")
-            ? "||Xₖ - Xₖ₋₁||"
-            : ""; // Ẩn cột này cho lặp đơn
+        
+        const normSymbol = (data.convergence_info?.norm_used === "infinity" || data.convergence_info?.norm_used === 'inf') ? '\\infty' : '1';
+        const diffNormFormula = `\\|X_k - X_{k-1}\\|_{${normSymbol}}`;
+        let errorColName = "Sai số ước tính";
 
+        if (data.method === "Lặp Đơn") {
+            errorColName = `$${diffNormFormula}$`;
+        } else if (data.method === "Lặp Jacobi") {
+            const q = data.convergence_info?.contraction_coefficient;
+            errorColName = q < 1 ? `$\\frac{q}{1-q}${diffNormFormula}$` : `$${diffNormFormula}$ (q \\ge 1)`;
+        } else if (data.method === "Lặp Gauss-Seidel") {
+             errorColName = `$\\frac{q}{(1-s)(1-q)}${diffNormFormula}$`;
+        }
+        
+        const diffColName = (data.method !== "Lặp Đơn") ? `$${diffNormFormula}$` : "";
 
         html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
         html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
-        html += `<thead class="text-xs text-gray-800 uppercase bg-gray-100"><tr>
-            <th scope="col" class="px-6 py-3">k</th>
-            <th scope="col" class="px-6 py-3">Xₖ</th>
+        html += `<thead class="text-xs text-gray-800 bg-gray-100"><tr>
+            <th scope="col" class="px-6 py-3">$k$</th>
+            <th scope="col" class="px-6 py-3">$X_k$</th>
             ${diffColName ? `<th scope="col" class="px-6 py-3">${diffColName}</th>` : ''}
             <th scope="col" class="px-6 py-3">${errorColName}</th>
         </tr></thead><tbody>`;
 
         table.forEach(row => {
-            // Định dạng giá trị sai số, xử lý trường hợp k=0
-            const error_val = row.error === null || row.error === undefined 
-                ? 'N/A' 
-                : row.error.toExponential(4);
-
-            const diff_norm_val = row.diff_norm !== undefined 
-                ? row.diff_norm.toExponential(4)
-                : '';
+            const error_val = row.error === null || row.error === undefined ? 'N/A' : row.error.toExponential(4);
+            const diff_norm_val = row.diff_norm !== undefined ? row.diff_norm.toExponential(4) : '';
 
             html += `<tr class="bg-white border-b">
                 <td class="px-6 py-4 font-medium">${row.k}</td>
@@ -291,62 +290,25 @@ export function renderIterativeSolution(container, data) {
     }
 
     container.innerHTML = html;
-}
 
-export function renderInverseIterativeSolution(container, data) {
-    // Hiển thị kết quả cho các phương pháp lặp tính ma trận nghịch đảo.
-    const errorMessageDiv = document.getElementById('error-message');
-    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
-
-    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
-    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
-    
-    // Thông tin hội tụ
-    if (data.convergence_info) {
-        const { dominance_type, norm_used, contraction_coefficient } = data.convergence_info;
-        html += `<div class="mb-4 p-3 bg-gray-50 rounded-lg text-center">
-            <p class="text-sm">${dominance_type}. ${norm_used}.</p>
-            <p class="text-sm">Hệ số co ||B|| = <strong>${contraction_coefficient.toFixed(6)}</strong></p>
-        </div>`;
-    }
-
-    // Ma trận nghịch đảo
-    if (data.inverse) {
-        html += `<div class="my-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận nghịch đảo (A⁻¹):</h3>
-            <div class="matrix-display">${formatMatrix(data.inverse, 'A⁻¹')}</div>
-        </div>`;
-    }
-
-    // Ma trận ban đầu
-    if (data.initial_matrix) {
-        html += `<div class="my-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận lặp ban đầu (${data.initial_matrix.label}):</h3>
-            <div class="matrix-display">${formatMatrix(data.initial_matrix.matrix, 'X₀')}</div>
-        </div>`;
-    }
-
-    // Bảng lặp
-    if (data.steps && data.steps[0].table) {
-        const table = data.steps[0].table;
-        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
-        html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">
-            <thead class="text-xs text-gray-800 uppercase bg-gray-100"><tr>
-                <th scope="col" class="px-6 py-3">k</th>
-                <th scope="col" class="px-6 py-3">Xₖ</th>
-                <th scope="col" class="px-6 py-3">||Xₖ - Xₖ₋₁||</th>
-                <th scope="col" class="px-6 py-3">Sai số ước tính</th>
-            </tr></thead><tbody>`;
-        table.forEach(row => {
-            html += `<tr class="bg-white border-b">
-                <td class="px-6 py-4 font-medium">${row.k}</td>
-                <td class="px-6 py-4">${formatMatrix(row.x_k)}</td>
-                <td class="px-6 py-4 font-mono">${row.diff_norm.toExponential(4)}</td>
-                <td class="px-6 py-4 font-mono">${row.error.toExponential(4)}</td>
-            </tr>`;
+    // Sau khi chèn HTML, tìm và render tất cả các công thức toán học
+    if (window.katex) {
+        container.querySelectorAll('th, p').forEach(elem => {
+            const matches = elem.innerHTML.match(/\$(.*?)\$/g);
+            if (matches) {
+                matches.forEach(match => {
+                    const formula = match.slice(1, -1).replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                    try {
+                        const renderedFormula = katex.renderToString(formula, {
+                            throwOnError: false,
+                            displayMode: false
+                        });
+                        elem.innerHTML = elem.innerHTML.replace(match, renderedFormula);
+                    } catch (e) {
+                        // Bỏ qua lỗi render
+                    }
+                });
+            }
         });
-        html += `</tbody></table></div>`;
     }
-
-    container.innerHTML = html;
 }
