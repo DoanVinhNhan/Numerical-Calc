@@ -51,3 +51,14 @@ def zero_small(x, tol=1e-15):
     x_arr = np.array(x)
     x_arr[np.abs(x_arr) < tol] = 0.0
     return x_arr
+
+def get_char_polynomial(A):
+    """
+    Lấy đa thức đặc trưng từ ma trận Frobenius (dạng đồng hành).
+    """
+    n = A.shape[0]
+    p = np.zeros(n + 1, dtype=float)
+    p[0] = 1.0
+    if n > 0:
+        p[1:] = -A[0, :].real
+    return p

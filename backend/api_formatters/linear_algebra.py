@@ -472,3 +472,119 @@ def format_svd_result(result, original_shape):
         "Sigma_diag": s.tolist(),
         "intermediate_steps": intermediate_steps
     }
+
+def format_danilevsky_result(result, A):
+    if result.get('status') != 'success':
+        return result
+
+    # Hàm nội bộ để định dạng số phức
+    def format_complex(c):
+        if abs(np.imag(c)) < 1e-9:
+            return np.real(c)
+        return {'real': np.real(c), 'imag': np.imag(c)}
+
+    # Hàm nội bộ để định dạng và chuẩn hóa vector
+    def format_vector_for_json(v):
+        max_abs_idx = np.argmax(np.abs(v))
+        if np.abs(v[max_abs_idx, 0]) > 1e-9:
+            v = v / v[max_abs_idx, 0]
+        return [[format_complex(c)] for c in v.flatten()]
+
+    # Định dạng các bước biến đổi
+    for step in result['steps']:
+        step['matrix'] = [[format_complex(c) for c in row] for row in step['matrix'].tolist()]
+        if 'M' in step:
+            step['M'] = [[format_complex(c) for c in row] for row in step['M'].tolist()]
+        if 'M_inv' in step:
+            step['M_inv'] = [[format_complex(c) for c in row] for row in step['M_inv'].tolist()]
+    
+    # Tính toán kiểm tra và tạo cấu trúc dữ liệu mới
+    eigen_pairs = []
+    raw_eigenvalues = result['eigenvalues']
+    raw_eigenvectors = result['eigenvectors']
+
+    for i in range(len(raw_eigenvalues)):
+        lambda_val = raw_eigenvalues[i]
+        v = raw_eigenvectors[i]
+
+        # Thực hiện phép kiểm tra
+        Av = A.astype(complex) @ v
+        lambda_v = lambda_val * v
+
+        eigen_pairs.append({
+            'lambda': format_complex(lambda_val),
+            'v': format_vector_for_json(v),
+            'Av_check': format_vector_for_json(Av),
+            'lambda_v_check': format_vector_for_json(lambda_v)
+        })
+
+    return {
+        "method": "Danilevsky",
+        "status": "success",
+        "char_poly": [format_complex(c) for c in result['char_poly']],
+        "eigen_pairs": eigen_pairs, # Dữ liệu được cấu trúc lại
+        "steps": result['steps']
+    }
+
+def format_power_method_result(result, A):
+    if result.get('status') == 'success_zero':
+        return {
+            "method": "Power Method", "status": "success",
+            "message": "Vector lặp tiến về 0, GTR trội là 0.",
+            "eigen_pairs": [{'lambda': 0.0, 'v': result['eigenvector'].tolist()}]
+        }
+
+    if result.get('status') != 'success':
+        return result
+
+    def format_vector_for_json(v):
+        max_abs_idx = np.argmax(np.abs(v))
+        if np.abs(v[max_abs_idx, 0]) > 1e-9:
+            v = v / v[max_abs_idx, 0]
+        return [[c] for c in v.flatten().tolist()]
+
+    eigen_pairs = []
+    if 'eigen_pairs' in result: # Deflation case
+        method = f"Power Method & Deflation ({len(result['eigen_pairs'])} GTR)"
+        for pair in result['eigen_pairs']:
+            lambda_val = pair['eigenvalue']
+            v = pair['eigenvector']
+            Av = A @ v
+            lambda_v = lambda_val * v
+            eigen_pairs.append({
+                'lambda': lambda_val,
+                'v': format_vector_for_json(v),
+                'Av_check': format_vector_for_json(Av),
+                'lambda_v_check': format_vector_for_json(lambda_v)
+            })
+    else: # Single case
+        method = "Power Method (GTR Trội)"
+        lambda_val = result['eigenvalue']
+        v = result['eigenvector']
+        Av = A @ v
+        lambda_v = lambda_val * v
+        eigen_pairs.append({
+            'lambda': lambda_val,
+            'v': format_vector_for_json(v),
+            'Av_check': format_vector_for_json(Av),
+            'lambda_v_check': format_vector_for_json(lambda_v)
+        })
+
+    # Format steps
+    if 'steps' in result:
+        for step in result['steps']:
+            if 'iteration_details' in step: # Deflation
+                for iter_detail in step['iteration_details']:
+                    iter_detail['x_k'] = iter_detail['x_k'].flatten().tolist()
+                    iter_detail['Ax_k'] = iter_detail['Ax_k'].flatten().tolist()
+                step['matrix_before_deflation'] = step['matrix_before_deflation'].tolist()
+            else: # Single
+                step['x_k'] = step['x_k'].flatten().tolist()
+                step['Ax_k'] = step['Ax_k'].flatten().tolist()
+
+    return {
+        "method": method,
+        "status": "success",
+        "eigen_pairs": eigen_pairs,
+        "steps": result.get('steps')
+    }

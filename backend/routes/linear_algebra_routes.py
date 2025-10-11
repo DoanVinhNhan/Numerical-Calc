@@ -32,6 +32,10 @@ from backend.numerical_methods.linear_algebra.inverse.gauss_seidel_inverse impor
 from backend.api_formatters.linear_algebra import format_inverse_gauss_seidel_result
 from backend.numerical_methods.linear_algebra.eigen.svd import svd_numpy, svd_power_deflation
 from backend.api_formatters.linear_algebra import format_svd_result
+from backend.numerical_methods.linear_algebra.eigen.danilevsky import danilevsky_algorithm
+from backend.api_formatters.linear_algebra import format_danilevsky_result
+from backend.numerical_methods.linear_algebra.eigen.power_method import power_method_single, power_method_deflation
+from backend.api_formatters.linear_algebra import format_power_method_result
 
 
 linear_algebra_bp = Blueprint('linear_algebra', __name__, url_prefix='/api/linear-algebra')
@@ -445,3 +449,103 @@ def inverse_gauss_seidel_route():
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+    
+@linear_algebra_bp.route('/svd', methods=['POST'])
+def svd_route():
+    """
+    Route để thực hiện phân tích SVD.
+    """
+    try:
+        data = request.json
+        matrix_a_str = data.get('matrix_a')
+        method = data.get('method', 'default')
+        num_singular_str = data.get('num_singular')
+        y_init_str = data.get('y_init')
+
+        if not matrix_a_str:
+            return jsonify({"error": "Vui lòng nhập ma trận A."}), 400
+
+        A = parse_matrix_from_string(matrix_a_str)
+        original_shape = A.shape
+
+        result = {}
+        if method == 'power':
+            # Xử lý các tham số cho power method
+            num_singular = int(num_singular_str) if num_singular_str else None
+            y_init = parse_matrix_from_string(y_init_str) if y_init_str and y_init_str.strip() else None
+            
+            result = svd_power_deflation(A, num_singular=num_singular, y_init=y_init)
+        else: # Mặc định là 'default'
+            result = svd_numpy(A)
+            
+        formatted_result = format_svd_result(result, original_shape)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}"}), 500
+
+@linear_algebra_bp.route('/eigen/danilevsky', methods=['POST'])
+def danilevsky_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        
+        result = danilevsky_algorithm(A)
+        
+        formatted_result = format_danilevsky_result(result, A)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        import traceback
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}\n{traceback.format_exc()}"}), 500
+
+@linear_algebra_bp.route('/eigen/power-single', methods=['POST'])
+def power_single_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        tol = float(data.get('tolerance', 1e-9))
+        max_iter = int(data.get('max_iter', 100))
+        
+        x0_str = data.get('x0')
+        x0 = parse_matrix_from_string(x0_str) if x0_str and x0_str.strip() else None
+
+        result = power_method_single(A, x0=x0, tol=tol, max_iter=max_iter)
+        
+        formatted_result = format_power_method_result(result, A)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        import traceback
+        return jsonify({"error": f"Lỗi không mong muốn: {str(e)}\n{traceback.format_exc()}"}), 500
+
+@linear_algebra_bp.route('/eigen/power-deflation', methods=['POST'])
+def power_deflation_route():
+    try:
+        data = request.json
+        A = parse_matrix_from_string(data.get('matrix_a'))
+        num_values_str = data.get('num_values')
+        num_values = int(num_values_str) if num_values_str and num_values_str.strip() else None
+        
+        tol = float(data.get('tolerance', 1e-6))
+        max_iter = int(data.get('max_iter', 100))
+        
+        x0_str = data.get('x0')
+        x0 = parse_matrix_from_string(x0_str) if x0_str and x0_str.strip() else None
+
+        result = power_method_deflation(A, num_values=num_values, x0=x0, tol=tol, max_iter=max_iter)
+        
+        formatted_result = format_power_method_result(result, A)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        import traceback
+        return jsonify({"error": f"Lỗi không mong muốn: {str(e)}\n{traceback.format_exc()}"}), 500

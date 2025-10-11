@@ -1,10 +1,24 @@
 // frontend/static/js/formatters.js
 
 /**
+ * Hàm nội bộ: Chuyển đổi một số (thực hoặc phức) thành chuỗi hiển thị.
+ */
+export function formatCell(cell, precision) {
+    // Xử lý trường hợp số phức dạng object {real, imag}
+    if (typeof cell === 'object' && cell !== null && 'real' in cell && 'imag' in cell) {
+        if (Math.abs(cell.imag) < 1e-9) return cell.real.toFixed(precision);
+        const imagSign = cell.imag >= 0 ? '+' : '-';
+        return `${cell.real.toFixed(precision)} ${imagSign} ${Math.abs(cell.imag).toFixed(precision)}i`;
+    }
+    // Xử lý trường hợp số thông thường
+    const number = Number(cell);
+    if (isNaN(number)) return 'N/A'; // Hoặc một giá trị mặc định khác
+    return number.toFixed(precision);
+}
+
+/**
  * Chuyển đổi một mảng 2D (ma trận) thành một bảng HTML.
- * @param {number[][]} matrix - Ma trận cần định dạng.
- * @param {string} [label=''] - Nhãn tùy chọn (ví dụ: 'A', 'X').
- * @returns {string} - Chuỗi HTML của bảng.
+ * Có khả năng hiển thị số phức.
  */
 export function formatMatrix(matrix, label = '', num_vars = -1) {
     if (!matrix || matrix.length === 0) {
@@ -22,15 +36,12 @@ export function formatMatrix(matrix, label = '', num_vars = -1) {
     html += '<table class="matrix-table">';
     matrix.forEach(row => {
         html += '<tr>';
-        row.forEach((cell, colIndex) => { // Thêm colIndex vào đây
-            const num = Number(cell);
-            const formattedCell = Math.abs(num - Math.round(num)) < 1e-9 ? Math.round(num) : num.toFixed(precision);
-            
-            // Nếu đây là cột đầu tiên của phần B, thêm lớp CSS
-            const separatorClass = (num_vars > 0 && colIndex === num_vars) ? 'class="augmented-separator"' : '';
-            
-            html += `<td ${separatorClass}>${formattedCell}</td>`;
-        });
+        if (Array.isArray(row)) {
+            row.forEach((cell, colIndex) => {
+                const separatorClass = (num_vars > 0 && colIndex === num_vars) ? 'class="augmented-separator"' : '';
+                html += `<td ${separatorClass}>${formatCell(cell, precision)}</td>`;
+            });
+        }
         html += '</tr>';
     });
     html += '</table>';
