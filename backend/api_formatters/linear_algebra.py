@@ -596,3 +596,12 @@ def format_power_method_result(result, A):
         "eigen_pairs": eigen_pairs,
         "steps": result.get('steps')
     }
+
+def format_svd_approximation_result(result):
+    """
+    Định dạng kết quả tính toán xấp xỉ SVD.
+    """
+    # Chỉ cần trả về result vì nó đã có cấu trúc tốt từ hàm tính toán
+    # Có thể thêm các trường bổ sung nếu cần
+    result['method'] = "Ma trận xấp xỉ SVD"
+    return result

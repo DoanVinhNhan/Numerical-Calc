@@ -123,3 +123,89 @@ def svd_numpy(A):
         "method": "NumPy Standard",
         "intermediate_steps": None
     }
+
+def calculate_svd_approximation(A, method='rank-k', **kwargs):
+    """
+    Tính toán xấp xỉ ma trận A bằng SVD dựa trên các phương pháp khác nhau.
+    """
+    try:
+        A = np.array(A, dtype=float)
+        if A.ndim != 2:
+            return {"success": False, "error": "Đầu vào phải là một ma trận 2D."}
+
+        U, s, Vt = np.linalg.svd(A, full_matrices=False)
+        original_rank = np.sum(s > 1e-10)
+        
+        A_norm = np.linalg.norm(A)
+
+        k = 0
+        method_used = ""
+        info = {}
+
+        if method == 'rank-k':
+            k = int(kwargs.get('k', 1))
+            if k > len(s) or k < 1:
+                return {"success": False, "error": f"Hạng k phải nằm trong khoảng [1, {len(s)}]."}
+            method_used = f"Xấp xỉ hạng k={k}"
+            info['k_requested'] = k
+
+        elif method == 'threshold':
+            threshold = float(kwargs.get('threshold', 0.1))
+            k = np.sum(s >= threshold)
+            if k == 0:
+                k = 1 
+            method_used = f"Giữ giá trị kỳ dị >= {threshold}"
+            info['threshold'] = threshold
+
+        elif method == 'error-bound':
+            relative_error_bound = float(kwargs.get('error_bound', 0.01))
+            method_used = f"Sai số tương đối <= {relative_error_bound*100:.2f}%"
+            info['target_relative_error_bound'] = relative_error_bound
+
+            if A_norm == 0:
+                k = 0
+            else:
+                target_absolute_error_norm_sq = (relative_error_bound * A_norm) ** 2
+                
+                k = len(s)
+                cumulative_error_norm_sq = 0
+                
+                for i in range(len(s) - 1, -1, -1):
+                    if cumulative_error_norm_sq + s[i]**2 < target_absolute_error_norm_sq:
+                        cumulative_error_norm_sq += s[i]**2
+                        k -= 1
+                    else:
+                        break 
+                
+                if k == 0: k = 1
+
+        A_approx = np.dot(U[:, :k], np.dot(np.diag(s[:k]), Vt[:k, :]))
+
+        error_matrix = A - A_approx
+        absolute_error = np.linalg.norm(error_matrix)
+        relative_error = (absolute_error / A_norm) * 100 if A_norm > 0 else 0
+
+        total_energy = np.sum(s**2)
+        retained_energy = np.sum(s[:k]**2)
+        info['energy_ratio'] = (retained_energy / total_energy) * 100 if total_energy > 0 else 100
+        
+        retained_components = [{"index": int(i + 1), "singular_value": float(val), "contribution": float((val**2/total_energy)*100) if total_energy > 0 else 0.0} for i, val in enumerate(s[:k])]
+        discarded_components = [{"index": int(i + 1), "singular_value": float(val), "contribution": float((val**2/total_energy)*100) if total_energy > 0 else 0.0} for i, val in enumerate(s[k:], start=k)]
+
+        return {
+            "success": True,
+            "method_used": method_used,
+            "original_matrix": A.tolist(),
+            "approximated_matrix": A_approx.tolist(),
+            "error_matrix": error_matrix.tolist(),
+            "original_rank": int(original_rank),
+            "effective_rank": int(k),
+            "absolute_error": float(absolute_error),
+            "relative_error": float(relative_error),
+            "retained_components": retained_components,
+            "discarded_components": discarded_components,
+            "detailed_info": info
+        }
+
+    except Exception as e:
+        return {"success": False, "error": f"Lỗi tính toán: {str(e)}"}

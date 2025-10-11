@@ -36,6 +36,8 @@ from backend.numerical_methods.linear_algebra.eigen.danilevsky import danilevsky
 from backend.api_formatters.linear_algebra import format_danilevsky_result
 from backend.numerical_methods.linear_algebra.eigen.power_method import power_method_single, power_method_deflation
 from backend.api_formatters.linear_algebra import format_power_method_result
+from backend.numerical_methods.linear_algebra.eigen.svd import calculate_svd_approximation # THÊM DÒNG NÀY
+from backend.api_formatters.linear_algebra import format_svd_approximation_result # THÊM DÒNG NÀY
 
 
 linear_algebra_bp = Blueprint('linear_algebra', __name__, url_prefix='/api/linear-algebra')
@@ -549,3 +551,43 @@ def power_deflation_route():
     except Exception as e:
         import traceback
         return jsonify({"error": f"Lỗi không mong muốn: {str(e)}\n{traceback.format_exc()}"}), 500
+
+@linear_algebra_bp.route('/svd-approximation', methods=['POST'])
+def svd_approximation_route():
+    """
+    Route để tính toán ma trận xấp xỉ bằng SVD.
+    """
+    try:
+        data = request.json
+        matrix_a_str = data.get('matrix_a')
+        method = data.get('method', 'rank-k')
+        value = data.get('value')
+
+        if not matrix_a_str:
+            return jsonify({"error": "Vui lòng nhập ma trận A."}), 400
+        if value is None:
+            return jsonify({"error": "Vui lòng cung cấp giá trị cho phương pháp xấp xỉ."}), 400
+
+        A = parse_matrix_from_string(matrix_a_str)
+        
+        params = {}
+        if method == 'rank-k':
+            params['k'] = int(value)
+        elif method == 'threshold':
+            params['threshold'] = float(value)
+        elif method == 'error-bound':
+            params['error_bound'] = float(value)
+
+        result = calculate_svd_approximation(A, method=method, **params)
+        
+        if not result.get("success"):
+            return jsonify({"error": result.get("error", "Lỗi không xác định")}), 400
+
+        formatted_result = format_svd_approximation_result(result)
+        return jsonify(formatted_result), 200
+
+    except (ValueError, np.linalg.LinAlgError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        import traceback
+        return jsonify({"error": f"Đã xảy ra lỗi không mong muốn: {str(e)}\n{traceback.format_exc()}"}), 500

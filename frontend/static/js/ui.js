@@ -599,3 +599,81 @@ export function renderEigenSolution(container, data) {
 
     container.innerHTML = html;
 }
+
+export function renderSvdApproximationSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.method_used}</p>`;
+
+    // Thông tin tổng quan
+    html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-center">
+        <div class="p-3 bg-gray-50 rounded-lg">
+            <p class="text-sm text-gray-600">Rank gốc</p>
+            <p class="text-2xl font-bold text-gray-800">${data.original_rank}</p>
+        </div>
+        <div class="p-3 bg-blue-50 rounded-lg">
+            <p class="text-sm text-gray-600">Rank xấp xỉ</p>
+            <p class="text-2xl font-bold text-blue-800">${data.effective_rank}</p>
+        </div>
+        <div class="p-3 bg-red-50 rounded-lg">
+            <p class="text-sm text-gray-600">Sai số tuyệt đối</p>
+            <p class="text-2xl font-bold text-red-800">${data.absolute_error.toExponential(4)}</p>
+        </div>
+        <div class="p-3 bg-green-50 rounded-lg">
+            <p class="text-sm text-gray-600">Sai số tương đối</p>
+            <p class="text-2xl font-bold text-green-800">${data.relative_error.toFixed(2)}%</p>
+        </div>
+    </div>`;
+
+    // Hiển thị ma trận
+    html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận gốc (A)</h3>
+            <div class="matrix-display">${formatMatrix(data.original_matrix)}</div>
+        </div>
+        <div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận xấp xỉ (A')</h3>
+            <div class="matrix-display">${formatMatrix(data.approximated_matrix)}</div>
+        </div>
+    </div>`;
+    
+    html += `<div class="my-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Ma trận sai số (A - A')</h3>
+        <div class="matrix-display">${formatMatrix(data.error_matrix)}</div>
+    </div>`;
+    
+    // Phân tích thành phần
+    html += `<h3 class="text-xl font-semibold text-gray-800 my-6 text-center">Phân tích các giá trị kỳ dị</h3>`;
+    html += `<p class="text-center text-sm mb-4">Tổng năng lượng (tổng bình phương các giá trị kỳ dị): <strong>${(data.detailed_info.energy_ratio / 100 * (data.retained_components.reduce((a, b) => a + b.singular_value**2, 0) + data.discarded_components.reduce((a, b) => a + b.singular_value**2, 0))).toExponential(4)}</strong>. Năng lượng giữ lại: <strong>${data.detailed_info.energy_ratio.toFixed(2)}%</strong></p>`;
+
+    html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h4 class="text-md font-semibold text-green-700 mb-2">Thành phần được giữ lại (${data.retained_components.length})</h4>
+            <div class="overflow-x-auto"><table class="w-full text-sm">
+                <thead class="bg-gray-100"><tr><th class="p-2">#</th><th class="p-2">Giá trị kỳ dị (σ)</th><th class="p-2">Đóng góp năng lượng</th></tr></thead>
+                <tbody>`;
+    data.retained_components.forEach(c => {
+        html += `<tr class="border-b"><td class="p-2">${c.index}</td><td class="p-2 font-mono">${c.singular_value.toFixed(4)}</td><td class="p-2 font-mono">${c.contribution.toFixed(2)}%</td></tr>`;
+    });
+    html += `</tbody></table></div>
+        </div>
+        <div>
+            <h4 class="text-md font-semibold text-red-700 mb-2">Thành phần bị loại bỏ (${data.discarded_components.length})</h4>
+            <div class="overflow-x-auto"><table class="w-full text-sm">
+                <thead class="bg-gray-100"><tr><th class="p-2">#</th><th class="p-2">Giá trị kỳ dị (σ)</th><th class="p-2">Đóng góp năng lượng</th></tr></thead>
+                <tbody>`;
+    if (data.discarded_components.length > 0) {
+        data.discarded_components.forEach(c => {
+            html += `<tr class="border-b"><td class="p-2">${c.index}</td><td class="p-2 font-mono">${c.singular_value.toFixed(4)}</td><td class="p-2 font-mono">${c.contribution.toFixed(2)}%</td></tr>`;
+        });
+    } else {
+        html += `<tr><td colspan="3" class="p-2 text-center text-gray-500">Không có</td></tr>`;
+    }
+    html += `</tbody></table></div>
+        </div>
+    </div>`;
+
+    container.innerHTML = html;
+}

@@ -144,3 +144,29 @@ export async function calculateEigen(method, payload) {
     }
     return response.json();
 }
+
+/**
+ * Gửi yêu cầu tính toán ma trận xấp xỉ SVD.
+ * @param {string} matrixA - Chuỗi ma trận A.
+ * @param {string} method - Phương pháp xấp xỉ ('rank-k', 'threshold', 'error-bound').
+ * @param {number} value - Giá trị tương ứng với phương pháp (k, ngưỡng, hoặc giới hạn sai số).
+ * @returns {Promise<object>} - Dữ liệu JSON trả về từ API.
+ */
+export async function calculateSvdApproximation(matrixA, method, value) {
+    const response = await fetch(`${API_BASE_URL}/linear-algebra/svd-approximation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            matrix_a: matrixA,
+            method: method,
+            value: value
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định từ máy chủ.');
+    }
+
+    return response.json();
+}
