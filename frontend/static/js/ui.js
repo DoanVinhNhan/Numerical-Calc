@@ -646,13 +646,13 @@ export function renderSvdApproximationSolution(container, data) {
     
     // Phân tích thành phần
     html += `<h3 class="text-xl font-semibold text-gray-800 my-6 text-center">Phân tích các giá trị kỳ dị</h3>`;
-    html += `<p class="text-center text-sm mb-4">Tổng năng lượng (tổng bình phương các giá trị kỳ dị): <strong>${(data.detailed_info.energy_ratio / 100 * (data.retained_components.reduce((a, b) => a + b.singular_value**2, 0) + data.discarded_components.reduce((a, b) => a + b.singular_value**2, 0))).toExponential(4)}</strong>. Năng lượng giữ lại: <strong>${data.detailed_info.energy_ratio.toFixed(2)}%</strong></p>`;
+    html += `<p class="text-center text-sm mb-4">Tổng bình phương các giá trị kỳ dị: <strong>${(data.detailed_info.energy_ratio / 100 * (data.retained_components.reduce((a, b) => a + b.singular_value**2, 0) + data.discarded_components.reduce((a, b) => a + b.singular_value**2, 0))).toExponential(4)}</strong>. Phương sai tích luỹ: <strong>${data.detailed_info.energy_ratio.toFixed(2)}%</strong></p>`;
 
     html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
             <h4 class="text-md font-semibold text-green-700 mb-2">Thành phần được giữ lại (${data.retained_components.length})</h4>
             <div class="overflow-x-auto"><table class="w-full text-sm">
-                <thead class="bg-gray-100"><tr><th class="p-2">#</th><th class="p-2">Giá trị kỳ dị (σ)</th><th class="p-2">Đóng góp năng lượng</th></tr></thead>
+                <thead class="bg-gray-100"><tr><th class="p-2">#</th><th class="p-2">Giá trị kỳ dị (σ)</th><th class="p-2">Phương sai đóng góp (Variance Proportion)</th></tr></thead>
                 <tbody>`;
     data.retained_components.forEach(c => {
         html += `<tr class="border-b"><td class="p-2">${c.index}</td><td class="p-2 font-mono">${c.singular_value.toFixed(4)}</td><td class="p-2 font-mono">${c.contribution.toFixed(2)}%</td></tr>`;
@@ -662,7 +662,7 @@ export function renderSvdApproximationSolution(container, data) {
         <div>
             <h4 class="text-md font-semibold text-red-700 mb-2">Thành phần bị loại bỏ (${data.discarded_components.length})</h4>
             <div class="overflow-x-auto"><table class="w-full text-sm">
-                <thead class="bg-gray-100"><tr><th class="p-2">#</th><th class="p-2">Giá trị kỳ dị (σ)</th><th class="p-2">Đóng góp năng lượng</th></tr></thead>
+                <thead class="bg-gray-100"><tr><th class="p-2">#</th><th class="p-2">Giá trị kỳ dị (σ)</th><th class="p-2">Phương sai đóng góp (Variance Proportion)</th></tr></thead>
                 <tbody>`;
     if (data.discarded_components.length > 0) {
         data.discarded_components.forEach(c => {
