@@ -5,7 +5,7 @@ import { setupIterativeMethodsHandlers } from './handlers/iterative_methods_hand
 import { setupInverseIterativeMethodsHandlers } from './handlers/inverse_iterative_methods_handler.js';
 import { setupEigenMethodsHandlers } from './handlers/eigen_methods_handler.js';
 import { setupSvdApproximationHandlers } from './handlers/svd_approximation_handler.js';
-
+import { setupRootFindingHandlers } from './handlers/root_finding_handler.js';
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
  */
@@ -109,6 +109,7 @@ function rebindEventHandlers(container) {
     setupInverseIterativeMethodsHandlers();
     setupEigenMethodsHandlers();
     setupSvdApproximationHandlers();
+    setupRootFindingHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();

@@ -677,3 +677,54 @@ export function renderSvdApproximationSolution(container, data) {
 
     container.innerHTML = html;
 }
+
+/**
+ * Hiển thị kết quả của các phương pháp tìm nghiệm (Bisection, Newton, ...).
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu kết quả từ API.
+ */
+export function renderRootFindingSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+
+    // Hiển thị nghiệm
+    html += `
+        <div class="my-6 text-center">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Nghiệm tìm được (x):</h3>
+            <p class="text-2xl font-bold font-mono text-blue-700">${data.solution.toFixed(parseInt(document.getElementById('setting-precision')?.value || '6'))}</p>
+        </div>`;
+
+    // Hiển thị bảng lặp
+    if (data.steps && data.steps.length > 0) {
+        const table = data.steps;
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
+        html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
+        html += `<thead class="text-xs text-gray-800 bg-gray-100"><tr>
+            <th scope="col" class="px-6 py-3">n</th>
+            <th scope="col" class="px-6 py-3">a</th>
+            <th scope="col" class="px-6 py-3">b</th>
+            <th scope="col" class="px-6 py-3">c = (a+b)/2</th>
+            <th scope="col" class="px-6 py-3">f(c)</th>
+            <th scope="col" class="px-6 py-3">Sai số</th>
+        </tr></thead><tbody>`;
+
+        const precision = parseInt(document.getElementById('setting-precision')?.value || '6');
+        table.forEach(row => {
+            html += `<tr class="bg-white border-b">
+                <td class="px-6 py-4 font-medium">${row.n}</td>
+                <td class="px-6 py-4 font-mono">${row.a.toFixed(precision)}</td>
+                <td class="px-6 py-4 font-mono">${row.b.toFixed(precision)}</td>
+                <td class="px-6 py-4 font-mono">${row.c.toFixed(precision)}</td>
+                <td class="px-6 py-4 font-mono">${row.fc.toExponential(4)}</td>
+                <td class="px-6 py-4 font-mono">${row.error.toExponential(4)}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+    }
+
+    container.innerHTML = html;
+}

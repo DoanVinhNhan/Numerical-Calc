@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask, render_template
 from backend.routes.linear_algebra_routes import linear_algebra_bp
-
+from backend.routes.root_finding_routes import root_finding_bp
 # Khởi tạo ứng dụng Flask
 app = Flask(__name__,
             template_folder='frontend/templates',
@@ -9,7 +9,7 @@ app = Flask(__name__,
 
 # Đăng ký các Blueprints (các nhóm route)
 app.register_blueprint(linear_algebra_bp)
-
+app.register_blueprint(root_finding_bp)
 @app.route('/')
 def index():
     """
