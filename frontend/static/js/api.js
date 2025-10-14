@@ -171,24 +171,6 @@ export async function calculateSvdApproximation(matrixA, method, value) {
     return response.json();
 }
 
-/**
- * Gửi yêu cầu giải phương trình f(x)=0.
- * @param {object} payload - Dữ liệu gửi đi, chứa method, expression, và các tham số khác.
- * @returns {Promise<object>} - Dữ liệu JSON trả về từ API.
- */
-export async function solveNonlinearEquation(payload) {
-    const response = await fetch(`${API_BASE_URL}/nonlinear/solve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Lỗi không xác định.');
-    }
-    return response.json();
-}
 
 /**
  * Gửi yêu cầu giải phương trình f(x)=0 đến backend.

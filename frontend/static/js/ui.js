@@ -678,8 +678,9 @@ export function renderSvdApproximationSolution(container, data) {
     container.innerHTML = html;
 }
 
+
 /**
- * Hiển thị kết quả của các phương pháp tìm nghiệm (Bisection, Newton, ...).
+ * Hiển thị kết quả của các phương pháp tìm nghiệm (Bisection, Secant, Newton...).
  * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
  * @param {object} data - Dữ liệu kết quả từ API.
  */
@@ -690,41 +691,83 @@ export function renderRootFindingSolution(container, data) {
     let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
     html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
 
-    // Hiển thị nghiệm
+    if (data.extra_info) {
+        let extraInfoHtml = '<div class="my-4 p-3 bg-gray-50 rounded-lg text-center text-sm">';
+        if (data.extra_info.d !== null && data.extra_info.d !== undefined) {
+            extraInfoHtml += `<p>Điểm cố định (Fourier) <strong>d = ${data.extra_info.d.toFixed(6)}</strong>, điểm lặp ban đầu <strong>x₀ = ${data.extra_info.x0.toFixed(6)}</strong>.</p>`;
+        } else if (data.extra_info.x0 !== null && data.extra_info.x0 !== undefined) {
+            extraInfoHtml += `<p>Điểm lặp ban đầu (Fourier) <strong>x₀ = ${data.extra_info.x0.toFixed(6)}</strong>.</p>`;
+        }
+        if (data.extra_info.m1 !== null && data.extra_info.m1 !== undefined) {
+            const m1_text = `m₁ ≈ <strong>${data.extra_info.m1.toExponential(4)}</strong>`;
+            const M1_text = (data.extra_info.M1) ? `, M₁ ≈ <strong>${data.extra_info.M1.toExponential(4)}</strong>` : '';
+            const M2_text = (data.extra_info.M2) ? `, M₂ ≈ <strong>${data.extra_info.M2.toExponential(4)}</strong>` : '';
+            extraInfoHtml += `<p>${m1_text}${M1_text}${M2_text}</p>`;
+        }
+        extraInfoHtml += '</div>';
+        html += extraInfoHtml;
+    }
+
     html += `
         <div class="my-6 text-center">
             <h3 class="text-lg font-semibold text-gray-700 mb-2">Nghiệm tìm được (x):</h3>
-            <p class="text-2xl font-bold font-mono text-blue-700">${data.solution.toFixed(parseInt(document.getElementById('setting-precision')?.value || '6'))}</p>
+            <p class="text-2xl font-bold font-mono text-blue-700">${data.solution.toFixed(parseInt(document.getElementById('setting-precision')?.value || '7'))}</p>
         </div>`;
 
-    // Hiển thị bảng lặp
     if (data.steps && data.steps.length > 0) {
         const table = data.steps;
+        const errorColName = data.error_col_name || "Sai số";
+
+        // <<< SỬA LỖI Ở ĐÂY: Tự động xác định các cột >>>
+        const headers = [];
+        const firstRowKeys = Object.keys(table[0]);
+        
+        // Tạo header theo đúng thứ tự mong muốn
+        const keyToHeaderMap = {
+            'k': 'k', 'n': 'n', 'a': 'a', 'b': 'b', 'c': 'c', 
+            'xn': 'x_n', 'fc': 'f(c)', 'fxn': 'f(x_n)', 'dfxn': "f'(x_n)",
+            'phixn': 'φ(x_k)', 'abs_diff': '|x_{k+1}-x_k|', 'error': errorColName
+        };
+
+        Object.keys(keyToHeaderMap).forEach(key => {
+            if (firstRowKeys.includes(key)) {
+                headers.push(keyToHeaderMap[key]);
+            }
+        });
+        
         html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
         html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
-        html += `<thead class="text-xs text-gray-800 bg-gray-100"><tr>
-            <th scope="col" class="px-6 py-3">n</th>
-            <th scope="col" class="px-6 py-3">a</th>
-            <th scope="col" class="px-6 py-3">b</th>
-            <th scope="col" class="px-6 py-3">c = (a+b)/2</th>
-            <th scope="col" class="px-6 py-3">f(c)</th>
-            <th scope="col" class="px-6 py-3">Sai số</th>
-        </tr></thead><tbody>`;
+        html += `<thead class="text-xs text-gray-800 bg-gray-100"><tr>`;
+        headers.forEach(h => html += `<th scope="col" class="px-6 py-3">${h}</th>`);
+        html += `</tr></thead><tbody>`;
 
-        const precision = parseInt(document.getElementById('setting-precision')?.value || '6');
+        const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
         table.forEach(row => {
-            html += `<tr class="bg-white border-b">
-                <td class="px-6 py-4 font-medium">${row.n}</td>
-                <td class="px-6 py-4 font-mono">${row.a.toFixed(precision)}</td>
-                <td class="px-6 py-4 font-mono">${row.b.toFixed(precision)}</td>
-                <td class="px-6 py-4 font-mono">${row.c.toFixed(precision)}</td>
-                <td class="px-6 py-4 font-mono">${row.fc.toExponential(4)}</td>
-                <td class="px-6 py-4 font-mono">${row.error.toExponential(4)}</td>
-            </tr>`;
+            html += `<tr class="bg-white border-b">`;
+            Object.keys(keyToHeaderMap).forEach(key => {
+                if (firstRowKeys.includes(key)) {
+                    let value = row[key];
+                    let displayValue = 'N/A';
+                    if (value !== undefined && value !== null) {
+                        if (typeof value === 'number') {
+                            if (key === 'k' || key === 'n') {
+                                displayValue = value;
+                            } else if (Math.abs(value) < 1e-4 && Math.abs(value) > 0) {
+                                displayValue = value.toExponential(4);
+                            } else {
+                                displayValue = value.toFixed(precision);
+                            }
+                        } else {
+                            displayValue = value;
+                        }
+                    }
+                    html += `<td class="px-6 py-4 font-mono">${displayValue}</td>`;
+                }
+            });
+            html += `</tr>`;
         });
 
         html += `</tbody></table></div>`;
     }
-
     container.innerHTML = html;
 }
