@@ -190,3 +190,23 @@ export async function solveNonlinearEquation(payload) {
     }
     return response.json();
 }
+/**
+ * Gửi yêu cầu giải phương trình đa thức đến backend.
+ * @param {string} coeffs - Chuỗi các hệ số, cách nhau bằng dấu cách.
+ * @param {string} tolerance - Sai số cho phép.
+ * @param {string} maxIter - Số lần lặp tối đa.
+ * @returns {Promise<object>}
+ */
+export async function solvePolynomial(coeffs, tolerance, maxIter) {
+    const response = await fetch(`${API_BASE_URL}/polynomial/solve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coeffs, tolerance, max_iter: maxIter }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}

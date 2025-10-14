@@ -6,6 +6,8 @@ import { setupInverseIterativeMethodsHandlers } from './handlers/inverse_iterati
 import { setupEigenMethodsHandlers } from './handlers/eigen_methods_handler.js';
 import { setupSvdApproximationHandlers } from './handlers/svd_approximation_handler.js';
 import { setupRootFindingHandlers } from './handlers/root_finding_handler.js';
+import { setupPolynomialHandlers } from './handlers/polynomial_handler.js';
+
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
  */
@@ -110,6 +112,7 @@ function rebindEventHandlers(container) {
     setupEigenMethodsHandlers();
     setupSvdApproximationHandlers();
     setupRootFindingHandlers();
+    setupPolynomialHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();

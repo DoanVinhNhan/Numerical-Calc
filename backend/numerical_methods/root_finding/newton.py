@@ -1,7 +1,7 @@
 # backend/numerical_methods/root_finding/newton.py
 import numpy as np
 
-def newton_method(f, f_prime, f_double_prime, a, b, mode, value, stop_condition, max_iter=200):
+def newton_method(f, f_prime, f_double_prime, a, b, x0, mode, value, stop_condition, max_iter=200):
     """
     Tìm nghiệm của f(x) = 0 bằng phương pháp Newton (Tiếp tuyến).
     """
@@ -29,20 +29,7 @@ def newton_method(f, f_prime, f_double_prime, a, b, mode, value, stop_condition,
             raise ValueError("Đạo hàm f'(x) có giá trị gần bằng 0 trong khoảng, công thức sai số không đáng tin cậy.")
     except Exception as e:
         raise ValueError(f"Không thể tính m1, M2 trên khoảng [a, b]. Lỗi: {e}")
-
-    # 3. Chọn điểm bắt đầu x0 (điểm Fourier)
-    if f(a) * f_double_prime(a) > 0:
-        x0 = a
-    elif f(b) * f_double_prime(b) > 0:
-        x0 = b
-    else:
-        x0 = (a + b) / 2 # Lấy điểm giữa nếu hai đầu không thỏa mãn
-        if f(x0) * f_double_prime(x0) <= 0:
-            # Chỉ là cảnh báo, không dừng lại
-            # raise ValueError("Không tìm thấy điểm Fourier thỏa mãn f(x)f''(x) > 0. Hội tụ không được đảm bảo.")
-            pass
-
-
+    
     # 4. Quá trình lặp
     x_k = x0
     iterations_to_run = int(value) if mode == 'iterations' else max_iter

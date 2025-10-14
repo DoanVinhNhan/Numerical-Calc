@@ -771,3 +771,61 @@ export function renderRootFindingSolution(container, data) {
     }
     container.innerHTML = html;
 }
+
+/**
+ * Hiển thị kết quả giải phương trình đa thức.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderPolynomialSolution(container, data) {
+    let html = `<h2 class="result-heading">Kết quả - Giải phương trình đa thức</h2>`;
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+
+    // Bước 1: Hiển thị đa thức
+    html += `<div class="mb-6 text-center"><h3 class="text-lg font-semibold">Đa thức P(x):</h3><div id="poly-str-render" class="text-2xl mt-2"></div></div>`;
+
+    // Bước 2: Hiển thị khoảng chứa nghiệm
+    html += `<div class="mb-6 p-3 bg-gray-50 rounded text-center">
+        <p class="text-sm"><b>Bước 1: Tìm khoảng chứa nghiệm tổng quát</b></p>
+        <p>Tất cả các nghiệm thực (nếu có) của đa thức đều nằm trong khoảng [${data.bounds[0].toFixed(precision)}, ${data.bounds[1].toFixed(precision)}].</p>
+    </div>`;
+
+    // Bước 3: Phân ly nghiệm
+    html += `<div class="mb-6 p-3 bg-gray-50 rounded text-center">
+        <p class="text-sm"><b>Bước 2: Phân ly nghiệm</b></p>
+        <p>Các điểm cực trị thực (nghiệm của P'(x)): ${data.critical_points.map(p => p.toFixed(precision)).join(', ') || 'Không có'}</p>
+        <p>Các khoảng tìm kiếm nghiệm: ${data.search_intervals.map(inv => `[${inv[0].toFixed(3)}, ${inv[1].toFixed(3)}]`).join('; ')}</p>
+    </div>`;
+
+    // Bước 4: Hiển thị các nghiệm tìm được
+    html += `<div class="mb-6"><h3 class="text-lg font-semibold text-center">Bước 3: Các nghiệm thực tìm được</h3>`;
+    if (data.found_roots.length === 0) {
+        html += `<p class="text-center text-gray-600 mt-4">Không tìm thấy nghiệm thực nào trong các khoảng đã xét.</p>`;
+    } else {
+        data.found_roots.forEach((root, index) => {
+            html += `<details class="mt-4 bg-white p-4 rounded-lg shadow border">
+                <summary class="cursor-pointer font-semibold text-blue-700">Nghiệm ${index + 1} ≈ ${root.root_value.toFixed(precision)} (tìm thấy trong khoảng [${root.interval[0].toFixed(3)}, ${root.interval[1].toFixed(3)}])</summary>
+                <div class="overflow-x-auto mt-4">
+                    <p class="text-xs mb-2">Quá trình lặp chia đôi:</p>
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100"><tr>
+                            <th class="p-2">k</th><th class="p-2">a</th><th class="p-2">b</th><th class="p-2">c</th><th class="p-2">f(c)</th>
+                        </tr></thead>
+                        <tbody>`;
+            root.bisection_steps.forEach(step => {
+                html += `<tr class="border-b">
+                    <td class="p-2">${step.k}</td>
+                    <td class="p-2 font-mono">${step.a.toFixed(precision)}</td>
+                    <td class="p-2 font-mono">${step.b.toFixed(precision)}</td>
+                    <td class="p-2 font-mono">${step.c.toFixed(precision)}</td>
+                    <td class="p-2 font-mono">${step.fc.toExponential(3)}</td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></details>`;
+        });
+    }
+    html += `</div>`;
+
+    container.innerHTML = html;
+    katex.render(data.polynomial_str, document.getElementById('poly-str-render'), { throwOnError: false, displayMode: true });
+}
