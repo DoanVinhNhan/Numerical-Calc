@@ -8,6 +8,7 @@ import { setupSvdApproximationHandlers } from './handlers/svd_approximation_hand
 import { setupRootFindingHandlers } from './handlers/root_finding_handler.js';
 import { setupPolynomialHandlers } from './handlers/polynomial_handler.js';
 import { setupNonlinearSystemsHandlers } from './handlers/nonlinear_systems_handler.js';
+import { setupInterpolationHandlers } from './handlers/interpolation_methods_handler.js';
 
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
@@ -116,6 +117,7 @@ function rebindEventHandlers(container) {
     setupRootFindingHandlers();
     setupPolynomialHandlers();
     setupNonlinearSystemsHandlers();
+    setupInterpolationHandlers();
     // Optional: setup handlers for approximation pages if defined inline
     if (typeof setupApproximationHandlers === 'function') {
         try { setupApproximationHandlers(document); } catch (err) { console.warn('setupApproximationHandlers error', err); }

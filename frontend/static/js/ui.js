@@ -971,3 +971,37 @@ export function renderNonlinearSystemSolution(container, data) {
         });
     }
 }
+
+/**
+ * Hiển thị kết quả cho các bài toán Nội suy/Xấp xỉ hàm số.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderInterpolationSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    if (!data || data.status !== 'success') {
+        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ từ máy chủ.');
+        return;
+    }
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+
+    // Hiển thị các mốc nội suy (Chebyshev)
+    if (data.nodes) {
+        html += `<div class="my-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các mốc nội suy:</h3>
+            <div class="p-4 bg-gray-50 rounded-lg text-center font-mono text-lg tracking-wider">
+                ${data.nodes.map(node => node.toFixed(precision)).join('; &nbsp; ')}
+            </div>
+        </div>`;
+    }
+
+    // Thêm các khối hiển thị khác cho Lagrange, Newton... ở đây nếu cần
+
+    container.innerHTML = html;
+}

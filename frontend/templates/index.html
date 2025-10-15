@@ -22,8 +22,13 @@
         <nav class="flex-1 px-2 py-4">
             <ul class="space-y-2">
                 <li>
-                    <button class="w-full text-left px-3 py-2 rounded hover:bg-blue-50 font-medium text-gray-800" data-page="matrix">Máy tính ma trận</button>
-                    <ul class="ml-4 mt-1 space-y-1">
+                    <button class="w-full text-left px-3 py-2 rounded hover:bg-blue-50 font-medium text-gray-800 flex items-center justify-between matrix-menu-btn" data-page="matrix">
+                        <span>Máy tính ma trận</span>
+                        <svg class="w-4 h-4 transform transition-transform matrix-menu-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <ul class="ml-4 mt-1 space-y-1 submenu-matrix hidden transition-all duration-300">
                         <li><button class="w-full text-left px-3 py-1 rounded hover:bg-blue-100 text-gray-700" data-page="matrix-solve-direct">Giải hệ phương trình</button></li>
                         <li><button class="w-full text-left px-3 py-1 rounded hover:bg-blue-100 text-gray-700" data-page="matrix-solve-iterative">PP Lặp - Giải hệ phương trình</button></li>
                         <li><button class="w-full text-left px-3 py-1 rounded hover:bg-blue-100 text-gray-700" data-page="matrix-inverse-direct">Tính ma trận nghịch đảo</button></li>
@@ -593,7 +598,7 @@ sidebarToggle.addEventListener('click', () => {
     <div id="approx-optimal-content" class="approx-tab-content">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-                <label for="optimal-n-input" class="block text-sm font-medium text-gray-700">Số mốc nội suy (n)</label>
+                <label for="optimal-n-input" class="block text-sm font-medium text-gray-700">Số mốc nội suy (n+1)</label>
                 <input type="number" id="optimal-n-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-2" min="2" value="5">
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -663,6 +668,21 @@ function setupApproximationHandlers(container=document) {
     if (!anyActive && tabs[0]) setActive(tabs[0]);
 }
 
+const matrixMenuBtn = document.querySelector('.matrix-menu-btn');
+const matrixSubmenu = document.querySelector('.submenu-matrix');
+const matrixArrow = document.querySelector('.matrix-menu-arrow');
+
+matrixMenuBtn.addEventListener('click', (e) => {
+    e.preventDefault(); // Ngăn chặn hành vi mặc định
+    
+    // Toggle class hidden cho submenu
+    matrixSubmenu.classList.toggle('hidden');
+    
+    // Xoay mũi tên
+    matrixArrow.style.transform = matrixSubmenu.classList.contains('hidden') 
+        ? 'rotate(0deg)' 
+        : 'rotate(180deg)';
+});
 </script>
 </body>
 </html>

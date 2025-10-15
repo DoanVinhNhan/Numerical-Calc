@@ -229,3 +229,24 @@ export async function solveNonlinearSystem(payload) {
     }
     return response.json();
 }
+
+/**
+ * Lấy các mốc nội suy tối ưu Chebyshev từ backend.
+ * @param {string} a - Điểm đầu khoảng.
+ * @param {string} b - Điểm cuối khoảng.
+ * @param {string} n - Số mốc nội suy.
+ * @returns {Promise<object>}
+ */
+export async function getChebyshevNodes(a, b, n) {
+    const response = await fetch(`${API_BASE_URL}/interpolation/chebyshev-nodes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ a, b, n }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}

@@ -148,3 +148,20 @@ body {
 .augmented-separator {
     border-left: 2px solid #718096; /* Một đường kẻ màu xám */
 }
+.matrix-menu-arrow {
+    transition: transform 0.3s ease;
+}
+
+.submenu-matrix {
+    transition: all 0.3s ease-in-out;
+}
+
+.submenu-matrix.hidden {
+    max-height: 0;
+    opacity: 0;
+}
+
+.submenu-matrix:not(.hidden) {
+    max-height: 500px;
+    opacity: 1;
+}
