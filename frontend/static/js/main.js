@@ -118,10 +118,6 @@ function rebindEventHandlers(container) {
     setupPolynomialHandlers();
     setupNonlinearSystemsHandlers();
     setupInterpolationHandlers();
-    // Optional: setup handlers for approximation pages if defined inline
-    if (typeof setupApproximationHandlers === 'function') {
-        try { setupApproximationHandlers(document); } catch (err) { console.warn('setupApproximationHandlers error', err); }
-    }
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();
