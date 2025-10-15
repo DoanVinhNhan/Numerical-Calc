@@ -52,7 +52,7 @@
                     <button class="w-full text-left px-3 py-2 rounded hover:bg-pink-50 font-medium text-gray-800" data-page="approximation">Xấp xỉ hàm số</button>
                 </li>
                 <li>
-                    <button class="w-full text-left px-3 py-2 rounded hover:bg-red-50 font-medium text-gray-800" data-page="hooner-table">Sơ đồ Hooner</button>
+                    <button class="w-full text-left px-3 py-2 rounded hover:bg-red-50 font-medium text-gray-800" data-page="horner-table">Sơ đồ horner</button>
                 </li>
 
             </ul>
@@ -629,39 +629,49 @@ sidebarToggle.addEventListener('click', () => {
     <div id="results-area"></div>
 </div>
 
-<div id="hooner-table-page" class="hidden">
+<div id="horner-table-page" class="hidden">
     <div class="mb-6">
-        <h2 class="text-2xl font-semibold">Sơ đồ Hooner</h2>
+        <h2 class="text-2xl font-semibold">Sơ đồ Horner</h2>
     </div>
     <nav class="border-b border-gray-200 mb-6">
         <div class="-mb-px flex space-x-6">
-            <button data-tab="synthetic-division" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-red-600 border-red-500">Bảng chia P(x)/(x-c)</button>
-            <button data-tab="all-derivatives" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Tính đạo hàm mọi cấp </button>
-            <button data-tab="reverse-horner" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Bảng nhân P(x)(x-c)</button>
-            <button data-tab="w-function" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Omega function</button>
+            <button data-tab="synthetic-division" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-red-600 border-red-500">Bảng chia P(x)/(x-c)</button>
+            <button data-tab="all-derivatives" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Tính đạo hàm mọi cấp </button>
+            <button data-tab="reverse-horner" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Bảng nhân P(x)(x-c)</button>
+            <button data-tab="w-function" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Omega function</button>
         </div>
     </nav>
+
+    <div id="horner-tab-content-synthetic-division-content" class="horner-tab-content">
+        <div class="space-y-6">
+            <div>
+                <label for="horner-coeffs-input" class="block text-sm font-medium text-gray-700">Nhập các hệ số của đa thức P(x) (từ bậc cao đến thấp, cách nhau bằng dấu cách)</label>
+                <input id="horner-coeffs-input" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 font-mono" placeholder="1 2 -3 4 -5 -46">
+                <p class="mt-2 text-xs text-gray-500">Ví dụ: `1 2 -3 4 -5 -46` tương ứng với P(x) = x^5 + 2x^4 - 3x^3 + 4x^2 - 5x - 46</p>
+            </div>
+            <div>
+                <label for="horner-root-input" class="block text-sm font-medium text-gray-700">Nhập giá trị c (để chia cho x-c)</label>
+                <input id="horner-root-input" type="number" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" placeholder="2">
+            </div>
+        </div>
+        <div class="mt-8 mb-8">
+            <button id="calculate-synthetic-division-btn" class="action-btn bg-red-600 hover:bg-red-700">Tính</button>
+        </div>
+    </div>
+    
+    <div id="horner-tab-content-all-derivatives-content" class="horner-tab-content hidden">
+        <p>Chưa có nội dung cho tính đạo hàm.</p>
+    </div>
+    <div id="horner-tab-content-reverse-horner-content" class="horner-tab-content hidden">
+        <p>Chưa có nội dung cho bảng nhân.</p>
+    </div>
+    <div id="horner-tab-content-w-function-content" class="horner-tab-content hidden">
+        <p>Chưa có nội dung cho Omega function.</p>
+    </div>
+    
+    <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
+    <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
+    <div id="results-area"></div>
 </div>
 </body>
-<script type="module">
-    import { setupTabHandlers, setupSidebarHandlers } from "{{ url_for('static', filename='js/tab-handlers.js') }}";
-    
-    // Setup các tab
-    setupTabHandlers({
-        tabClass: '.hooner-tab',
-        contentClass: '.hooner-tab-content', 
-        activeTextColor: 'text-red-600',
-        activeBorderColor: 'border-red-500'
-    });
-
-    setupTabHandlers({
-        tabClass: '.approx-tab',
-        contentClass: '.approx-tab-content',
-        activeTextColor: 'text-pink-600', 
-        activeBorderColor: 'border-pink-500'
-    });
-
-    // Setup sidebar
-    setupSidebarHandlers();
-</script>
 </html>

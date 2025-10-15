@@ -1,4 +1,4 @@
-#backend/numerical_methods/honner_table/synthetic_division.py
+#backend/numerical_methods/horner_table/synthetic_division.py
 import numpy as np
 
 def synthetic_division(coeffs, root):

@@ -1005,3 +1005,82 @@ export function renderInterpolationSolution(container, data) {
 
     container.innerHTML = html;
 }
+
+/**
+ * Hiển thị kết quả cho Sơ đồ Horner.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderHornerSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">${data.method}</h2>`;
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '4');
+
+    // Biểu diễn đa thức
+    html += `<div class="my-6 text-center">
+        <p>Cho đa thức <span class="katex-render" data-formula="P(x) = ${data.polynomial_str}"></span> và giá trị <span class="katex-render" data-formula="c = ${data.root}"></span>.</p>
+        <p class="mt-2">Ta có: <span class="katex-render" data-formula="${data.result_str_latex}"></span></p>
+    </div>`;
+
+    // Bảng Horner
+    if (data.division_table) {
+        const table = data.division_table;
+        const n = table[0].length;
+
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Bảng chia Horner</h3>`;
+        html += `<div class="overflow-x-auto flex justify-center">
+            <table class="text-center font-mono border-collapse">
+                <tbody>
+                    <tr class="border-b-2 border-gray-700">
+                        <td class="p-3 border-r-2 border-gray-700">a_i</td>`;
+        for (let i = 0; i < n; i++) {
+            html += `<td class="p-3">${table[0][i].toFixed(precision)}</td>`;
+        }
+        html += `</tr>
+                    <tr class="border-b-2 border-gray-700">
+                        <td class="p-3 border-r-2 border-gray-700">c=${data.root}</td>`;
+        for (let i = 0; i < n; i++) {
+            html += `<td class="p-3">${table[1][i].toFixed(precision)}</td>`;
+        }
+        html += `</tr>
+                    <tr>
+                        <td class="p-3 border-r-2 border-gray-700">b_i</td>`;
+        for (let i = 0; i < n; i++) {
+            html += `<td class="p-3 font-bold text-blue-700">${table[2][i].toFixed(precision)}</td>`;
+        }
+        html += `</tr>
+                </tbody>
+            </table>
+        </div>`;
+    }
+    
+    // Kết quả
+    html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <h4 class="font-semibold">Đa thức thương Q(x):</h4>
+            <div class="text-lg katex-render" data-formula="Q(x) = ${data.quotient_str}"></div>
+        </div>
+        <div>
+            <h4 class="font-semibold">Giá trị P(${data.root}):</h4>
+            <p class="text-lg font-bold text-green-800">${data.value.toFixed(precision)}</p>
+        </div>
+    </div>`;
+
+    container.innerHTML = html;
+
+    // Render Katex sau khi chèn HTML
+    if (window.katex) {
+        container.querySelectorAll('.katex-render').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (e) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
+    }
+}

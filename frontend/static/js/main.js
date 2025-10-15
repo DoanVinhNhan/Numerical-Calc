@@ -9,6 +9,8 @@ import { setupRootFindingHandlers } from './handlers/root_finding_handler.js';
 import { setupPolynomialHandlers } from './handlers/polynomial_handler.js';
 import { setupNonlinearSystemsHandlers } from './handlers/nonlinear_systems_handler.js';
 import { setupInterpolationHandlers } from './handlers/interpolation_methods_handler.js';
+import { setuphornerHandlers } from './handlers/horner_handler.js';
+import { setupTabHandlers, setupSidebarHandlers } from './tab-handlers.js';
 
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
@@ -25,6 +27,7 @@ const PAGE_TITLES = {
     'polynomial-solve': 'Giải phương trình đa thức',
     'nonlinear-system-solve': 'Giải hệ phương trình phi tuyến',
     'approximation': 'Xấp xỉ hàm số',
+    'horner-table': 'Sơ đồ Horner',
     // Thêm các trang khác ở đây nếu cần
 };
 
@@ -42,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Thiết lập trang mặc định khi tải lần đầu
     navigateToPage('matrix-solve-direct', mainContent, pageTitle);
+    setupSidebarHandlers();
 
     // Thiết lập các trình xử lý sự kiện cho các nút tính toán
     setupDirectMethodsHandlers();
@@ -118,7 +122,21 @@ function rebindEventHandlers(container) {
     setupPolynomialHandlers();
     setupNonlinearSystemsHandlers();
     setupInterpolationHandlers();
+    setuphornerHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();
+    setupTabHandlers({
+        tabClass: '.horner-tab',
+        contentClass: '.horner-tab-content', 
+        activeTextColor: 'text-red-600',
+        activeBorderColor: 'border-red-500'
+    });
+
+    setupTabHandlers({
+        tabClass: '.approx-tab',
+        contentClass: '.approx-tab-content',
+        activeTextColor: 'text-pink-600', 
+        activeBorderColor: 'border-pink-500'
+    });
 }

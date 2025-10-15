@@ -250,3 +250,36 @@ export async function getChebyshevNodes(a, b, n) {
     }
     return response.json();
 }
+
+/**
+ * Gửi yêu cầu tính toán bằng Sơ đồ Horner.
+ * @param {string} coeffs - Chuỗi các hệ số của đa thức.
+ * @param {string} root - Giá trị c để chia cho (x-c).
+ * @returns {Promise<object>}
+ */
+export async function calculateSyntheticDivision(coeffs, root) {
+    const response = await fetch(`${API_BASE_URL}/horner/synthetic-division`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coeffs, root }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}
+export async function calculateAllDerivatives(coeffs) {
+    const response = await fetch(`${API_BASE_URL}/horner/all-derivatives`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coeffs }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}

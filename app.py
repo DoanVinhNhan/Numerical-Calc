@@ -5,6 +5,7 @@ from backend.routes.root_finding_routes import root_finding_bp
 from backend.routes.polynomial_routes import polynomial_bp
 from backend.routes.nonlinear_systems_routes import nonlinear_systems_bp
 from backend.routes.interpolation_routes import interpolation_bp
+from backend.routes.horner_routes import horner_bp
 
 # Khởi tạo ứng dụng Flask
 app = Flask(__name__,
@@ -17,6 +18,7 @@ app.register_blueprint(root_finding_bp)
 app.register_blueprint(polynomial_bp)
 app.register_blueprint(nonlinear_systems_bp)
 app.register_blueprint(interpolation_bp)
+app.register_blueprint(horner_bp)
 @app.route('/')
 def index():
     """
