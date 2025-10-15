@@ -1,8 +1,8 @@
 # backend/routes/nonlinear_systems_routes.py
 from flask import Blueprint, request, jsonify
 from backend.numerical_methods.nonlinear_systems.newton import solve_newton_system
-# Thêm import mới
 from backend.numerical_methods.nonlinear_systems.newton_modified import solve_newton_modified_system
+from backend.numerical_methods.nonlinear_systems.simple_iteration import solve_simple_iteration_system # Thêm import
 from backend.api_formatters.nonlinear_systems import format_nonlinear_system_result
 import traceback
 
@@ -51,6 +51,25 @@ def solve_system_route():
                 stop_option=data.get('stop_option'),
                 stop_value=data.get('stop_value'),
                 norm_choice=data.get('norm_choice')
+            )
+
+        elif method == 'simple_iteration':
+            method_name = "Phương pháp Lặp đơn"
+            domain_str_list = data.get('domain', [])
+            if n != len(domain_str_list):
+                 return jsonify({"error": "Số lượng phương trình và số lượng miền xác định phải bằng nhau."}), 400
+            
+            a0_list = [float(d.split()[0]) for d in domain_str_list]
+            b0_list = [float(d.split()[1]) for d in domain_str_list]
+
+            result = solve_simple_iteration_system(
+                n=n,
+                expr_list=expr_list,
+                x0_list=x0_list,
+                a0_list=a0_list,
+                b0_list=b0_list,
+                stop_option=data.get('stop_option'),
+                stop_value=data.get('stop_value')
             )
 
         else:

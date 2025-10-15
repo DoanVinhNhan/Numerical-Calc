@@ -210,6 +210,7 @@ export async function solvePolynomial(coeffs, tolerance, maxIter) {
     }
     return response.json();
 }
+
 /**
  * Gửi yêu cầu giải hệ phương trình phi tuyến đến backend.
  * @param {object} payload - Dữ liệu yêu cầu.

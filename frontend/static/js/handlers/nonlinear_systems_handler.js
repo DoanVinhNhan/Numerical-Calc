@@ -61,13 +61,31 @@ function renderSystemLatex(inputElement, previewElement) {
         }
     });
 }
+function updateNonlinearSystemUI() {
+    const method = document.getElementById('ns-method-select').value;
+    const normGroup = document.getElementById('ns-norm-selection-group');
+    const domainGroup = document.getElementById('ns-domain-group');
+    const expressionsLabel = document.getElementById('ns-expressions-label');
 
+    // Mặc định ẩn các nhóm tùy chọn
+    normGroup.style.display = 'none';
+    domainGroup.style.display = 'none';
+    
+    if (method === 'newton' || method === 'newton_modified') {
+        normGroup.style.display = 'block';
+        expressionsLabel.textContent = 'Hệ phương trình F(X) = 0 (dạng LaTeX)';
+    } else if (method === 'simple_iteration') {
+        domainGroup.style.display = 'block';
+        expressionsLabel.textContent = 'Hệ phương trình X = φ(X) (dạng LaTeX)';
+    }
+}
 
 export function setupNonlinearSystemsHandlers() {
     const calculateBtn = document.getElementById('calculate-ns-btn');
     const expressionsInput = document.getElementById('ns-expressions-input');
     const previewDiv = document.getElementById('ns-latex-preview');
-    
+    const methodSelect = document.getElementById('ns-method-select');
+
     katex.render("||X_k - X_{k-1}||_\\infty", document.getElementById('ns-norm-inf-katex'));
     katex.render("||X_k - X_{k-1}||_1", document.getElementById('ns-norm-1-katex'));
     
@@ -75,10 +93,14 @@ export function setupNonlinearSystemsHandlers() {
         expressionsInput.addEventListener('input', () => renderSystemLatex(expressionsInput, previewDiv));
         renderSystemLatex(expressionsInput, previewDiv); // Render lần đầu
     }
+    if (methodSelect) {
+        methodSelect.addEventListener('change', updateNonlinearSystemUI);
+    }
 
     if (calculateBtn) {
         calculateBtn.addEventListener('click', handleCalculation);
     }
+    updateNonlinearSystemUI(); 
 }
 
 async function handleCalculation() {
@@ -104,6 +126,15 @@ async function handleCalculation() {
         stop_value,
         norm_choice
     };
+    
+    if (method === 'simple_iteration') {
+        const domain = document.getElementById('ns-domain-input').value.trim().split('\n');
+        if (domain.some(d => d.trim() === '' || d.trim().split(/\s+/).length !== 2)) {
+            showError('Vui lòng nhập đầy đủ và đúng định dạng cho Miền hộp D.');
+            return;
+        }
+        payload.domain = domain;
+    }
     
     showLoading();
     try {
