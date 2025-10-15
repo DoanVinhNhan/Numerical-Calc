@@ -829,3 +829,100 @@ export function renderPolynomialSolution(container, data) {
     container.innerHTML = html;
     katex.render(data.polynomial_str, document.getElementById('poly-str-render'), { throwOnError: false, displayMode: true });
 }
+
+/**
+ * Hiển thị kết quả giải hệ phương trình phi tuyến.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderNonlinearSystemSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+    
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+
+    // Hiển thị nghiệm
+    if (data.solution) {
+        let solutionHtml = data.solution.map((val, i) => `x<sub>${i+1}</sub> = ${val.toFixed(precision)}`).join('; ');
+        html += `
+            <div class="my-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Nghiệm của hệ (X):</h3>
+                <p class="text-xl font-bold font-mono text-blue-700">[${solutionHtml}]</p>
+            </div>`;
+    }
+
+    // Hiển thị ma trận Jacobi (cho PP Newton thường)
+    if (data.jacobian_matrix_latex) {
+        html += `<div class="my-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Ma trận Jacobi J(X):</h3>
+            <div class="matrix-display">
+                <div class="matrix-container">
+                    <table class="matrix-table">`;
+        data.jacobian_matrix_latex.forEach(row => {
+            html += '<tr>';
+            row.forEach(cell => {
+                html += `<td><span class="jacobian-cell">${cell}</span></td>`;
+            });
+            html += '</tr>';
+        });
+        html += `</table></div></div></div>`;
+    }
+    
+    // Hiển thị ma trận J(X₀)⁻¹ (cho PP Newton cải tiến)
+    if (data.J0_inv_matrix) {
+        html += `<div class="my-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Ma trận nghịch đảo J(X₀)⁻¹ (dùng trong suốt quá trình lặp):</h3>
+            <div class="matrix-display">${formatMatrix(data.J0_inv_matrix)}</div>
+        </div>`;
+    }
+
+
+    // Hiển thị bảng lặp
+    if (data.steps && data.steps.length > 0) {
+        const table = data.steps;
+        const headers = Object.keys(table[0]).sort((a, b) => a === 'k' ? -1 : b === 'k' ? 1 : a.localeCompare(b));
+
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4">Bảng quá trình lặp:</h3>`;
+        html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
+        html += `<thead class="text-xs text-gray-800 bg-gray-100"><tr>`;
+        headers.forEach(h => html += `<th scope="col" class="px-6 py-3">${h.replace('error', 'Sai số').replace('relative_error', 'Sai số tương đối')}</th>`);
+        html += `</tr></thead><tbody>`;
+
+        table.forEach(row => {
+            html += `<tr class="bg-white border-b">`;
+            headers.forEach(key => {
+                let value = row[key];
+                let displayValue = 'N/A';
+                if (value !== undefined && value !== null) {
+                    if (typeof value === 'number') {
+                        if (key === 'k') {
+                            displayValue = value;
+                        } else if (Math.abs(value) < 1e-4 && Math.abs(value) > 0) {
+                            displayValue = value.toExponential(4);
+                        } else {
+                            displayValue = value.toFixed(precision);
+                        }
+                    } else {
+                        displayValue = value;
+                    }
+                }
+                html += `<td class="px-6 py-4 font-mono">${displayValue}</td>`;
+            });
+            html += `</tr>`;
+        });
+        html += `</tbody></table></div>`;
+    }
+
+    container.innerHTML = html;
+    
+    if (window.katex) {
+        container.querySelectorAll('.jacobian-cell').forEach(elem => {
+            try {
+                katex.render(elem.textContent, elem, { throwOnError: false, displayMode: false });
+            } catch (e) { /* Bỏ qua lỗi render */ }
+        });
+    }
+}
