@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from backend.numerical_methods.nonlinear_systems.newton import solve_newton_system
 from backend.numerical_methods.nonlinear_systems.newton_modified import solve_newton_modified_system
-from backend.numerical_methods.nonlinear_systems.simple_iteration import solve_simple_iteration_system # Thêm import
+from backend.numerical_methods.nonlinear_systems.simple_iteration import solve_simple_iteration_system
 from backend.api_formatters.nonlinear_systems import format_nonlinear_system_result
 import traceback
 
@@ -17,16 +17,25 @@ def solve_system_route():
         expr_list = data.get('expressions', [])
         x0_str_list = data.get('x0', [])
         
+        # === VALIDATION LOGIC ===
+        stop_value_str = data.get('stop_value')
+        if not stop_value_str or not stop_value_str.strip():
+            return jsonify({"error": "Vui lòng nhập giá trị cho điều kiện dừng (ε, δ, hoặc N)."}), 400
+        
+        # Chuyển đổi giá trị số một cách an toàn
+        try:
+            stop_value = float(stop_value_str)
+            x0_list = [float(x) for x in x0_str_list]
+        except (ValueError, TypeError):
+            return jsonify({"error": "Giá trị điều kiện dừng hoặc vector ban đầu chứa ký tự không hợp lệ."}), 400
+        
         if not expr_list or not x0_str_list:
             return jsonify({"error": "Vui lòng nhập đầy đủ hệ phương trình và vector ban đầu."}), 400
         
         n = len(expr_list)
-        if n != len(x0_str_list):
+        if n != len(x0_list):
                 return jsonify({"error": "Số lượng phương trình và số lượng giá trị ban đầu phải bằng nhau."}), 400
 
-        x0_list = [float(x) for x in x0_str_list]
-        
-        # Khai báo biến result
         result = None
         method_name = ""
 
@@ -37,11 +46,10 @@ def solve_system_route():
                 expr_list=expr_list,
                 x0_list=x0_list,
                 stop_option=data.get('stop_option'),
-                stop_value=data.get('stop_value'),
+                stop_value=stop_value,
                 norm_choice=data.get('norm_choice')
             )
         
-        # Thêm logic cho Newton cải tiến
         elif method == 'newton_modified':
             method_name = "Phương pháp Newton Cải tiến"
             result = solve_newton_modified_system(
@@ -49,7 +57,7 @@ def solve_system_route():
                 expr_list=expr_list,
                 x0_list=x0_list,
                 stop_option=data.get('stop_option'),
-                stop_value=data.get('stop_value'),
+                stop_value=stop_value,
                 norm_choice=data.get('norm_choice')
             )
 
@@ -59,8 +67,11 @@ def solve_system_route():
             if n != len(domain_str_list):
                  return jsonify({"error": "Số lượng phương trình và số lượng miền xác định phải bằng nhau."}), 400
             
-            a0_list = [float(d.split()[0]) for d in domain_str_list]
-            b0_list = [float(d.split()[1]) for d in domain_str_list]
+            try:
+                a0_list = [float(d.split()[0]) for d in domain_str_list]
+                b0_list = [float(d.split()[1]) for d in domain_str_list]
+            except (ValueError, TypeError, IndexError):
+                 return jsonify({"error": "Định dạng miền hộp D không hợp lệ. Mỗi dòng phải chứa hai số cách nhau bằng khoảng trắng."}), 400
 
             result = solve_simple_iteration_system(
                 n=n,
@@ -69,13 +80,23 @@ def solve_system_route():
                 a0_list=a0_list,
                 b0_list=b0_list,
                 stop_option=data.get('stop_option'),
-                stop_value=data.get('stop_value')
+                stop_value=stop_value
             )
 
         else:
             return jsonify({"error": f"Phương pháp '{method}' không được hỗ trợ."}), 400
         
-        formatted_result = format_nonlinear_system_result(method_name, result)
+        # Truyền thêm thông tin điều kiện dừng vào formatter
+        formatted_result = format_nonlinear_system_result(
+            method_name, 
+            result,
+            stop_option=data.get('stop_option'),
+            stop_value=stop_value
+        )
+        
+        if 'error' in formatted_result and not formatted_result.get('status') == 'success':
+            return jsonify({"error": formatted_result['error']}), 400
+            
         return jsonify(formatted_result)
 
     except (ValueError, TypeError) as e:

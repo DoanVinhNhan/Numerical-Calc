@@ -92,7 +92,7 @@ def solve_simple_iteration_system(n, expr_list, x0_list, a0_list, b0_list, stop_
                  raise ValueError("Phương pháp không hội tụ sau 200 lần lặp.")
 
         return {
-            "success": True,
+            "status": "success",
             "solution": [float(val) for val in X],
             "iterations": len(iterations_data),
             "steps": iterations_data,
@@ -104,4 +104,4 @@ def solve_simple_iteration_system(n, expr_list, x0_list, a0_list, b0_list, stop_
             "norm_used_for_K": norm_to_use
         }
     except Exception as e:
-        return {"success": False, "error": f"Lỗi: {str(e)}\n{traceback.format_exc()}"}
+        return {"status": "error", "error": f"Lỗi: {str(e)}\n{traceback.format_exc()}"}

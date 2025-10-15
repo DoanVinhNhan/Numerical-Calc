@@ -839,12 +839,45 @@ export function renderNonlinearSystemSolution(container, data) {
     const errorMessageDiv = document.getElementById('error-message');
     if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
     
+    if (!data || data.error || data.status !== 'success') {
+        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ từ máy chủ.');
+        return;
+    }
+    
     const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
 
     let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
     html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
 
-    // Hiển thị nghiệm
+    if (data.method === 'Phương pháp Lặp đơn' && data.convergence_info) {
+        const info = data.convergence_info;
+        const normSymbol = info.norm_used_for_K === 'infinity' ? '\\infty' : '1';
+        
+        // **THAY ĐỔI LỚN BẮT ĐẦU TỪ ĐÂY**
+        // Tách riêng văn bản và công thức để render sau
+        html += `<div class="my-6 p-4 bg-gray-50 rounded-lg border">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Phân tích hội tụ</h3>
+            
+            <div class="text-center text-sm mb-4 space-y-2">
+                <p>Điều kiện hội tụ: <span class="katex-render" data-formula="K = ||J_{\\phi}(X)||_{${normSymbol}} < 1"></span></p>
+                ${info.stopping_condition_formula ? `<p>Điều kiện dừng áp dụng: <span class="katex-render" data-formula="${info.stopping_condition_formula}"></span></p>` : ''}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div>
+                    <h4 class="text-md font-semibold text-gray-600 mb-2">Ma trận GTLN của đạo hàm riêng <span class="katex-render" data-formula="|J_{\\phi}(X)|"></span>:</h4>
+                    <div class="matrix-display">${formatMatrix(info.J_max_vals)}</div>
+                </div>
+                <div class="text-sm space-y-2">
+                    <p>Tổng các hàng (chuẩn vô cùng): <span class="font-mono">${info.max_row_sum.toFixed(4)}</span></p>
+                    <p>Tổng các cột (chuẩn 1): <span class="font-mono">${info.max_col_sum.toFixed(4)}</span></p>
+                    <p class="mt-2">Sử dụng chuẩn <span class="katex-render" data-formula="${normSymbol}"></span> (giá trị nhỏ hơn).</p>
+                    <p class="text-lg font-bold text-blue-700">Hệ số co <span class="katex-render" data-formula="K \\approx ${info.contraction_factor_K.toFixed(6)}"></span></p>
+                </div>
+            </div>
+        </div>`;
+    }
+
     if (data.solution) {
         let solutionHtml = data.solution.map((val, i) => `x<sub>${i+1}</sub> = ${val.toFixed(precision)}`).join('; ');
         html += `
@@ -854,7 +887,6 @@ export function renderNonlinearSystemSolution(container, data) {
             </div>`;
     }
 
-    // Hiển thị ma trận Jacobi (cho PP Newton thường)
     if (data.jacobian_matrix_latex) {
         html += `<div class="my-6">
             <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Ma trận Jacobi J(X):</h3>
@@ -871,7 +903,6 @@ export function renderNonlinearSystemSolution(container, data) {
         html += `</table></div></div></div>`;
     }
     
-    // Hiển thị ma trận J(X₀)⁻¹ (cho PP Newton cải tiến)
     if (data.J0_inv_matrix) {
         html += `<div class="my-6">
             <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Ma trận nghịch đảo J(X₀)⁻¹ (dùng trong suốt quá trình lặp):</h3>
@@ -879,8 +910,6 @@ export function renderNonlinearSystemSolution(container, data) {
         </div>`;
     }
 
-
-    // Hiển thị bảng lặp
     if (data.steps && data.steps.length > 0) {
         const table = data.steps;
         const headers = Object.keys(table[0]).sort((a, b) => a === 'k' ? -1 : b === 'k' ? 1 : a.localeCompare(b));
@@ -916,9 +945,25 @@ export function renderNonlinearSystemSolution(container, data) {
         html += `</tbody></table></div>`;
     }
 
+    // Gán nội dung HTML vào container
     container.innerHTML = html;
     
+    // === LOGIC RENDER LATEX MỚI, ĐÁNG TIN CẬY HƠN ===
     if (window.katex) {
+        // Render tất cả các công thức được đánh dấu bằng class "katex-render"
+        container.querySelectorAll('.katex-render').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (e) {
+                console.error("Lỗi render Katex:", e);
+                elem.textContent = elem.dataset.formula; // Hiển thị mã nguồn nếu lỗi
+            }
+        });
+
+        // Render các cell trong ma trận Jacobi (giữ nguyên)
         container.querySelectorAll('.jacobian-cell').forEach(elem => {
             try {
                 katex.render(elem.textContent, elem, { throwOnError: false, displayMode: false });
