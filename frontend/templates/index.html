@@ -633,63 +633,35 @@ sidebarToggle.addEventListener('click', () => {
     <div class="mb-6">
         <h2 class="text-2xl font-semibold">Sơ đồ Hooner</h2>
     </div>
+    <nav class="border-b border-gray-200 mb-6">
+        <div class="-mb-px flex space-x-6">
+            <button data-tab="synthetic-division" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-red-600 border-red-500">Bảng chia P(x)/(x-c)</button>
+            <button data-tab="all-derivatives" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Tính đạo hàm mọi cấp </button>
+            <button data-tab="reverse-horner" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Bảng nhân P(x)(x-c)</button>
+            <button data-tab="w-function" class="hooner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Omega function</button>
+        </div>
+    </nav>
 </div>
-
-<script>
-// Optional inline setup for approximation pages; rebindEventHandlers will call this if present
-function setupApproximationHandlers(container=document) {
-    const root = container || document;
-    const tabs = root.querySelectorAll('.approx-tab');
-    if (!tabs || tabs.length === 0) return;
-
-    const clearActive = () => {
-        tabs.forEach(b => {
-            b.classList.remove('text-pink-600', 'border-pink-500');
-            b.classList.add('text-gray-500', 'border-transparent');
-            b.setAttribute('aria-selected', 'false');
-        });
-    };
-
-    const setActive = (b) => {
-        clearActive();
-        b.classList.add('text-pink-600', 'border-pink-500');
-        b.classList.remove('text-gray-500', 'border-transparent');
-        b.setAttribute('aria-selected', 'true');
-    };
-
-    tabs.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tab = btn.dataset.tab;
-            // hide all contents
-            const contents = root.querySelectorAll('.approx-tab-content');
-            contents.forEach(c => c.classList.add('hidden'));
-            const active = root.querySelector(`#${tab}-content`);
-            if (active) active.classList.remove('hidden');
-            // update active tab styles
-            setActive(btn);
-        });
+</body>
+<script type="module">
+    import { setupTabHandlers, setupSidebarHandlers } from "{{ url_for('static', filename='js/tab-handlers.js') }}";
+    
+    // Setup các tab
+    setupTabHandlers({
+        tabClass: '.hooner-tab',
+        contentClass: '.hooner-tab-content', 
+        activeTextColor: 'text-red-600',
+        activeBorderColor: 'border-red-500'
     });
 
-    // ensure there is one active tab (use first if none)
-    const anyActive = Array.from(tabs).some(b => b.classList.contains('text-pink-600') || b.getAttribute('aria-selected') === 'true');
-    if (!anyActive && tabs[0]) setActive(tabs[0]);
-}
+    setupTabHandlers({
+        tabClass: '.approx-tab',
+        contentClass: '.approx-tab-content',
+        activeTextColor: 'text-pink-600', 
+        activeBorderColor: 'border-pink-500'
+    });
 
-const matrixMenuBtn = document.querySelector('.matrix-menu-btn');
-const matrixSubmenu = document.querySelector('.submenu-matrix');
-const matrixArrow = document.querySelector('.matrix-menu-arrow');
-
-matrixMenuBtn.addEventListener('click', (e) => {
-    e.preventDefault(); // Ngăn chặn hành vi mặc định
-    
-    // Toggle class hidden cho submenu
-    matrixSubmenu.classList.toggle('hidden');
-    
-    // Xoay mũi tên
-    matrixArrow.style.transform = matrixSubmenu.classList.contains('hidden') 
-        ? 'rotate(0deg)' 
-        : 'rotate(180deg)';
-});
+    // Setup sidebar
+    setupSidebarHandlers();
 </script>
-</body>
 </html>
