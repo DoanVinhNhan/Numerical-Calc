@@ -23,6 +23,7 @@ const PAGE_TITLES = {
     'nonlinear-solve': 'Giải phương trình f(x)=0',
     'polynomial-solve': 'Giải phương trình đa thức',
     'nonlinear-system-solve': 'Giải hệ phương trình phi tuyến',
+    'approximation': 'Xấp xỉ hàm số',
     // Thêm các trang khác ở đây nếu cần
 };
 
@@ -115,6 +116,10 @@ function rebindEventHandlers(container) {
     setupRootFindingHandlers();
     setupPolynomialHandlers();
     setupNonlinearSystemsHandlers();
+    // Optional: setup handlers for approximation pages if defined inline
+    if (typeof setupApproximationHandlers === 'function') {
+        try { setupApproximationHandlers(document); } catch (err) { console.warn('setupApproximationHandlers error', err); }
+    }
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();

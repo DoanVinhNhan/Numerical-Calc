@@ -1,0 +1,1 @@
+//frontend/static/js/handlers/interpolation_methods_handler.js

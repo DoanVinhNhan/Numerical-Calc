@@ -43,6 +43,12 @@
                     <button class="w-full text-left px-3 py-2 rounded hover:bg-yellow-50 font-medium text-gray-800" data-page="nonlinear-system-solve">Giải hệ phương trình phi tuyến</button>
                 </li>
 
+                <li>
+                    <button class="w-full text-left px-3 py-2 rounded hover:bg-pink-50 font-medium text-gray-800" data-page="approximation">Xấp xỉ hàm số</button>
+                    <ul class="ml-4 mt-1 space-y-1">
+                    </ul>
+                </li>
+
             </ul>
         </nav>
     </aside>
@@ -570,5 +576,93 @@ sidebarToggle.addEventListener('click', () => {
     <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
     <div id="results-area"></div>
 </div>
+
+
+<div id="approximation-page" class="hidden">
+    <div class="mb-6">
+        <h2 class="text-2xl font-semibold">Xấp xỉ hàm số</h2>
+    </div>
+    <nav class="border-b border-gray-200 mb-6">
+        <div class="-mb-px flex space-x-6">
+            <button data-tab="approx-optimal" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-pink-600 border-pink-500">Tìm mốc nội suy tối ưu</button>
+            <button data-tab="approx-lagrange" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy Lagrange</button>
+            <button data-tab="approx-newton" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy Newton</button>
+            <button data-tab="approx-central" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy trung tâm</button>
+        </div>
+    </nav>
+    <div id="approx-optimal-content" class="approx-tab-content">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="optimal-n-input" class="block text-sm font-medium text-gray-700">Số mốc nội suy (n)</label>
+                <input type="number" id="optimal-n-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-2" min="2" value="5">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="optimal-a-input" class="block text-sm font-medium text-gray-700">Điểm đầu (a)</label>
+                    <input type="number" id="optimal-a-input" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-2" value="-1">
+                </div>
+                <div>
+                    <label for="optimal-b-input" class="block text-sm font-medium text-gray-700">Điểm cuối (b)</label>
+                    <input type="number" id="optimal-b-input" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-2" value="1">
+                </div>
+            </div>
+        </div>
+        <div class="mb-6">
+            <button id="calculate-optimal-nodes-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tìm mốc nội suy tối ưu</button>
+        </div>
+    </div>
+    <div id="approx-lagrange-content" class="approx-tab-content hidden">
+        <p>Chưa có nội dung cho Nội suy Lagrange.</p>
+    </div>
+    <div id="approx-newton-content" class="approx-tab-content hidden">
+        <p>Chưa có nội dung cho Nội suy Newton.</p>
+    </div>
+    <div id="approx-central-content" class="approx-tab-content hidden">
+        <p>Chưa có nội dung cho Nội suy trung tâm.</p>
+    </div>
+    <div id="results-area"></div>
+</div>
+
+<script>
+// Optional inline setup for approximation pages; rebindEventHandlers will call this if present
+function setupApproximationHandlers(container=document) {
+    const root = container || document;
+    const tabs = root.querySelectorAll('.approx-tab');
+    if (!tabs || tabs.length === 0) return;
+
+    const clearActive = () => {
+        tabs.forEach(b => {
+            b.classList.remove('text-pink-600', 'border-pink-500');
+            b.classList.add('text-gray-500', 'border-transparent');
+            b.setAttribute('aria-selected', 'false');
+        });
+    };
+
+    const setActive = (b) => {
+        clearActive();
+        b.classList.add('text-pink-600', 'border-pink-500');
+        b.classList.remove('text-gray-500', 'border-transparent');
+        b.setAttribute('aria-selected', 'true');
+    };
+
+    tabs.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tab = btn.dataset.tab;
+            // hide all contents
+            const contents = root.querySelectorAll('.approx-tab-content');
+            contents.forEach(c => c.classList.add('hidden'));
+            const active = root.querySelector(`#${tab}-content`);
+            if (active) active.classList.remove('hidden');
+            // update active tab styles
+            setActive(btn);
+        });
+    });
+
+    // ensure there is one active tab (use first if none)
+    const anyActive = Array.from(tabs).some(b => b.classList.contains('text-pink-600') || b.getAttribute('aria-selected') === 'true');
+    if (!anyActive && tabs[0]) setActive(tabs[0]);
+}
+
+</script>
 </body>
 </html>
