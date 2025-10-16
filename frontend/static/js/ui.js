@@ -1,5 +1,5 @@
 // frontend/static/js/ui.js
-import {formatCell, formatMatrix, formatGeneralSolution, renderHornerDivisionTable } from './formatters.js';
+import {formatCell, formatMatrix, formatGeneralSolution, renderHornerDivisionTable, renderHornerReverseTable } from './formatters.js';
 
 // KHÔNG khai báo biến const ở đây nữa.
 
@@ -973,40 +973,6 @@ export function renderNonlinearSystemSolution(container, data) {
 }
 
 /**
- * Hiển thị kết quả cho các bài toán Nội suy/Xấp xỉ hàm số.
- * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
- * @param {object} data - Dữ liệu từ API.
- */
-export function renderInterpolationSolution(container, data) {
-    const errorMessageDiv = document.getElementById('error-message');
-    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
-
-    if (!data || data.status !== 'success') {
-        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ từ máy chủ.');
-        return;
-    }
-
-    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
-
-    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
-    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
-
-    // Hiển thị các mốc nội suy (Chebyshev)
-    if (data.nodes) {
-        html += `<div class="my-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các mốc nội suy:</h3>
-            <div class="p-4 bg-gray-50 rounded-lg text-center font-mono text-lg tracking-wider">
-                ${data.nodes.map(node => node.toFixed(precision)).join('; &nbsp; ')}
-            </div>
-        </div>`;
-    }
-
-    // Thêm các khối hiển thị khác cho Lagrange, Newton... ở đây nếu cần
-
-    container.innerHTML = html;
-}
-
-/**
  * Hiển thị kết quả cho Sơ đồ Horner.
  * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
  * @param {object} data - Dữ liệu từ API.
@@ -1127,6 +1093,187 @@ export function renderAllDerivativesSolution(container, data) {
                 katex.render(elem.dataset.formula, elem, {
                     throwOnError: false,
                     displayMode: false
+                });
+            } catch (e) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
+    }
+}
+
+/**
+ * Hiển thị kết quả cho Sơ đồ Horner nhân.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderReverseHornerSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">${data.method}</h2>`;
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '4');
+
+    // Biểu diễn đa thức
+    html += `<div class="my-6 text-center">
+        <p>Cho đa thức <span class="katex-render" data-formula="P(x) = ${data.polynomial_str}"></span> và biểu thức <span class="katex-render" data-formula="(x - ${data.root})"></span>.</p>
+        <p class="mt-2">Ta có: <span class="katex-render" data-formula="${data.result_str_latex}"></span></p>
+    </div>`;
+
+    // Bảng Horner
+    if (data.reverse_table) {
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Bảng nhân Horner</h3>`;
+        html += `<div class="overflow-x-auto flex justify-center">`;
+        html += renderHornerReverseTable(data.reverse_table, data.root, precision);
+        html += `</div>`;
+    }
+
+    // Kết quả
+    html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center">
+        <div>
+            <h4 class="font-semibold">Đa thức tích Q(x):</h4>
+            <div class="text-lg katex-render" data-formula="Q(x) = ${data.product_str}"></div>
+        </div>
+    </div>`;
+
+    container.innerHTML = html;
+
+    // Render Katex sau khi chèn HTML
+    if (window.katex) {
+        container.querySelectorAll('.katex-render').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (e) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
+    }
+}
+
+/**
+ * Hiển thị kết quả cho Omega function.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderWFunctionSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">${data.method}</h2>`;
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '4');
+
+    // Công thức tổng quát
+    html += `<div class="my-6 text-center">
+        <p>Tính đa thức: <span class="katex-render" data-formula="${data.w_n_plus_1_latex}"></span>.</p>
+    </div>`;
+    
+    // Kết quả cuối cùng
+    html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center">
+        <h4 class="font-semibold">Đa thức kết quả:</h4>
+        <div class="text-lg katex-render" data-formula="w(x) = ${data.final_poly_str}"></div>
+    </div>`;
+
+    // Các bước trung gian
+    html += `<h3 class="text-lg font-semibold text-gray-700 mt-8 mb-4 text-center">Các bước nhân Horner</h3>`;
+    data.steps.forEach(step => {
+        html += `<details class="mb-4 bg-white p-3 rounded shadow-sm">
+            <summary class="cursor-pointer text-md font-medium text-gray-800 hover:text-blue-600">
+                Bước ${step.step_index + 1}: Nhân <span class="katex-render-inline" data-formula="w_{${step.step_index}}(x)"></span> với <span class="katex-render-inline" data-formula="(x - ${step.root})"></span>
+            </summary>
+            <div class="mt-3">
+                <p class="text-xs mb-2">Đa thức hiện tại: <span class="katex-render-inline" data-formula="w_{${step.step_index}}(x) = ${step.w_k_str}"></span></p>
+                <p class="text-xs mb-2">Đa thức mới: <span class="katex-render-inline" data-formula="w_{${step.step_index+1}}(x) = ${step.w_k_plus_1_str}"></span></p>
+                <div class="overflow-x-auto flex justify-center mt-4">
+                    ${renderHornerDivisionTable(step.reverse_table, step.root, precision)}
+                </div>
+            </div>
+        </details>`;
+    });
+
+    container.innerHTML = html;
+
+    // Render Katex sau khi chèn HTML
+    if (window.katex) {
+        container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: elem.classList.contains('katex-render')
+                });
+            } catch (e) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
+    }
+}
+
+/**
+ * Hiển thị kết quả cho các bài toán Nội suy/Xấp xỉ hàm số.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderInterpolationSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    if (!data || data.status !== 'success') {
+        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ từ máy chủ.');
+        return;
+    }
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message || ''}</p>`;
+
+    // Hiển thị các mốc nội suy (Chebyshev)
+    if (data.nodes) {
+        html += `<div class="my-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các mốc nội suy:</h3>
+            <div class="p-4 bg-gray-50 rounded-lg text-center font-mono text-lg tracking-wider">
+                ${data.nodes.map(node => node.toFixed(precision)).join('; &nbsp; ')}
+            </div>
+        </div>`;
+    }
+
+    // Hiển thị kết quả cho Lagrange
+    if (data.method === "Nội suy Lagrange") {
+        html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg">
+            <h3 class="font-semibold">Đa thức nội suy Lagrange P(x):</h3>
+            <div class="text-lg katex-render" data-formula="P(x) = ${data.polynomial_str}"></div>
+        </div>`;
+
+        html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg">
+            <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết các bước tính toán</summary>
+            <div class="mt-4">
+                <p class="text-sm">Đa thức <span class="katex-render-inline" data-formula="w(x) = ${data.w_poly_str}"></span></p>
+                <div class="mt-4 space-y-4">`;
+        
+        data.calculation_steps.forEach(step => {
+            html += `<div class="p-3 border rounded bg-white">
+                <p class="font-semibold text-blue-700">Bước ${step.i + 1}: Tính thành phần cho (x_${step.i}, y_${step.i})</p>
+                <ul class="list-disc list-inside text-sm mt-2 space-y-1">
+                    <li>Hằng số mẫu: <span class="katex-render-inline" data-formula="D_{${step.i}} = w'(${step.xi}) \\approx ${step.Di_value.toFixed(precision)}"></span></li>
+                    <li>Đa thức tử: <span class="katex-render-inline" data-formula="\\frac{w(x)}{x - ${step.xi}} = ${step.w_over_x_minus_xi_str}"></span></li>
+                    <li>Thành phần thứ ${step.i+1}: <span class="katex-render-inline" data-formula="\\frac{y_{${step.i}}}{D_{${step.i}}} \\cdot \\frac{w(x)}{x - x_{${step.i}}} = ${step.term_str}"></span></li>
+                </ul>
+            </div>`;
+        });
+
+        html += `</div></div></details>`;
+    }
+
+    container.innerHTML = html;
+    
+    // Render Katex sau khi chèn HTML
+    if (window.katex) {
+        container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: elem.classList.contains('katex-render')
                 });
             } catch (e) {
                 elem.textContent = elem.dataset.formula;

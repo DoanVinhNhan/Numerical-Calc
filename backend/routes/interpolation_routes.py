@@ -2,6 +2,9 @@
 from flask import Blueprint, request, jsonify
 from backend.numerical_methods.interpolation.chebyshev_nodes import chebyshev_nodes
 from backend.api_formatters.interpolation import format_chebyshev_nodes_result
+from backend.numerical_methods.interpolation.lagrange import lagrange_interpolation
+from backend.api_formatters.interpolation import format_lagrange_interpolation_result
+
 import traceback
 
 interpolation_bp = Blueprint('interpolation', __name__, url_prefix='/api/interpolation')
@@ -19,6 +22,29 @@ def chebyshev_nodes_route():
 
         # Định dạng và trả về kết quả
         formatted_result = format_chebyshev_nodes_result(result)
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+    
+@interpolation_bp.route('/lagrange', methods=['POST'])
+def lagrange_route():
+    try:
+        data = request.json
+        x_nodes_str = data.get('x_nodes', '').split()
+        y_nodes_str = data.get('y_nodes', '').split()
+
+        if not x_nodes_str or not y_nodes_str:
+            return jsonify({"error": "Vui lòng nhập đầy đủ các mốc x và giá trị y."}), 400
+
+        x_nodes = [float(x) for x in x_nodes_str]
+        y_nodes = [float(y) for y in y_nodes_str]
+        
+        result = lagrange_interpolation(x_nodes, y_nodes)
+        
+        formatted_result = format_lagrange_interpolation_result(result)
         return jsonify(formatted_result)
 
     except (ValueError, TypeError) as e:

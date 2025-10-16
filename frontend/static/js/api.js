@@ -283,3 +283,45 @@ export async function calculateAllDerivatives(coeffs, root, order) { // Thêm th
     }
     return response.json();
 }
+
+export async function calculateReverseHorner(coeffs, root) {
+    const response = await fetch(`${API_BASE_URL}/horner/reverse-horner`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coeffs, root }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}
+
+export async function calculateWFunction(roots) {
+    const response = await fetch(`${API_BASE_URL}/horner/w-function`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roots }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}
+
+export async function calculateLagrangeInterpolation(xNodes, yNodes) {
+    const response = await fetch(`${API_BASE_URL}/interpolation/lagrange`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ x_nodes: xNodes, y_nodes: yNodes }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}

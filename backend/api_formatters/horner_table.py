@@ -110,3 +110,59 @@ def format_all_derivatives_result(result):
         "derivatives": derivatives,
         "taylor_str": taylor_str
     }
+
+def format_reverse_horner_result(result):
+    """
+    Định dạng kết quả từ hàm nhân Horner.
+    """
+    p_x_str = _format_poly_str(result['original_coeffs'])
+    q_x_str = _format_poly_str(result['coeffs'])
+    root = result['root']
+
+    # Q(x) = P(x) * (x - c)
+    result_str_latex = f"({p_x_str}) \\cdot (x - {root:g})={q_x_str}"
+
+    return {
+        "status": "success",
+        "method": "Sơ đồ Horner cho P(x) * (x-c)",
+        "polynomial_str": p_x_str,
+        "product_str": q_x_str,
+        "root": root,
+        "result_str_latex": result_str_latex,
+        "reverse_table": result['reverse_table']
+    }
+
+def format_w_function_result(result):
+    """
+    Định dạng kết quả từ hàm tính Omega function.
+    """
+    steps = result['steps']
+    final_coeffs = result['final_coeffs']
+    roots = result['roots']
+
+    formatted_steps = []
+    for step in steps:
+        w_k_str = _format_poly_str(step['w_k_coeffs'])
+        w_k_plus_1_str = _format_poly_str(step['w_k_plus_1_coeffs'])
+        
+        formatted_steps.append({
+            "step_index": step['step_index'],
+            "w_k_str": w_k_str,
+            "root": step['root'],
+            "reverse_table": step['reverse_table'],
+            "w_k_plus_1_str": w_k_plus_1_str
+        })
+        
+    final_poly_str = _format_poly_str(final_coeffs)
+    
+    # Tạo chuỗi LaTeX cho công thức tổng quát
+    factors = [f"(x - {r:g})" for r in roots]
+    w_n_plus_1_latex = f"w_{{{len(roots)}}}(x) = \\prod_{{i=0}}^{{{len(roots)-1}}} (x - x_i) = {' '.join(factors)}"
+
+    return {
+        "status": "success",
+        "method": "Tính Đa thức Omega",
+        "w_n_plus_1_latex": w_n_plus_1_latex,
+        "final_poly_str": final_poly_str,
+        "steps": formatted_steps
+    }

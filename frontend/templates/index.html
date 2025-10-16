@@ -618,7 +618,19 @@ sidebarToggle.addEventListener('click', () => {
         </div>
     </div>
     <div id="approx-lagrange-content" class="approx-tab-content hidden">
-        <p>Chưa có nội dung cho Nội suy Lagrange.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="lagrange-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc nội suy x₀, x₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="lagrange-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="0 1 2 3"></textarea>
+            </div>
+            <div>
+                <label for="lagrange-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị y₀, y₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="lagrange-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="1 0 1 0"></textarea>
+            </div>
+        </div>
+        <div class="mb-6">
+            <button id="calculate-lagrange-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tính đa thức Lagrange</button>
+        </div>
     </div>
     <div id="approx-newton-content" class="approx-tab-content hidden">
         <p>Chưa có nội dung cho Nội suy Newton.</p>
@@ -683,10 +695,32 @@ sidebarToggle.addEventListener('click', () => {
         </div>
     </div>
     <div id="reverse-horner-content" class="horner-tab-content hidden">
-        <p>Chưa có nội dung cho bảng nhân.</p>
+        <div class="space-y-6">
+            <div>
+                <label for="reverse-horner-coeffs-input" class="block text-sm font-medium text-gray-700">Nhập các hệ số của đa thức P(x) (từ bậc cao đến thấp)</label>
+                <input id="reverse-horner-coeffs-input" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 font-mono" placeholder="1 -3 3 -1">
+                <p class="mt-2 text-xs text-gray-500">Ví dụ: `1 -3 3 -1` tương ứng với P(x) = x³ - 3x² + 3x - 1</p>
+            </div>
+            <div>
+                <label for="reverse-horner-root-input" class="block text-sm font-medium text-gray-700">Nhập giá trị c (để nhân với x-c)</label>
+                <input id="reverse-horner-root-input" type="number" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" placeholder="1">
+            </div>
+        </div>
+        <div class="mt-8 mb-8">
+            <button id="calculate-reverse-horner-btn" class="action-btn bg-red-600 hover:bg-red-700">Tính Tích</button>
+        </div>
     </div>
     <div id="w-function-content" class="horner-tab-content hidden">
-        <p>Chưa có nội dung cho Omega function.</p>
+        <div class="space-y-6">
+            <div>
+                <label for="w-function-roots-input" class="block text-sm font-medium text-gray-700">Nhập các nghiệm x₀, x₁, ..., xₙ (cách nhau bằng dấu cách)</label>
+                <input id="w-function-roots-input" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 font-mono" placeholder="1 2 3">
+                <p class="mt-2 text-xs text-gray-500">Ví dụ: `1 2 3` sẽ tính w(x) = (x-1)(x-2)(x-3)</p>
+            </div>
+        </div>
+        <div class="mt-8 mb-8">
+            <button id="calculate-w-function-btn" class="action-btn bg-red-600 hover:bg-red-700">Tính Đa thức Omega</button>
+        </div>
     </div>
     
     <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
