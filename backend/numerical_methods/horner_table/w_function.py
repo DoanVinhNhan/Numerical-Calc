@@ -13,7 +13,7 @@ def calculate_w_function(roots):
     Returns:
         dict: Chứa các bước trung gian và hệ số của đa thức cuối cùng.
     """
-    if not roots:
+    if len(roots) == 0:
         raise ValueError("Danh sách nghiệm không được rỗng.")
     
     # Bắt đầu với w_0(x) = 1
