@@ -642,7 +642,7 @@ sidebarToggle.addEventListener('click', () => {
         </div>
     </nav>
 
-    <div id="horner-tab-content-synthetic-division-content" class="horner-tab-content">
+    <div id="synthetic-division-content" class="horner-tab-content">
         <div class="space-y-6">
             <div>
                 <label for="horner-coeffs-input" class="block text-sm font-medium text-gray-700">Nhập các hệ số của đa thức P(x) (từ bậc cao đến thấp, cách nhau bằng dấu cách)</label>
@@ -659,13 +659,33 @@ sidebarToggle.addEventListener('click', () => {
         </div>
     </div>
     
-    <div id="horner-tab-content-all-derivatives-content" class="horner-tab-content hidden">
-        <p>Chưa có nội dung cho tính đạo hàm.</p>
+    <div id="all-derivatives-content" class="horner-tab-content hidden">
+        <div class="space-y-6">
+            <div>
+                <label for="all-derivatives-coeffs-input" class="block text-sm font-medium text-gray-700">Nhập các hệ số của đa thức P(x)</label>
+                <input id="all-derivatives-coeffs-input" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 font-mono" placeholder="1 0 -3 1">
+                <p class="mt-2 text-xs text-gray-500">Ví dụ: `1 0 -3 1` tương ứng với P(x) = x³ - 3x + 1</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="all-derivatives-root-input" class="block text-sm font-medium text-gray-700">Nhập giá trị c</label>
+                    <input id="all-derivatives-root-input" type="number" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" placeholder="2">
+                </div>
+                <div>
+                    <label for="all-derivatives-order-input" class="block text-sm font-medium text-gray-700">Bậc đạo hàm cao nhất (k)</label>
+                    <input id="all-derivatives-order-input" type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" placeholder="3">
+                    <p class="mt-2 text-xs text-gray-500">Để trống để tính đến bậc cao nhất có thể.</p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 mb-8">
+            <button id="calculate-all-derivatives-btn" class="action-btn bg-red-600 hover:bg-red-700">Tính</button>
+        </div>
     </div>
-    <div id="horner-tab-content-reverse-horner-content" class="horner-tab-content hidden">
+    <div id="reverse-horner-content" class="horner-tab-content hidden">
         <p>Chưa có nội dung cho bảng nhân.</p>
     </div>
-    <div id="horner-tab-content-w-function-content" class="horner-tab-content hidden">
+    <div id="w-function-content" class="horner-tab-content hidden">
         <p>Chưa có nội dung cho Omega function.</p>
     </div>
     

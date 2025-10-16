@@ -66,19 +66,47 @@ def format_all_derivatives_result(result):
     """
     Định dạng kết quả từ hàm tính đa thức và các đạo hàm tại một điểm sử dụng Horner mở rộng.
     """
+    p_x_str = _format_poly_str(result['coeffs'])
+    root = result['root']
     steps = result['steps']
     values = result['values']
+    derivatives = result['derivatives']
 
-    formatted_steps = {}
-    for step_key, step in steps.items():
-        formatted_steps[step_key] = {
-            "division_table": step['division_table'],
-            "coeffs": step['coeffs']
-        }
+    formatted_steps = []
+    # Sắp xếp các bước theo đúng thứ tự step_0, step_1,...
+    for i in range(len(steps)):
+        step_key = f"step_{i}"
+        if step_key in steps:
+            step_data = steps[step_key]
+            # Chuyển đổi ndarray thành list nếu cần
+            division_table = np.array(step_data['division_table']).tolist()
+            quotient_coeffs = np.array(step_data['coeffs']).tolist()
+            
+            # Tạo đa thức thương Q_i(x)
+            q_x_str = _format_poly_str(quotient_coeffs)
+            
+            formatted_steps.append({
+                "step_index": i,
+                "division_table": division_table,
+                "quotient_str": q_x_str,
+                "remainder": values[i]
+            })
+
+    # Tạo chuỗi kết quả Taylor
+    taylor_terms = []
+    for i, val in enumerate(derivatives):
+        term = f"\\frac{{{val:g}}}{{{i}!}}(x - {root:g})^{{{i}}}"
+        taylor_terms.append(term)
+    taylor_str = " + ".join(taylor_terms)
+
 
     return {
         "status": "success",
-        "method": "Horner mở rộng cho đa thức và các đạo hàm tại một điểm",
+        "method": "Horner mở rộng - Tính P(c) và các đạo hàm",
+        "polynomial_str": p_x_str,
+        "root": root,
         "steps": formatted_steps,
-        "values": values
+        "values": values,
+        "derivatives": derivatives,
+        "taylor_str": taylor_str
     }

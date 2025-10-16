@@ -1,5 +1,5 @@
 // frontend/static/js/ui.js
-import {formatCell, formatMatrix, formatGeneralSolution } from './formatters.js';
+import {formatCell, formatMatrix, formatGeneralSolution, renderHornerDivisionTable } from './formatters.js';
 
 // KHÔNG khai báo biến const ở đây nữa.
 
@@ -1026,34 +1026,11 @@ export function renderHornerSolution(container, data) {
 
     // Bảng Horner
     if (data.division_table) {
-        const table = data.division_table;
-        const n = table[0].length;
-
         html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Bảng chia Horner</h3>`;
-        html += `<div class="overflow-x-auto flex justify-center">
-            <table class="text-center font-mono border-collapse">
-                <tbody>
-                    <tr class="border-b-2 border-gray-700">
-                        <td class="p-3 border-r-2 border-gray-700">a_i</td>`;
-        for (let i = 0; i < n; i++) {
-            html += `<td class="p-3">${table[0][i].toFixed(precision)}</td>`;
-        }
-        html += `</tr>
-                    <tr class="border-b-2 border-gray-700">
-                        <td class="p-3 border-r-2 border-gray-700">c=${data.root}</td>`;
-        for (let i = 0; i < n; i++) {
-            html += `<td class="p-3">${table[1][i].toFixed(precision)}</td>`;
-        }
-        html += `</tr>
-                    <tr>
-                        <td class="p-3 border-r-2 border-gray-700">b_i</td>`;
-        for (let i = 0; i < n; i++) {
-            html += `<td class="p-3 font-bold text-blue-700">${table[2][i].toFixed(precision)}</td>`;
-        }
-        html += `</tr>
-                </tbody>
-            </table>
-        </div>`;
+        html += `<div class="overflow-x-auto flex justify-center">`;
+        // Gọi hàm renderHornerDivisionTable đã có
+        html += renderHornerDivisionTable(data.division_table, data.root, precision);
+        html += `</div>`;
     }
     
     // Kết quả
@@ -1067,6 +1044,79 @@ export function renderHornerSolution(container, data) {
             <p class="text-lg font-bold text-green-800">${data.value.toFixed(precision)}</p>
         </div>
     </div>`;
+
+    container.innerHTML = html;
+
+    // Render Katex sau khi chèn HTML
+    if (window.katex) {
+        container.querySelectorAll('.katex-render').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (e) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
+    }
+}
+
+export function renderAllDerivativesSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">${data.method}</h2>`;
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '4');
+
+    html += `<div class="my-6 text-center">
+        <p>Cho đa thức <span class="katex-render" data-formula="P(x) = ${data.polynomial_str}"></span> và giá trị <span class="katex-render" data-formula="c = ${data.root}"></span>.</p>
+    </div>`;
+
+    // Bảng kết quả cuối cùng
+    html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Kết quả tính toán</h3>
+    <div class="overflow-x-auto flex justify-center mb-6">
+        <table class="text-center font-mono border-collapse bg-white shadow rounded-lg">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="p-3 border">Đạo hàm</th>
+                    <th class="p-3 border">Công thức</th>
+                    <th class="p-3 border">Giá trị</th>
+                </tr>
+            </thead>
+            <tbody>`;
+    data.derivatives.forEach((derivativeValue, i) => {
+        // Lấy hệ số b tương ứng từ data.values
+        const b_coefficient = data.values[i]; 
+        
+        html += `<tr class="border-t">
+            <td class="p-3 border"><span class="katex-render" data-formula="P^{(${i})}(${data.root})"></span></td>
+            <td class="p-3 border"><span class="katex-render" data-formula="${i}! \\cdot b_{0-${i}}"></span></td>
+            <td class="p-3 border font-bold text-blue-700">${derivativeValue.toFixed(precision)}</td>
+        </tr>`;
+    });
+    html += `</tbody></table></div>`;
+
+    // Khai triển Taylor
+    html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg">
+        <h4 class="font-semibold">Khai triển Taylor của P(x) tại c = ${data.root}:</h4>
+        <div class="text-lg katex-render" data-formula="P(x) = ${data.taylor_str}"></div>
+    </div>`;
+
+
+    // Các bước trung gian
+    html += `<h3 class="text-lg font-semibold text-gray-700 mt-8 mb-4 text-center">Các bước Horner mở rộng</h3>`;
+    data.steps.forEach(step => {
+        html += `<details class="mb-4 bg-white p-3 rounded shadow-sm">
+            <summary class="cursor-pointer text-md font-medium text-gray-800 hover:text-blue-600">Bước ${step.step_index + 1}: Chia Q_${step.step_index}(x) cho (x - ${data.root})</summary>
+            <div class="mt-3">
+                <p class="text-xs mb-2">Đa thức thương: <span class="katex-render" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span>, Số dư: <span class="font-bold">${step.remainder.toFixed(precision)}</span></p>
+                <div class="overflow-x-auto flex justify-center">
+                    ${renderHornerDivisionTable(step.division_table, data.root, precision)}
+                </div>
+            </div>
+        </details>`;
+    });
 
     container.innerHTML = html;
 

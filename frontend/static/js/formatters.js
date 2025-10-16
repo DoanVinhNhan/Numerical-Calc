@@ -101,3 +101,31 @@ export function formatGeneralSolution(generalSolution) {
     html += '</div>';
     return html;
 }
+
+// Hàm trợ giúp để render bảng Horner (có thể tách ra nếu muốn)
+export function renderHornerDivisionTable(table, root, precision) {
+    const n = table[0].length;
+    let tableHtml = `<table class="text-center font-mono border-collapse text-sm">
+            <tbody>
+                <tr class="border-b-2 border-gray-700">
+                    <td class="p-2 border-r-2 border-gray-700">a_i</td>`;
+    for (let i = 0; i < n; i++) {
+        tableHtml += `<td class="p-2">${table[0][i].toFixed(precision)}</td>`;
+    }
+    tableHtml += `</tr>
+                <tr class="border-b-2 border-gray-700">
+                    <td class="p-2 border-r-2 border-gray-700">c=${root}</td>`;
+    for (let i = 0; i < n; i++) {
+        tableHtml += `<td class="p-2">${table[1][i].toFixed(precision)}</td>`;
+    }
+    tableHtml += `</tr>
+                <tr>
+                    <td class="p-2 border-r-2 border-gray-700">b_i</td>`;
+    for (let i = 0; i < n; i++) {
+        tableHtml += `<td class="p-2 font-bold text-blue-700">${table[2][i].toFixed(precision)}</td>`;
+    }
+    tableHtml += `</tr>
+            </tbody>
+        </table>`;
+    return tableHtml;
+}

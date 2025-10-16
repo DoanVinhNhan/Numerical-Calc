@@ -270,11 +270,11 @@ export async function calculateSyntheticDivision(coeffs, root) {
     }
     return response.json();
 }
-export async function calculateAllDerivatives(coeffs) {
+export async function calculateAllDerivatives(coeffs, root, order) { // Thêm tham số
     const response = await fetch(`${API_BASE_URL}/horner/all-derivatives`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coeffs }),
+        body: JSON.stringify({ coeffs, root, order }), // Gửi đủ tham số
     });
 
     if (!response.ok) {

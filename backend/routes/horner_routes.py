@@ -43,9 +43,22 @@ def all_derivatives_route():
 
         coeffs = [float(c) for c in coeffs_str]
         root = float(data.get('root'))
-        order = int(data.get('order', 0))
+        # Lấy giá trị 'order' từ request
+        order_str = data.get('order')
+
+        # Kiểm tra nếu chuỗi rỗng hoặc không tồn tại, thì đặt giá trị mặc định
+        if not order_str:
+            order = len(coeffs) - 1  # Mặc định là bậc của đa thức
+        else:
+            order = int(order_str)
 
         result = all_derivatives(coeffs, root, order)
+        
+        # Thêm thông tin để formatter sử dụng
+        result['coeffs'] = coeffs
+        result['root'] = root
+        result['order'] = order
+
 
         formatted_result = format_all_derivatives_result(result)
 
