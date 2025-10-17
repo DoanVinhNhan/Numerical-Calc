@@ -77,3 +77,39 @@ def format_lagrange_interpolation_result(result):
         "w_poly_str": _format_poly_str(result['w_calculation']['coeffs']),
         "calculation_steps": formatted_steps
     }
+
+def format_divided_difference_result(result):
+    """
+    Định dạng kết quả từ hàm tính bảng tỷ sai phân.
+    """
+    if "error" in result:
+        return result
+
+    return {
+        "status": "success",
+        "method": "Tỷ sai phân",
+        "divided_difference_table": result.get("divided_difference_table", []),
+        "message": f"Đã tính xong bảng tỷ sai phân cho {len(result.get('divided_difference_table', []))} điểm."
+    }
+
+def format_finite_difference_result(result):
+    """
+    Định dạng kết quả từ hàm tính bảng sai phân.
+    """
+    if "error" in result:
+        return result
+
+    return {
+        "status": "success",
+        "method": "Sai phân",
+        "finite_difference_table": result.get("finite_difference_table", []),
+        "message": f"Đã tính xong bảng sai phân cho {len(result.get('finite_difference_table', []))} điểm."
+    }
+
+
+    return {
+        "status": "success",
+        "method": "Tỷ sai phân",
+        "divided_difference_table": result.get("divided_difference_table", []),
+        "message": f"Đã tính xong bảng tỷ sai phân cho {len(result.get('divided_difference_table', []))} điểm."
+    }

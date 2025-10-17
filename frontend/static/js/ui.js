@@ -1264,6 +1264,48 @@ export function renderInterpolationSolution(container, data) {
 
         html += `</div></div></details>`;
     }
+    // Hiển thị kết quả cho Tỷ sai phân 
+    if (data.method === "Tỷ sai phân" || data.method === "Sai phân") {
+        const tableData = data.divided_difference_table;
+        if (tableData && tableData.length > 0) {
+            const n_rows = tableData.length;
+            const n_cols = tableData[0].length;
+            html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Bảng ${data.method}</h3>`;
+            html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
+
+            // Render header
+            let headerHtml = `<thead class="text-xs text-gray-800 bg-gray-100"><tr>
+                <th class="px-6 py-3">x_i</th>
+                <th class="px-6 py-3">y_i</th>`;
+            for(let i = 2; i < n_cols; i++) {
+                headerHtml += `<th class="px-6 py-3">Cấp ${i-1}</th>`;
+            }
+            headerHtml += `</tr></thead>`;
+            html += headerHtml;
+
+            // Render body
+            html += `<tbody>`;
+            tableData.forEach((row, rowIndex) => {
+                html += `<tr class="bg-white border-b">`;
+                row.forEach((cell, colIndex) => {
+                    // Xác định điều kiện làm nổi bật
+                    const isDiagonal = (colIndex === rowIndex + 1);
+                    const isLastRow = (rowIndex === n_rows - 1);
+                    // Áp dụng điều kiện từ cột y_i (colIndex = 1) trở đi
+                    const highlightClass = (colIndex >= 1 && (isDiagonal || isLastRow)) ? 'font-bold text-red-600' : '';
+
+                    // Chỉ hiển thị giá trị nếu nó nằm trong phần tam giác dưới của bảng
+                    if (colIndex <= rowIndex + 1) {
+                        html += `<td class="px-6 py-4 font-mono ${highlightClass}">${cell.toFixed(precision)}</td>`;
+                    } else {
+                        html += `<td class="px-6 py-4 font-mono"></td>`; // Ô trống
+                    }
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody></table></div>`;
+        }
+    }
 
     container.innerHTML = html;
     
@@ -1281,3 +1323,4 @@ export function renderInterpolationSolution(container, data) {
         });
     }
 }
+

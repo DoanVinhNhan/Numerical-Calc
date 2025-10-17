@@ -591,6 +591,8 @@ sidebarToggle.addEventListener('click', () => {
     <nav class="border-b border-gray-200 mb-6">
         <div class="-mb-px flex space-x-6">
             <button data-tab="approx-optimal" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-pink-600 border-pink-500">Tìm mốc nội suy tối ưu</button>
+            <button data-tab="approx-newton-divided" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Tỷ sai phân</button>
+            <button data-tab="approx-newton-finite-difference" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Sai phân mốc cách đều</button>
             <button data-tab="approx-lagrange" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy Lagrange</button>
             <button data-tab="approx-newton" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy Newton</button>
             <button data-tab="approx-central" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy trung tâm</button>
@@ -632,11 +634,41 @@ sidebarToggle.addEventListener('click', () => {
             <button id="calculate-lagrange-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tính đa thức Lagrange</button>
         </div>
     </div>
+    <div id="approx-newton-finite-difference-content" class="approx-tab-content hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="finite-diff-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc nội suy x₀, x₁, ... (cách đều, cách nhau bằng dấu cách)</label>
+                <textarea id="finite-diff-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="2.1 2.3 2.5 2.7 2.9 3.1"></textarea>
+            </div>
+            <div>
+                <label for="finite-diff-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị y₀, y₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="finite-diff-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="0.5597 1.0378 1.5337 1.9847 2.3355 2.5465"></textarea>
+            </div>
+        </div>
+        <div class="mb-6">
+            <button id="calculate-finite-difference-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tính Tỷ Sai Phân</button>
+        </div>
+    </div>
     <div id="approx-newton-content" class="approx-tab-content hidden">
         <p>Chưa có nội dung cho Nội suy Newton.</p>
     </div>
     <div id="approx-central-content" class="approx-tab-content hidden">
         <p>Chưa có nội dung cho Nội suy trung tâm.</p>
+    </div>
+    <div id="approx-newton-divided-content" class="approx-tab-content hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="newton-divided-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc nội suy x₀, x₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="newton-divided-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="1.3 2.1 1.8 1.5 2.3 2 1.2"></textarea>
+            </div>
+            <div>
+                <label for="newton-divided-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị y₀, y₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="newton-divided-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="-0.2069 0.5597 0.0032 -0.241 1.0378 0.3464 -0.1374"></textarea>
+            </div>
+        </div>
+        <div class="mb-6">
+            <button id="calculate-divided-difference-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tính Tỷ Sai Phân</button>
+        </div>
     </div>
     <div id="results-area"></div>
 </div>

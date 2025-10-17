@@ -1,5 +1,5 @@
 // frontend/static/js/handlers/interpolation_methods_handler.js
-import { getChebyshevNodes, calculateLagrangeInterpolation } from '../api.js';
+import { calculateFiniteDifference, getChebyshevNodes, calculateLagrangeInterpolation, calculateDividedDifference } from '../api.js';
 import { renderInterpolationSolution, showLoading, hideLoading, showError } from '../ui.js';
 
 export function setupInterpolationHandlers() {
@@ -10,6 +10,10 @@ export function setupInterpolationHandlers() {
     const calculateLagrangeBtn = document.getElementById('calculate-lagrange-btn');
     if (calculateLagrangeBtn) {
         calculateLagrangeBtn.addEventListener('click', handleLagrangeCalculation);
+    }
+    const calculateDividedBtn = document.getElementById('calculate-divided-difference-btn');
+    if (calculateDividedBtn) {
+        calculateDividedBtn.addEventListener('click', handleDividedDifferenceCalculation);
     }
     // Thêm các handlers khác cho Lagrange, Newton... ở đây khi cần
 }
@@ -48,6 +52,46 @@ async function handleLagrangeCalculation() {
     showLoading();
     try {
         const data = await calculateLagrangeInterpolation(xNodes, yNodes);
+        renderInterpolationSolution(document.getElementById('results-area'), data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleDividedDifferenceCalculation() {
+    const xNodes = document.getElementById('newton-divided-x-nodes').value;
+    const yNodes = document.getElementById('newton-divided-y-nodes').value;
+
+    if (!xNodes.trim() || !yNodes.trim()) {
+        showError('Vui lòng nhập đầy đủ các mốc x và giá trị y.');
+        return;
+    }
+
+    showLoading();
+    try {
+        const data = await calculateDividedDifference(xNodes, yNodes);
+        renderInterpolationSolution(document.getElementById('results-area'), data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleFiniteDifferenceCalculation() {
+    const xNodes = document.getElementById('finite-diff-x-nodes').value;
+    const yNodes = document.getElementById('finite-diff-y-nodes').value;
+
+    if (!xNodes.trim() || !yNodes.trim()) {
+        showError('Vui lòng nhập đầy đủ các mốc x và giá trị y.');
+        return;
+    }
+
+    showLoading();
+    try {
+        const data = await calculateFiniteDifference(xNodes, yNodes);
         renderInterpolationSolution(document.getElementById('results-area'), data);
     } catch (error) {
         showError(error.message);
