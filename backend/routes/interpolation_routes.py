@@ -5,6 +5,7 @@ from backend.api_formatters.interpolation import format_chebyshev_nodes_result, 
 from backend.numerical_methods.interpolation.lagrange import lagrange_interpolation
 from backend.api_formatters.interpolation import format_lagrange_interpolation_result
 from backend.numerical_methods.interpolation.divided_difference import divided_differences
+from backend.numerical_methods.interpolation.finite_difference import finite_differences
 from backend.api_formatters.interpolation import format_divided_difference_result
 import traceback
 

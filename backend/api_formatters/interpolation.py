@@ -105,11 +105,3 @@ def format_finite_difference_result(result):
         "finite_difference_table": result.get("finite_difference_table", []),
         "message": f"Đã tính xong bảng sai phân cho {len(result.get('finite_difference_table', []))} điểm."
     }
-
-
-    return {
-        "status": "success",
-        "method": "Tỷ sai phân",
-        "divided_difference_table": result.get("divided_difference_table", []),
-        "message": f"Đã tính xong bảng tỷ sai phân cho {len(result.get('divided_difference_table', []))} điểm."
-    }

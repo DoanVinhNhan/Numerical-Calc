@@ -18,7 +18,6 @@ def finite_differences(x_nodes, y_nodes):
     if n == 0:
         return {
             "finite_difference_table": [],
-            "steps": []
         }
     for i in range(n):
         if np.sum(np.isclose(x_nodes[i], x_nodes)) > 1:

@@ -650,10 +650,50 @@ sidebarToggle.addEventListener('click', () => {
         </div>
     </div>
     <div id="approx-newton-content" class="approx-tab-content hidden">
-        <p>Chưa có nội dung cho Nội suy Newton.</p>
+        <div class="mb-6"></div>
+            <label for="newton-method-select" class="block text-sm font-medium text-gray-700">Chọn phương pháp</label>
+            <select id="newton-method-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-2">
+                <option value="equidistant">Nội suy Newton mốc cách đều</option>
+                <option value="arbitrary">Nội suy Newton mốc bất kỳ</option>
+            </select>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="newton-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc nội suy x₀, x₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="newton-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="0 1 2 3"></textarea>
+            </div>
+            <div>
+                <label for="newton-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị y₀, y₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="newton-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="1 0 1 0"></textarea>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <button id="calculate-newton-interpolation-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tính nội suy Newton</button>
+        </div>
     </div>
+
     <div id="approx-central-content" class="approx-tab-content hidden">
-        <p>Chưa có nội dung cho Nội suy trung tâm.</p>
+        <div class="mb-6"></div>
+            <label for="central-method-select" class="block text-sm font-medium text-gray-700">Chọn phương pháp</label>
+            <select id="central-method-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-2">
+                <option value="equidistant">Gauss I</option>
+                <option value="arbitrary">Gauss II</option>
+                <option value="arbitrary">Bessel</option>
+            </select>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="central-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc nội suy x₀, x₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="central-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="0 1 2 3"></textarea>
+            </div>
+            <div>
+                <label for="central-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị y₀, y₁, ... (cách nhau bằng dấu cách)</label>
+                <textarea id="central-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-3 font-mono" placeholder="1 0 1 0"></textarea>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <button id="calculate-central-interpolation-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tính nội suy trung tâm</button>
+        </div>
     </div>
     <div id="approx-newton-divided-content" class="approx-tab-content hidden">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
