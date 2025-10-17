@@ -1400,7 +1400,7 @@ export function renderInterpolationSolution(container, data) {
 
     if (data.method === "Nội suy Newton mốc cách đều") {
         html += `<div class="my-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Bảng sai phân hữu hạn (h = ${data.h.toFixed(precision)})</h3>`;
+            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Bảng sai phân (h = ${data.h.toFixed(precision)})</h3>`;
         
         const tableData = data.finite_difference_table;
         if (tableData && tableData.length > 0) {
@@ -1471,7 +1471,7 @@ export function renderInterpolationSolution(container, data) {
                     ${w_table_html}
                     <p class="text-sm font-semibold">2. Đa thức theo biến t:</p>
                     <div class="text-center text-lg katex-render" data-formula="P_n(t) = ${details.polynomial_str_t}"></div>
-                    <p class="text-sm mt-2 font-semibold">3. Đổi biến <span class="katex-render-inline" data-formula="t = \\frac{x - (${details.start_node})}{${data.h}}"></span> để có đa thức cuối cùng:</p>
+                    <p class="text-sm mt-2 font-semibold">3. Đổi biến <span class="katex-render-inline" data-formula="t = \\frac{x - (${details.start_node})}{${data.h.toFixed(precision)}}"></span> để có đa thức cuối cùng:</p>
                     <div class="text-lg text-center p-3 bg-green-50 rounded-md katex-render" data-formula="P_n(x) = ${details.polynomial_str_x}"></div>
                 </div>
             </div>`;

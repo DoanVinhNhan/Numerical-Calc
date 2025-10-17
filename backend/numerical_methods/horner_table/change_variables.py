@@ -1,32 +1,42 @@
-#backend/numerical_methods/horner_table/all_derivatives.py
+# backend/numerical_methods/horner_table/change_variables.py
 import numpy as np
-from backend.numerical_methods.horner_table.all_derivatives import all_derivatives
+from backend.numerical_methods.horner_table.reverse_horner import reverse_horner
 
-def change_variables(coeffs, a, b):
+def change_variables(coeffs_t, a, b):
     """
-    Đổi biến hệ số đa thức từ biến x sang biến t theo công thức:
-    t = ax+b
+    Đổi biến đa thức P(t) thành P(x) với quan hệ t = ax + b.
     Parameters:
-        coeffs (list of float): Hệ số của đa thức theo biến x, từ bậc cao nhất đến bậc thấp nhất.
-        a (float): Hệ số của biến t trong công thức đổi biến.
-        b (float): Hằng số trong công thức đổi biến.
+        coeffs_t (list of float): Hệ số của đa thức theo biến t.
+        a (float): Hệ số của x.
+        b (float): Hằng số tự do.
     Returns:
-        dict:{
-            step:{
-                "division_table": Bảng chia horner tại từng bước
-                "coeffs": Hệ số của đa thức thương tại mỗi bước}
-            },
-            "variables_coeffs": Hệ số của đa thức sau khi đổi biến
-        }
+        dict: Chứa các bước tính toán và hệ số đa thức theo biến x.
     """
-    if len(coeffs) == 0:
+    if len(coeffs_t) == 0:
         raise ValueError("Coefficient list cannot be empty.")
     if np.isclose(a, 0):
         raise ValueError("Coefficient 'a' cannot be zero.")
-    
-    root = -b / a
-    results = all_derivatives(coeffs, root, len(coeffs) - 1)
+
+    n = len(coeffs_t) - 1
+    x0 = -b / a
+
+    coeffs_d = [c * (a ** (n - i)) for i, c in enumerate(coeffs_t)]
+
+    steps = []
+    final_coeffs = [coeffs_d[0]]
+    for i in range(1, n + 1):
+        horner_result = reverse_horner(final_coeffs, x0)
+        multiplied_coeffs = horner_result['coeffs']
+        multiplied_coeffs[-1] += coeffs_d[i]
+        final_coeffs = multiplied_coeffs
+
+        steps.append({
+            "horner_table": horner_result['reverse_table'],
+            "added_coeff": coeffs_d[i],
+            "coeffs": final_coeffs
+        })
+        
     return {
-        "steps": results['steps'],
-        "variables_coeffs": results['values'][::-1]
+        "steps": steps,
+        "variables_coeffs": final_coeffs
     }
