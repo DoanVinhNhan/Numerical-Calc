@@ -2,7 +2,7 @@
 import numpy as np
 from backend.numerical_methods.horner_table.reverse_horner import reverse_horner
 from backend.numerical_methods.interpolation.finite_difference import finite_differences
-
+from backend.numerical_methods.horner_table.change_variables import change_variables
 #Nội suy newton mốc cách đều
 def newton_interpolation_equidistant(x_nodes, y_nodes):
     """
@@ -38,7 +38,7 @@ def newton_interpolation_equidistant(x_nodes, y_nodes):
             raise ValueError("Các mốc x phải cách đều nhau.")
     
     # Bảng sai phân
-    finite_diff_result = finite_differences(y_nodes, h)
+    finite_diff_result = finite_differences(x_nodes, y_nodes)
     finite_diff_table = finite_diff_result['finite_difference_table']
 
     # Lấy các sai phân trên đường chéo (Newton tiến)
@@ -50,27 +50,29 @@ def newton_interpolation_equidistant(x_nodes, y_nodes):
     t_nodes_forward = (x_nodes - x_nodes[0]) / h
     # Đổi biến Newton lùi
     t_nodes_backward = (x_nodes - x_nodes[-1]) / h
+    t_nodes_backward = t_nodes_backward[::-1]
 
     # Danh sách các w_i(x) tiến
     w_forward = []
-    w_coeffs_forward = [0.0]*(n-1) + [1.0]
+    w_coeffs_forward = [1.0]
     w_forward.append(w_coeffs_forward.copy())
-    for i in range(n):
+    for i in range(n-1):
         new_w_result = reverse_horner(w_coeffs_forward, t_nodes_forward[i])
         w_coeffs_forward = new_w_result['coeffs']
         w_forward.append(w_coeffs_forward.copy())
-    
+    w_forward = [[0.0]*(len(w_forward)-i-1)+w_forward[i] for i in range(len(w_forward))]
 
     # Danh sách các w_i(x) lùi
     w_backward = []
-    w_coeffs_backward = [0.0]*(n-1) + [1.0]
+    w_coeffs_backward = [1.0]
     w_backward.append(w_coeffs_backward.copy())
-    for i in range(n):
+    for i in range(n-1):
         new_w_result = reverse_horner(w_coeffs_backward, t_nodes_backward[i])
-        w_coeffs_backward = [0.0]*(n-1) + new_w_result['coeffs']
+        w_coeffs_backward = new_w_result['coeffs']
         w_backward.append(w_coeffs_backward.copy())
+    w_backward = [[0.0]*(len(w_backward)-i-1)+w_backward[i] for i in range(len(w_backward))]
 
-    #Tính hệ số (sai phân cho giai thừa)
+    #Tính hệ số (sai phân chia cho giai thừa)
     coeffs_forward = [finite_diffs_forward / np.math.factorial(i) for i, finite_diffs_forward in enumerate(finite_diffs_forward)]
     coeffs_backward = [finite_diffs_backward / np.math.factorial(i) for i, finite_diffs_backward in enumerate(finite_diffs_backward)]
 
@@ -79,14 +81,12 @@ def newton_interpolation_equidistant(x_nodes, y_nodes):
     # Tính đa thức nội suy Newton lùi
     newton_backward_coeffs_t = np.array(coeffs_backward)@np.array(w_backward)
     # Đổi biến trở lại hệ số đa thức theo x
+    newton_forward_coeffs = change_variables(newton_forward_coeffs_t.tolist(), a=1/h, b=-x_nodes[0]/h)['variables_coeffs']
+    newton_backward_coeffs = change_variables(newton_backward_coeffs_t.tolist(), a=1/h, b=-x_nodes[-1]/h)['variables_coeffs']
 
 
     return {
-        "polynomial_coeffs_forward_t": newton_forward_coeffs_t.tolist(),
-        "polynomial_coeffs_backward_t": newton_backward_coeffs_t.tolist(),
-        "polynomial_coeffs_forward_x": newton_forward_coeffs.tolist(),
-        "polynomial_coeffs_backward_x": newton_backward_coeffs.tolist(),
-        "finite_difference_table": finite_diff_table
+        
     }
 
 #Nội suy newton mốc bất kỳ
