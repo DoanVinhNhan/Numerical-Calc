@@ -1,6 +1,6 @@
 # backend/numerical_methods/horner_table/change_variables.py
 import numpy as np
-from backend.numerical_methods.horner_table.reverse_horner import reverse_horner
+from backend.numerical_methods.horner_table.synthetic_division import synthetic_division
 
 def change_variables(coeffs_t, a, b):
     """
@@ -25,13 +25,13 @@ def change_variables(coeffs_t, a, b):
     steps = []
     final_coeffs = [coeffs_d[0]]
     for i in range(1, n + 1):
-        horner_result = reverse_horner(final_coeffs, x0)
+        horner_result = synthetic_division(final_coeffs, x0)
         multiplied_coeffs = horner_result['coeffs']
         multiplied_coeffs[-1] += coeffs_d[i]
         final_coeffs = multiplied_coeffs
 
         steps.append({
-            "horner_table": horner_result['reverse_table'],
+            "division_table": horner_result['division_table'],
             "added_coeff": coeffs_d[i],
             "coeffs": final_coeffs
         })
