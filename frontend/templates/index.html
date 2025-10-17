@@ -721,11 +721,33 @@ sidebarToggle.addEventListener('click', () => {
         <div class="-mb-px flex space-x-6">
             <button data-tab="synthetic-division" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-red-600 border-red-500">Bảng chia P(x)/(x-c)</button>
             <button data-tab="all-derivatives" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Tính đạo hàm mọi cấp </button>
+<button data-tab="change-variables" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Đổi biến t = ax+b</button>
             <button data-tab="reverse-horner" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Bảng nhân P(x)(x-c)</button>
             <button data-tab="w-function" class="horner-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Omega function</button>
         </div>
     </nav>
-
+    <div id="change-variables-content" class="horner-tab-content hidden">
+        <div class="space-y-6">
+            <div>
+                <label for="change-variables-coeffs-input" class="block text-sm font-medium text-gray-700">Nhập các hệ số của đa thức P(x)</label>
+                <input id="change-variables-coeffs-input" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 font-mono" placeholder="1 2 1">
+                <p class="mt-2 text-xs text-gray-500">Ví dụ: `1 2 1` tương ứng với P(x) = x² + 2x + 1</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="change-variables-a-input" class="block text-sm font-medium text-gray-700">Hệ số a (trong t = ax + b)</label>
+                    <input id="change-variables-a-input" type="number" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" placeholder="1">
+                </div>
+                <div>
+                    <label for="change-variables-b-input" class="block text-sm font-medium text-gray-700">Hệ số b (trong t = ax + b)</label>
+                    <input id="change-variables-b-input" type="number" step="any" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm p-2 font-mono" placeholder="1">
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 mb-8">
+            <button id="calculate-change-variables-btn" class="action-btn bg-red-600 hover:bg-red-700">Thực hiện Đổi biến</button>
+        </div>
+    </div>
     <div id="synthetic-division-content" class="horner-tab-content">
         <div class="space-y-6">
             <div>

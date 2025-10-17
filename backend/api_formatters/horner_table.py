@@ -166,3 +166,44 @@ def format_w_function_result(result):
         "final_poly_str": final_poly_str,
         "steps": formatted_steps
     }
+
+def format_change_variables_result(result):
+    """
+    Định dạng kết quả từ hàm đổi biến.
+    """
+    original_poly_str = _format_poly_str(result['original_coeffs'], variable='x')
+    new_poly_str = _format_poly_str(result['variables_coeffs'], variable='t')
+    a = result['a']
+    b = result['b']
+    
+    # Định dạng lại các bước để dễ dàng hiển thị
+    formatted_steps = []
+    # Sắp xếp các bước theo đúng thứ tự step_0, step_1,...
+    for i in range(len(result['steps'])):
+        step_key = f"step_{i}"
+        if step_key in result['steps']:
+            step_data = result['steps'][step_key]
+            # Chuyển đổi ndarray thành list nếu cần
+            division_table = np.array(step_data['division_table']).tolist()
+            quotient_coeffs = np.array(step_data['coeffs']).tolist()
+            
+            # Tạo đa thức thương Q_i(x)
+            q_x_str = _format_poly_str(quotient_coeffs)
+            
+            formatted_steps.append({
+                "step_index": i,
+                "division_table": division_table,
+                "quotient_str": q_x_str,
+                "remainder": result['variables_coeffs'][-(i+1)] # Hệ số b_i tương ứng
+            })
+
+    return {
+        "status": "success",
+        "method": "Đổi biến đa thức",
+        "original_poly_str": original_poly_str,
+        "new_poly_str": new_poly_str,
+        "a": a,
+        "b": b,
+        "root": -b / a,
+        "steps": formatted_steps,
+    }

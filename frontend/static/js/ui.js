@@ -1152,6 +1152,56 @@ export function renderReverseHornerSolution(container, data) {
     }
 }
 
+export function renderChangeVariablesSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    let html = `<h2 class="result-heading">${data.method}</h2>`;
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '4');
+
+    html += `<div class="my-6 text-center">
+        <p>Đa thức gốc: <span class="katex-render" data-formula="P(x) = ${data.original_poly_str}"></span></p>
+        <p>Thực hiện phép đổi biến <span class="katex-render" data-formula="t = ${data.a}x + ${data.b}"></span><span class="katex-render" data-formula="x = \\frac{t - ${data.b}}{${data.a}}"></span>.</p>
+        <p class="mt-2">Ta sẽ khai triển Taylor cho P(x) tại điểm <span class="katex-render" data-formula="x_0 = -b/a = ${data.root.toFixed(precision)}"></span>.</p>
+    </div>`;
+
+    // Kết quả cuối cùng
+    html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center">
+        <h4 class="font-semibold">Đa thức theo biến t:</h4>
+        <div class="text-lg katex-render" data-formula="Q(t) = ${data.new_poly_str}"></div>
+    </div>`;
+
+    // Các bước trung gian
+    html += `<h3 class="text-lg font-semibold text-gray-700 mt-8 mb-4 text-center">Các bước Horner mở rộng</h3>`;
+    data.steps.forEach(step => {
+        html += `<details class="mb-4 bg-white p-3 rounded shadow-sm">
+            <summary class="cursor-pointer text-md font-medium text-gray-800 hover:text-blue-600">Bước ${step.step_index + 1}: Chia Q_${step.step_index}(x) cho (x - ${data.root.toFixed(precision)})</summary>
+            <div class="mt-3">
+                <p class="text-xs mb-2">Đa thức thương: <span class="katex-render-inline" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span>, Số dư (hệ số b_${data.steps.length - 1 - step.step_index}): <span class="font-bold">${step.remainder.toFixed(precision)}</span></p>
+                <div class="overflow-x-auto flex justify-center">
+                    ${renderHornerDivisionTable(step.division_table, data.root, precision)}
+                </div>
+            </div>
+        </details>`;
+    });
+
+    container.innerHTML = html;
+
+    // Render Katex sau khi chèn HTML
+    if (window.katex) {
+        container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: elem.classList.contains('katex-render')
+                });
+            } catch (e) {
+                elem.textContent = elem.dataset.formula;
+            }
+        });
+    }
+}
+
 /**
  * Hiển thị kết quả cho Omega function.
  * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.

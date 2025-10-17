@@ -7,7 +7,8 @@ from backend.numerical_methods.horner_table.reverse_horner import reverse_horner
 from backend.api_formatters.horner_table import format_reverse_horner_result
 from backend.numerical_methods.horner_table.w_function import calculate_w_function
 from backend.api_formatters.horner_table import format_w_function_result
-
+from backend.numerical_methods.horner_table.change_variables import change_variables
+from backend.api_formatters.horner_table import format_change_variables_result
 import traceback
 
 horner_bp = Blueprint('horner', __name__, url_prefix='/api/horner')
@@ -112,6 +113,34 @@ def w_function_route():
         result = calculate_w_function(roots)
         
         formatted_result = format_w_function_result(result)
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi không xác định: {traceback.format_exc()}"}), 500
+    
+@horner_bp.route('/change-variables', methods=['POST'])
+def change_variables_route():
+    try:
+        data = request.json
+        coeffs_str = data.get('coeffs', '').split()
+        if not coeffs_str:
+            return jsonify({"error": "Vui lòng nhập các hệ số của đa thức."}), 400
+
+        coeffs = [float(c) for c in coeffs_str]
+        a = float(data.get('a'))
+        b = float(data.get('b'))
+
+        result = change_variables(coeffs, a, b)
+        
+        # Thêm thông tin để formatter sử dụng
+        result['original_coeffs'] = coeffs
+        result['a'] = a
+        result['b'] = b
+
+        formatted_result = format_change_variables_result(result)
+
         return jsonify(formatted_result)
 
     except (ValueError, TypeError) as e:

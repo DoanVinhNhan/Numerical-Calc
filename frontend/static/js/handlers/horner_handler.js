@@ -1,6 +1,6 @@
 // frontend/static/js/handlers/horner_handler.js
-import { calculateSyntheticDivision, calculateAllDerivatives, calculateReverseHorner, calculateWFunction } from '../api.js'; // Thêm calculateWFunction
-import { renderAllDerivativesSolution, renderHornerSolution, renderReverseHornerSolution, renderWFunctionSolution, showLoading, hideLoading, showError } from '../ui.js'; // Thêm renderWFunctionSolution
+import { calculateSyntheticDivision, calculateAllDerivatives, calculateReverseHorner, calculateWFunction, calculateChangeVariables } from '../api.js'; // Thêm calculateWFunction
+import { renderAllDerivativesSolution, renderHornerSolution, renderReverseHornerSolution, renderWFunctionSolution, renderChangeVariablesSolution, showLoading, hideLoading, showError } from '../ui.js'; // Thêm renderWFunctionSolution
 
 export function setuphornerHandlers() {
     const calculateBtn = document.getElementById('calculate-synthetic-division-btn');
@@ -18,6 +18,10 @@ export function setuphornerHandlers() {
     const calculateWBtn = document.getElementById('calculate-w-function-btn');
     if (calculateWBtn) {
         calculateWBtn.addEventListener('click', handleWFunction);
+    }
+    const calculateChangeVariablesBtn = document.getElementById('calculate-change-variables-btn');
+    if(calculateChangeVariablesBtn) {
+        calculateChangeVariablesBtn.addEventListener('click', handleChangeVariables);
     }
 }
 
@@ -93,6 +97,27 @@ async function handleWFunction() {
     try {
         const data = await calculateWFunction(roots);
         renderWFunctionSolution(document.getElementById('results-area'), data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleChangeVariables() {
+    const coeffs = document.getElementById('change-variables-coeffs-input').value;
+    const a = document.getElementById('change-variables-a-input').value;
+    const b = document.getElementById('change-variables-b-input').value;
+
+    if (!coeffs.trim() || !a.trim() || !b.trim()) {
+        showError('Vui lòng nhập đầy đủ hệ số đa thức và các hệ số a, b.');
+        return;
+    }
+
+    showLoading();
+    try {
+        const data = await calculateChangeVariables(coeffs, a, b);
+        renderChangeVariablesSolution(document.getElementById('results-area'), data);
     } catch (error) {
         showError(error.message);
     } finally {

@@ -353,3 +353,17 @@ export async function calculateFiniteDifference(xNodes, yNodes) {
     }
     return response.json();
 }
+
+export async function calculateChangeVariables(coeffs, a, b) {
+    const response = await fetch(`${API_BASE_URL}/horner/change-variables`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coeffs, a, b }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}
