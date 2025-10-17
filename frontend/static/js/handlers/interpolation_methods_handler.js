@@ -15,6 +15,10 @@ export function setupInterpolationHandlers() {
     if (calculateDividedBtn) {
         calculateDividedBtn.addEventListener('click', handleDividedDifferenceCalculation);
     }
+    const calculateFiniteDiffBtn = document.getElementById('calculate-finite-difference-btn');
+    if (calculateFiniteDiffBtn) {
+        calculateFiniteDiffBtn.addEventListener('click', handleFiniteDifferenceCalculation);
+    }
     // Thêm các handlers khác cho Lagrange, Newton... ở đây khi cần
 }
 
