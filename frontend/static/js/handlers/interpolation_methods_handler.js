@@ -1,5 +1,5 @@
 // frontend/static/js/handlers/interpolation_methods_handler.js
-import { calculateFiniteDifference, getChebyshevNodes, calculateLagrangeInterpolation, calculateDividedDifference } from '../api.js';
+import { calculateFiniteDifference, getChebyshevNodes, calculateLagrangeInterpolation, calculateDividedDifference, calculateNewtonInterpolation } from '../api.js';
 import { renderInterpolationSolution, showLoading, hideLoading, showError } from '../ui.js';
 
 export function setupInterpolationHandlers() {
@@ -18,6 +18,10 @@ export function setupInterpolationHandlers() {
     const calculateFiniteDiffBtn = document.getElementById('calculate-finite-difference-btn');
     if (calculateFiniteDiffBtn) {
         calculateFiniteDiffBtn.addEventListener('click', handleFiniteDifferenceCalculation);
+    }
+    const calculateNewtonBtn = document.getElementById('calculate-newton-interpolation-btn');
+    if (calculateNewtonBtn) {
+        calculateNewtonBtn.addEventListener('click', handleNewtonInterpolation);
     }
     // Thêm các handlers khác cho Lagrange, Newton... ở đây khi cần
 }
@@ -96,6 +100,26 @@ async function handleFiniteDifferenceCalculation() {
     showLoading();
     try {
         const data = await calculateFiniteDifference(xNodes, yNodes);
+        renderInterpolationSolution(document.getElementById('results-area'), data);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleNewtonInterpolation() {
+    const xNodes = document.getElementById('newton-x-nodes').value;
+    const yNodes = document.getElementById('newton-y-nodes').value;
+
+    if (!xNodes.trim() || !yNodes.trim()) {
+        showError('Vui lòng nhập đầy đủ các mốc x và giá trị y.');
+        return;
+    }
+
+    showLoading();
+    try {
+        const data = await calculateNewtonInterpolation(xNodes, yNodes);
         renderInterpolationSolution(document.getElementById('results-area'), data);
     } catch (error) {
         showError(error.message);

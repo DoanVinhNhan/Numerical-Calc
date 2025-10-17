@@ -7,6 +7,9 @@ from backend.api_formatters.interpolation import format_lagrange_interpolation_r
 from backend.numerical_methods.interpolation.divided_difference import divided_differences
 from backend.numerical_methods.interpolation.finite_difference import finite_differences
 from backend.api_formatters.interpolation import format_divided_difference_result
+from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant
+from backend.api_formatters.interpolation import format_newton_interpolation_result
+
 import traceback
 
 interpolation_bp = Blueprint('interpolation', __name__, url_prefix='/api/interpolation')
@@ -94,6 +97,29 @@ def finite_difference_route():
         result = finite_differences(x_nodes, y_nodes)
 
         formatted_result = format_finite_difference_result(result)
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+    
+@interpolation_bp.route('/newton-interpolation', methods=['POST'])
+def newton_interpolation_route():
+    try:
+        data = request.json
+        x_nodes_str = data.get('x_nodes', '').split()
+        y_nodes_str = data.get('y_nodes', '').split()
+
+        if not x_nodes_str or not y_nodes_str:
+            return jsonify({"error": "Vui lòng nhập đầy đủ các mốc x và giá trị y."}), 400
+
+        x_nodes = [float(x) for x in x_nodes_str]
+        y_nodes = [float(y) for y in y_nodes_str]
+
+        result = newton_interpolation_equidistant(x_nodes, y_nodes)
+
+        formatted_result = format_newton_interpolation_result(result)
         return jsonify(formatted_result)
 
     except (ValueError, TypeError) as e:

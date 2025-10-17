@@ -156,3 +156,25 @@ export function renderHornerReverseTable(table, root, precision) {
         </table>`;
     return tableHtml;
 }
+
+export function format_poly_str_js(coeffs, variable = 'x') {
+    if (!coeffs || coeffs.length === 0) return "0";
+    const terms = [];
+    const degree = coeffs.length - 1;
+    coeffs.forEach((c, i) => {
+        if (Math.abs(c) < 1e-12) return;
+        const power = degree - i;
+        const sign = c < 0 ? " - " : " + ";
+        const c_abs = Math.abs(c);
+        let coeff_str = (Math.abs(c_abs - 1) > 1e-9 || power === 0) ? parseFloat(c_abs.toPrecision(6)).toString() : "";
+        let var_str = power > 1 ? `${variable}^{${power}}` : (power === 1 ? variable : "");
+        let term = `${coeff_str}${var_str}`;
+        if (coeff_str && var_str) term = `${coeff_str} ${var_str}`;
+        if (terms.length === 0) terms.push(c < 0 ? `-${term}` : term);
+        else terms.push(`${sign}${term}`);
+    });
+    if (terms.length === 0) return "0";
+    let poly_str = terms.join("").trim();
+    if (poly_str.startsWith('+ ')) poly_str = poly_str.substring(2);
+    return poly_str;
+}

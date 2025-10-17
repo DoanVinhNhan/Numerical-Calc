@@ -1,5 +1,5 @@
 // frontend/static/js/ui.js
-import {formatCell, formatMatrix, formatGeneralSolution, renderHornerDivisionTable, renderHornerReverseTable } from './formatters.js';
+import {format_poly_str_js, formatCell, formatMatrix, formatGeneralSolution, renderHornerDivisionTable, renderHornerReverseTable } from './formatters.js';
 
 // KHÔNG khai báo biến const ở đây nữa.
 
@@ -1396,6 +1396,89 @@ export function renderInterpolationSolution(container, data) {
             });
             html += `</tbody></table></div>`;
         }
+    }
+
+    if (data.method === "Nội suy Newton mốc cách đều") {
+        html += `<div class="my-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Bảng sai phân hữu hạn (h = ${data.h.toFixed(precision)})</h3>`;
+        
+        const tableData = data.finite_difference_table;
+        if (tableData && tableData.length > 0) {
+            const n_rows = tableData.length;
+            const n_cols = tableData[0].length;
+            html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
+            let headerHtml = `<thead class="text-xs text-gray-800 bg-gray-100"><tr>
+                <th class="px-6 py-3">x_i</th>
+                <th class="px-6 py-3">y_i</th>`;
+            for(let i = 2; i < n_cols; i++) {
+                headerHtml += `<th class="px-6 py-3">Δ<sup>${i-1}</sup>y</th>`;
+            }
+            headerHtml += `</tr></thead>`;
+            html += headerHtml;
+            html += `<tbody>`;
+            tableData.forEach((row, rowIndex) => {
+                html += `<tr class="bg-white border-b">`;
+                row.forEach((cell, colIndex) => {
+                    const isForwardDiagonal = (colIndex === rowIndex + 1);
+                    const isBackwardLastRow = (rowIndex === n_rows - 1);
+                    let highlightClass = '';
+                    if (colIndex > 0 && (isForwardDiagonal || isBackwardLastRow)) {
+                        highlightClass = 'font-bold text-red-600';
+                    }
+                    if (colIndex <= rowIndex + 1) {
+                        html += `<td class="px-6 py-4 font-mono ${highlightClass.trim()}">${cell.toFixed(precision)}</td>`;
+                    } else {
+                        html += `<td class="px-6 py-4 font-mono"></td>`;
+                    }
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody></table></div>`;
+        }
+        html += `</div>`;
+
+        const renderDetails = (title, details, isForward) => {
+            const formula = isForward 
+                ? `P_n(t) = y_0 + \\frac{\\Delta y_0}{1!}t + \\frac{\\Delta^2 y_0}{2!}t(t-1) + \\dots`
+                : `P_n(t) = y_n + \\frac{\\nabla y_n}{1!}t + \\frac{\\nabla^2 y_n}{2!}t(t+1) + \\dots`;
+
+            let w_table_html = `<div class="overflow-x-auto my-4">
+                <table class="w-full text-sm text-center">
+                    <thead class="bg-gray-200 text-xs text-gray-700">
+                        <tr>
+                            <th class="p-2">i</th>
+                            <th class="p-2">Hệ số (Δ<sup>i</sup>y / i!)</th>
+                            <th class="p-2">Đa thức cơ sở wᵢ(t)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            details.w_polynomials_t.forEach((w_poly, i) => {
+                w_table_html += `<tr class="border-b bg-white">
+                    <td class="p-2 font-mono">${i}</td>
+                    <td class="p-2 font-mono">${details.coeffs_scaled[i].toFixed(precision)}</td>
+                    <td class="p-2 text-left katex-render-inline" data-formula="${format_poly_str_js(w_poly, 't')}"></td>
+                </tr>`;
+            });
+            w_table_html += `</tbody></table></div>`;
+
+            return `
+            <div class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-800 text-center mb-4">${title}</h3>
+                <div class="p-4 bg-gray-50 rounded-lg border space-y-4">
+                    <p class="text-sm">Bắt đầu từ mốc <span class="katex-render-inline" data-formula="x_0 = ${details.start_node}"></span>, áp dụng công thức:</p>
+                    <div class="text-center text-lg katex-render" data-formula="${formula}"></div>
+                    <p class="text-sm font-semibold">1. Xây dựng các đa thức cơ sở wᵢ(t) và hệ số:</p>
+                    ${w_table_html}
+                    <p class="text-sm font-semibold">2. Đa thức theo biến t:</p>
+                    <div class="text-center text-lg katex-render" data-formula="P_n(t) = ${details.polynomial_str_t}"></div>
+                    <p class="text-sm mt-2 font-semibold">3. Đổi biến <span class="katex-render-inline" data-formula="t = \\frac{x - (${details.start_node})}{${data.h}}"></span> để có đa thức cuối cùng:</p>
+                    <div class="text-lg text-center p-3 bg-green-50 rounded-md katex-render" data-formula="P_n(x) = ${details.polynomial_str_x}"></div>
+                </div>
+            </div>`;
+        };
+
+        html += renderDetails("Chi tiết quá trình tính Newton Tiến", data.forward_interpolation, true);
+        html += renderDetails("Chi tiết quá trình tính Newton Lùi", data.backward_interpolation, false);
     }
 
 

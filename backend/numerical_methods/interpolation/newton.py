@@ -52,7 +52,7 @@ def newton_interpolation_equidistant(x_nodes, y_nodes):
     t_nodes_backward = (x_nodes - x_nodes[-1]) / h
     t_nodes_backward = t_nodes_backward[::-1]
 
-    # Danh sách các w_i(x) tiến
+    # Bảng tích w_i(x) tiến
     w_forward = []
     w_coeffs_forward = [1.0]
     w_forward.append(w_coeffs_forward.copy())
@@ -62,7 +62,7 @@ def newton_interpolation_equidistant(x_nodes, y_nodes):
         w_forward.append(w_coeffs_forward.copy())
     w_forward = [[0.0]*(len(w_forward)-i-1)+w_forward[i] for i in range(len(w_forward))]
 
-    # Danh sách các w_i(x) lùi
+    # Bảng tích w_i(x) lùi
     w_backward = []
     w_coeffs_backward = [1.0]
     w_backward.append(w_coeffs_backward.copy())
@@ -86,7 +86,24 @@ def newton_interpolation_equidistant(x_nodes, y_nodes):
 
 
     return {
-        
+        "finite_difference_table": finite_diff_table,
+        "h": h,
+        "forward_interpolation": {
+            "start_node": x_nodes[0],
+            "diffs": finite_diffs_forward,
+            "coeffs_scaled": coeffs_forward,
+            "w_polynomials_t": w_forward,
+            "polynomial_coeffs_t": newton_forward_coeffs_t.tolist(),
+            "polynomial_coeffs_x": newton_forward_coeffs
+        },
+        "backward_interpolation": {
+            "start_node": x_nodes[-1],
+            "diffs": finite_diffs_backward,
+            "coeffs_scaled": coeffs_backward,
+            "w_polynomials_t": w_backward,
+            "polynomial_coeffs_t": newton_backward_coeffs_t.tolist(),
+            "polynomial_coeffs_x": newton_backward_coeffs
+        }
     }
 
 #Nội suy newton mốc bất kỳ

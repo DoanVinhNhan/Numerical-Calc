@@ -105,3 +105,58 @@ def format_finite_difference_result(result):
         "finite_difference_table": result.get("finite_difference_table", []),
         "message": f"Đã tính xong bảng sai phân cho {len(result.get('finite_difference_table', []))} điểm."
     }
+
+def format_newton_interpolation_result(result):
+    """
+    Định dạng kết quả từ hàm nội suy Newton mốc cách đều.
+    """
+    if "error" in result:
+        return result
+
+    def format_interpolation_details(details):
+        # Helper to format each term of the polynomial sum
+        terms_str = []
+        for i in range(len(details["coeffs_scaled"])):
+            coeff = details["coeffs_scaled"][i]
+            w_poly = details["w_polynomials_t"][i]
+            
+            if abs(coeff) < 1e-12:
+                continue
+
+            w_poly_str = _format_poly_str(w_poly, variable='t')
+            coeff_str = f"{abs(coeff):g}"
+            
+            term = ""
+            if not terms_str:
+                term = f"- {coeff_str}" if coeff < 0 else f"{coeff_str}"
+            else:
+                term = f" - {coeff_str}" if coeff < 0 else f" + {coeff_str}"
+
+            if w_poly_str and w_poly_str != "1":
+                 term += f"({w_poly_str})"
+            
+            terms_str.append(term)
+        
+        poly_sum_str = " ".join(terms_str).lstrip(" +")
+
+        return {
+            "start_node": details["start_node"],
+            "diffs": [float(d) for d in details["diffs"]],
+            "coeffs_scaled": [float(c) for c in details["coeffs_scaled"]],
+            "w_polynomials_t": [[float(c) for c in p] for p in details["w_polynomials_t"]],
+            "polynomial_sum_str_t": poly_sum_str or "0",
+            "polynomial_str_t": _format_poly_str(details["polynomial_coeffs_t"], variable='t'),
+            "polynomial_coeffs_t": details["polynomial_coeffs_t"],
+            "polynomial_str_x": _format_poly_str(details["polynomial_coeffs_x"], variable='x'),
+            "polynomial_coeffs_x": details["polynomial_coeffs_x"]
+        }
+
+    return {
+        "status": "success",
+        "method": "Nội suy Newton mốc cách đều",
+        "message": "Tính toán đa thức nội suy Newton thành công.",
+        "finite_difference_table": result["finite_difference_table"],
+        "h": result["h"],
+        "forward_interpolation": format_interpolation_details(result["forward_interpolation"]),
+        "backward_interpolation": format_interpolation_details(result["backward_interpolation"])
+    }
