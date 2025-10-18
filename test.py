@@ -5,15 +5,11 @@ from backend.numerical_methods.interpolation.lagrange import lagrange_interpolat
 from backend.numerical_methods.interpolation.divided_difference import divided_differences
 from backend.numerical_methods.interpolation.finite_difference import finite_differences
 from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant
+from backend.numerical_methods.horner_table.change_variables import change_variables
 if __name__ == "__main__":
-    # Ví dụ sử dụng hàm lagrange_interpolation
-    x_nodes = [2.1, 2.3, 2.5, 2.7, 2.9, 3.1]
-    y_nodes = [0.5597, 1.0378, 1.5337, 1.9847, 2.3355, 2.5465]
-    result_lagrange = lagrange_interpolation(x_nodes, y_nodes)
-    print("Hệ số đa thức nội suy Lagrange:", result_lagrange['polynomial_coeffs'])
-    # Ví dụ sử dụng hàm newton_interpolation_equidistant
-    result_newton = newton_interpolation_equidistant(x_nodes, y_nodes)
-    print("Hệ số đa thức nội suy Newton Tiến theo t:", result_newton['polynomial_coeffs_forward_t'])
-    print("Hệ số đa thức nội suy Newton Tiến theo x:", result_newton['polynomial_coeffs_forward_x'])
-    print("Hệ số đa thức nội suy Newton Lùi theo t:", result_newton['polynomial_coeffs_backward_t'])
-    print("Hệ số đa thức nội suy Newton Lùi theo x:", result_newton['polynomial_coeffs_backward_x'])
+    # Ví dụ sử dụng hàm change_variables
+    coeffs_t = [1, 2, 3]  # Hệ số của đa thức theo biến t
+    a = 2
+    b = 1
+    result_change = change_variables(coeffs_t, a, b)
+    print("Kết quả đổi biến:", result_change)
