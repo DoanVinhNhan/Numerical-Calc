@@ -650,12 +650,14 @@ sidebarToggle.addEventListener('click', () => {
         </div>
     </div>
     <div id="approx-newton-content" class="approx-tab-content hidden">
-        <div class="mb-6"></div>
+        <div class="mb-6">
             <label for="newton-method-select" class="block text-sm font-medium text-gray-700">Chọn phương pháp</label>
             <select id="newton-method-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm p-2">
-                <option value="equidistant">Nội suy Newton mốc cách đều</option>
-                <option value="arbitrary">Nội suy Newton mốc bất kỳ</option>
+                <option value="equidistant">Nội suy Newton mốc cách đều (Sai phân)</option>
+                <option value="arbitrary">Nội suy Newton mốc bất kỳ (Tỷ sai phân)</option>
             </select>
+            <p id="newton-method-note" class="mt-2 text-xs text-gray-500">Mốc cách đều yêu cầu các giá trị x cách nhau một khoảng h không đổi.</p>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label for="newton-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc nội suy x₀, x₁, ... (cách nhau bằng dấu cách)</label>

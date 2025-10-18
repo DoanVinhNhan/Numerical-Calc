@@ -160,3 +160,57 @@ def format_newton_interpolation_result(result):
         "forward_interpolation": format_interpolation_details(result["forward_interpolation"]),
         "backward_interpolation": format_interpolation_details(result["backward_interpolation"])
     }
+
+def format_newton_divided_interpolation_result(result):
+    """
+    Định dạng kết quả từ hàm nội suy Newton mốc bất kỳ (dùng tỷ sai phân).
+    """
+    if "error" in result:
+        return result
+
+    def format_interpolation_details(details):
+        # Helper to format each term of the polynomial sum
+        terms_str = []
+        for i in range(len(details["diffs"])):
+            coeff = details["diffs"][i] # Hệ số là tỷ sai phân luôn
+            w_poly = details["w_polynomials_t"][i] # Đây thực chất là w_polynomials_x
+
+            if abs(coeff) < 1e-12:
+                continue
+
+            w_poly_str = _format_poly_str(w_poly, variable='x')
+            coeff_str = f"{abs(coeff):g}"
+
+            term = ""
+            if not terms_str:
+                term = f"- {coeff_str}" if coeff < 0 else f"{coeff_str}"
+            else:
+                term = f" - {coeff_str}" if coeff < 0 else f" + {coeff_str}"
+
+            if w_poly_str and w_poly_str != "1":
+                 term += f"({w_poly_str})"
+
+            terms_str.append(term)
+
+        poly_sum_str = " ".join(terms_str).lstrip(" +")
+
+        return {
+            "start_node": details["start_node"],
+            "diffs": [float(d) for d in details["diffs"]],
+            # "coeffs_scaled" không cần thiết vì dùng trực tiếp diffs
+            "w_polynomials_x": [[float(c) for c in p] for p in details["w_polynomials_t"]], # Đổi tên cho rõ
+            "polynomial_sum_str_x": poly_sum_str or "0",
+            "polynomial_str_x": _format_poly_str(details["polynomial_coeffs"], variable='x'),
+            "polynomial_coeffs_x": details["polynomial_coeffs"]
+        }
+
+    return {
+        "status": "success",
+        "method": "Nội suy Newton mốc bất kỳ (Tỷ sai phân)",
+        "message": "Tính toán đa thức nội suy Newton thành công.",
+        "divided_difference_table": result["divided_difference_table"],
+        "x_nodes_sorted": result["x_nodes_sorted"],
+        "y_nodes_sorted": result["y_nodes_sorted"],
+        "forward_interpolation": format_interpolation_details(result["forward_interpolation"]),
+        "backward_interpolation": format_interpolation_details(result["backward_interpolation"])
+    }

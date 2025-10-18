@@ -368,11 +368,15 @@ export async function calculateChangeVariables(coeffs, a, b) {
     return response.json();
 }
 
-export async function calculateNewtonInterpolation(xNodes, yNodes) {
+export async function calculateNewtonInterpolation(xNodes, yNodes, methodType) { // <<< THÊM methodType
     const response = await fetch(`${API_BASE_URL}/interpolation/newton-interpolation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x_nodes: xNodes, y_nodes: yNodes }),
+        body: JSON.stringify({
+            x_nodes: xNodes,
+            y_nodes: yNodes,
+            method_type: methodType // <<< GỬI methodType
+        }),
     });
 
     if (!response.ok) {

@@ -23,6 +23,11 @@ export function setupInterpolationHandlers() {
     if (calculateNewtonBtn) {
         calculateNewtonBtn.addEventListener('click', handleNewtonInterpolation);
     }
+    const newtonMethodSelect = document.getElementById('newton-method-select');
+    if (newtonMethodSelect) {
+        newtonMethodSelect.addEventListener('change', updateNewtonMethodNote);
+        updateNewtonMethodNote();
+    }
     // Thêm các handlers khác cho Lagrange, Newton... ở đây khi cần
 }
 
@@ -111,6 +116,7 @@ async function handleFiniteDifferenceCalculation() {
 async function handleNewtonInterpolation() {
     const xNodes = document.getElementById('newton-x-nodes').value;
     const yNodes = document.getElementById('newton-y-nodes').value;
+    const methodType = document.getElementById('newton-method-select').value; // <<< Lấy giá trị method
 
     if (!xNodes.trim() || !yNodes.trim()) {
         showError('Vui lòng nhập đầy đủ các mốc x và giá trị y.');
@@ -119,11 +125,26 @@ async function handleNewtonInterpolation() {
 
     showLoading();
     try {
-        const data = await calculateNewtonInterpolation(xNodes, yNodes);
-        renderInterpolationSolution(document.getElementById('results-area'), data);
+        // <<< Truyền methodType vào hàm API >>>
+        const data = await calculateNewtonInterpolation(xNodes, yNodes, methodType);
+        renderInterpolationSolution(document.getElementById('results-area'), data); // Dùng chung render
     } catch (error) {
         showError(error.message);
     } finally {
         hideLoading();
+    }
+}
+
+function updateNewtonMethodNote() {
+    const select = document.getElementById('newton-method-select');
+    const note = document.getElementById('newton-method-note');
+    if (select && note) {
+        if (select.value === 'equidistant') {
+            note.textContent = 'Mốc cách đều yêu cầu các giá trị x cách nhau một khoảng h không đổi.';
+            note.style.display = 'block';
+        } else {
+             note.textContent = 'Mốc bất kỳ không yêu cầu các giá trị x cách đều.';
+            note.style.display = 'block';
+        }
     }
 }
