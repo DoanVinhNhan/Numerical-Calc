@@ -1151,33 +1151,32 @@ export function renderReverseHornerSolution(container, data) {
         });
     }
 }
-
+/** Hiển thị kết quả cho Phép đổi biến trong khai triển Taylor.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
 export function renderChangeVariablesSolution(container, data) {
     const errorMessageDiv = document.getElementById('error-message');
     if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
 
     let html = `<h2 class="result-heading">${data.method}</h2>`;
-    const precision = parseInt(document.getElementById('setting-precision')?.value || '4');
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7'); // Tăng độ chính xác
 
     html += `<div class="my-6 text-center">
         <p>Đa thức gốc: <span class="katex-render" data-formula="P(x) = ${data.original_poly_str}"></span></p>
-        <p>Thực hiện phép đổi biến <span class="katex-render" data-formula="t = ${data.a}x + ${data.b}"></span><span class="katex-render" data-formula="x = \\frac{t - ${data.b}}{${data.a}}"></span>.</p>
-        <p class="mt-2">Ta sẽ khai triển Taylor cho P(x) tại điểm <span class="katex-render" data-formula="x_0 = -b/a = ${data.root.toFixed(precision)}"></span>.</p>
+        <p>Thực hiện phép đổi biến <span class="katex-render-inline" data-formula="t = ${data.a}x + ${data.b}"></span>, suy ra <span class="katex-render-inline" data-formula="x = \\frac{t - (${data.b})}{${data.a}}"></span>.</p>
+        <p class="mt-2">Ta sẽ khai triển Taylor cho P(x) tại điểm <span class="katex-render-inline" data-formula="x_0 = -b/a = ${data.root.toFixed(precision)}"></span>.</p>
     </div>`;
 
-    // Kết quả cuối cùng
-    html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center">
-        <h4 class="font-semibold">Đa thức theo biến t:</h4>
-        <div class="text-lg katex-render" data-formula="Q(t) = ${data.new_poly_str}"></div>
-    </div>`;
-
-    // Các bước trung gian
-    html += `<h3 class="text-lg font-semibold text-gray-700 mt-8 mb-4 text-center">Các bước Horner mở rộng</h3>`;
+    // --- HIỂN THỊ CÁC BƯỚC Bảng chia horner (Giữ nguyên) ---
+    html += `<h3 class="text-lg font-semibold text-gray-700 mt-8 mb-4 text-center">Bước 1: Tính các hệ số Taylor dₖ = P⁽ᵏ⁾(x₀)/k! bằng Bảng chia Horner</h3>`;
     data.steps.forEach(step => {
-        html += `<details class="mb-4 bg-white p-3 rounded shadow-sm">
-            <summary class="cursor-pointer text-md font-medium text-gray-800 hover:text-blue-600">Bước ${step.step_index + 1}: Chia Q_${step.step_index}(x) cho (x - ${data.root.toFixed(precision)})</summary>
+        html += `<details class="mb-4 bg-white p-3 rounded shadow-sm border">
+            <summary class="cursor-pointer text-md font-medium text-gray-800 hover:text-blue-600">
+                Bước ${step.step_index + 1}: Chia Q_${step.step_index}(x) cho (x - ${data.root.toFixed(precision)}) ⇒ d_${step.step_index} = ${step.remainder_dk.toFixed(precision)}
+            </summary>
             <div class="mt-3">
-                <p class="text-xs mb-2">Đa thức thương: <span class="katex-render-inline" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span>, Số dư (hệ số b_${data.steps.length - 1 - step.step_index}): <span class="font-bold">${step.remainder.toFixed(precision)}</span></p>
+                <p class="text-xs mb-2">Đa thức thương: <span class="katex-render-inline" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span></p>
                 <div class="overflow-x-auto flex justify-center">
                     ${renderHornerDivisionTable(step.division_table, data.root, precision)}
                 </div>
@@ -1185,9 +1184,36 @@ export function renderChangeVariablesSolution(container, data) {
         </details>`;
     });
 
+    // --- THÊM PHẦN GIẢI THÍCH MỐI LIÊN HỆ ---
+    if (data.taylor_explanation) {
+        const exp = data.taylor_explanation;
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-8 mb-4 text-center">Bước 2: Xây dựng đa thức Q(t)</h3>`;
+        html += `<div class="my-4 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm">
+            <p>Khai triển Taylor của P(x) quanh x₀:</p>
+            <div class="text-center my-2 katex-render" data-formula="${exp.taylor_expansion_x_str}"></div>
+            <p>Thay <span class="katex-render-inline" data-formula="x - x_0 = t/a"></span> vào khai triển trên:</p>
+            <div class="text-center my-2 katex-render" data-formula="${exp.taylor_expansion_t_str}"></div>
+            <p class="mt-4 font-semibold">Vậy, các hệ số qₖ của đa thức Q(t) = q₀ + q₁t + ... + qₙtⁿ được tính như sau:</p>
+            <ul class="list-disc list-inside mt-2 space-y-1">`;
+
+        exp.q_coeffs_explanation.forEach(q_exp => {
+            html += `<li><span class="katex-render-inline" data-formula="${q_exp.formula} \\approx ${q_exp.value.toFixed(precision)}"></span></li>`;
+        });
+
+        html += `</ul>
+            <p class="mt-3">Sau khi tính toán, ta thu được đa thức Q(t) (sắp xếp theo bậc giảm dần):</p>
+        </div>`;
+    }
+
+    // Kết quả cuối cùng (Giữ nguyên)
+    html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center border border-green-200">
+        <h4 class="font-semibold">Đa thức theo biến t (Kết quả cuối cùng):</h4>
+        <div class="text-lg katex-render" data-formula="Q(t) = ${data.new_poly_str}"></div>
+    </div>`;
+
     container.innerHTML = html;
 
-    // Render Katex sau khi chèn HTML
+    // Render Katex sau khi chèn HTML (Giữ nguyên)
     if (window.katex) {
         container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
             try {
@@ -1196,7 +1222,8 @@ export function renderChangeVariablesSolution(container, data) {
                     displayMode: elem.classList.contains('katex-render')
                 });
             } catch (e) {
-                elem.textContent = elem.dataset.formula;
+                console.error("Katex render error:", e, "Formula:", elem.dataset.formula);
+                elem.textContent = elem.dataset.formula; // Hiển thị mã nguồn nếu lỗi
             }
         });
     }

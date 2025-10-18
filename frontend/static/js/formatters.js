@@ -121,9 +121,11 @@ export function renderHornerDivisionTable(table, root, precision) {
     tableHtml += `</tr>
                 <tr>
                     <td class="p-2 border-r-2 border-gray-700">b_i</td>`;
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < n-1; i++) {
         tableHtml += `<td class="p-2 font-bold text-blue-700">${table[2][i].toFixed(precision)}</td>`;
     }
+    tableHtml += `<td class="p-2 font-bold text-red-700">${table[2][n-1].toFixed(precision)}</td>`;
+
     tableHtml += `</tr>
             </tbody>
         </table>`;

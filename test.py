@@ -4,16 +4,18 @@ from backend.numerical_methods.horner_table.synthetic_division import synthetic_
 from backend.numerical_methods.interpolation.lagrange import lagrange_interpolation
 from backend.numerical_methods.interpolation.divided_difference import divided_differences
 from backend.numerical_methods.interpolation.finite_difference import finite_differences
-from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant
+from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant, newton_interpolation_divided_difference
 from backend.numerical_methods.horner_table.change_variables import change_variables
 if __name__ == "__main__":
-    # Ví dụ sử dụng hàm change_variables
-    frontward_t = [6.916666666665073e-05, -0.0003833333333331485, -0.009879166666667393, 0.04018333333333444, 0.4481099999999995, 0.5597]
-    frontward = [2.21e-08, 5.48e-07, -8.03e-05, -0.00103, 0.0957, 1.5818]
-    backward_t = [6.916666666665073e-05, 0.0013458333333331216, -0.0002541666666676559, -0.07904583333333527, 0.13348499999999855, 2.5465]
-    backward = [2.21e-08, 3.86e-06, 0.00018, 0.00067, -0.0343, 2.3371]
+    x_nodes = [2.1, 2.3, 2.5, 2.7, 2.9, 3.1]
+    y_nodes = [0.5597, 1.0378, 1.5337, 1.9847, 2.3355, 2.5465]
 
-    changed_frontward = change_variables(frontward_t, a=0.2, b=2.1)['variables_coeffs']
-    changed_backward = change_variables(backward_t, a=0.2, b=3.1)['variables_coeffs']
-    print(changed_frontward)
-    print(changed_backward)
+    result_1 = newton_interpolation_equidistant(x_nodes, y_nodes)['forward_interpolation']['polynomial_coeffs_x']
+    result_2 = lagrange_interpolation(x_nodes, y_nodes)['polynomial_coeffs']
+    result_3 = newton_interpolation_divided_difference(x_nodes, y_nodes)['forward_interpolation']['polynomial_coeffs']
+    print("Kết quả nội suy Newton mốc cách đều:")
+    print(result_1)
+    print("Kết quả nội suy Lagrange:")
+    print(result_2)
+    print("Kết quả nội suy Newton mốc bất kỳ:")
+    print(result_3)
