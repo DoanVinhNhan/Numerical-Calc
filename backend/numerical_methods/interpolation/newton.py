@@ -81,8 +81,8 @@ def newton_interpolation_equidistant(x_nodes, y_nodes):
     # Tính đa thức nội suy Newton lùi
     newton_backward_coeffs_t = np.array(coeffs_backward)@np.array(w_backward)
     # Đổi biến trở lại hệ số đa thức theo x
-    newton_forward_coeffs = change_variables(newton_forward_coeffs_t.tolist(), a=1/h, b=-x_nodes[0]/h)['variables_coeffs']
-    newton_backward_coeffs = change_variables(newton_backward_coeffs_t.tolist(), a=1/h, b=-x_nodes[-1]/h)['variables_coeffs']
+    newton_forward_coeffs = change_variables(newton_forward_coeffs_t.tolist(), a=h, b=x_nodes[0])['variables_coeffs']
+    newton_backward_coeffs = change_variables(newton_backward_coeffs_t.tolist(), a=h, b=x_nodes[-1])['variables_coeffs']
 
 
     return {
