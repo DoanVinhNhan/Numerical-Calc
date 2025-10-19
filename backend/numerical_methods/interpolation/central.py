@@ -47,7 +47,7 @@ def central_gauss_i(x_nodes, y_nodes):
     start_row = (n-1)//2
 
     for j in range(1,n+1):
-        i = start_row + (j // 2)
+        i = start_row + ((j-1) // 2) 
         if (i < n and j < len(finite_diff_table[i])):
                 central_finite_diffs.append(finite_diff_table[i][j])
         else:
@@ -73,15 +73,19 @@ def central_gauss_i(x_nodes, y_nodes):
     for i in range(len(central_finite_diffs)):
         a_coeffs.append(central_finite_diffs[i] / np.math.factorial(i) / (h ** i))
 
-    # Tính đa thức nội suy Gauss I
-    gauss_i_polynomial = np.array(a_coeffs)@np.array(w)
+    # Tính đa thức nội suy Gauss I theo biến t
+    gauss_i_polynomial_t = np.array(a_coeffs)@np.array(w)
+
+    # Tính đa thức nội suy Gauss I theo biến x
+    gauss_i_polynomial_x = change_variables(gauss_i_polynomial_t, a=h, b=x_nodes[start_row])['variables_coeffs']
     return {
         "start_node": x_nodes[start_row],
         "h": h,
         "t_nodes": t_nodes.tolist(),
-        "polynomial_coeffs": gauss_i_polynomial.tolist(),
         "finite_difference_table": finite_diff_table,
         "central_finite_diffs": central_finite_diffs,
         "a_coeffs": a_coeffs,
-        "w_table": w
+        "w_table": w,
+        "polynomial_coeffs_t": gauss_i_polynomial_t.tolist(),
+        "polynomial_coeffs_x": gauss_i_polynomial_x.tolist(),
     }

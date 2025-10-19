@@ -11,6 +11,8 @@ from backend.numerical_methods.interpolation.newton import newton_interpolation_
 from backend.api_formatters.interpolation import format_newton_interpolation_result
 from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant, newton_interpolation_divided_difference 
 from backend.api_formatters.interpolation import format_newton_interpolation_result, format_newton_divided_interpolation_result
+from backend.numerical_methods.interpolation.central import central_gauss_i
+from backend.api_formatters.interpolation import format_central_gauss_i_result 
 import traceback
 
 interpolation_bp = Blueprint('interpolation', __name__, url_prefix='/api/interpolation')
@@ -125,6 +127,45 @@ def newton_interpolation_route():
         else: # Mặc định là mốc cách đều
             result = newton_interpolation_equidistant(x_nodes, y_nodes)
             formatted_result = format_newton_interpolation_result(result)
+
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+    
+@interpolation_bp.route('/central-interpolation', methods=['POST']) # <<< THÊM ROUTE MỚI
+def central_interpolation_route():
+    try:
+        data = request.json
+        x_nodes_str = data.get('x_nodes', '').split()
+        y_nodes_str = data.get('y_nodes', '').split()
+        method_type = data.get('method_type', 'gauss_i') # Lấy loại PP trung tâm
+
+        if not x_nodes_str or not y_nodes_str:
+            return jsonify({"error": "Vui lòng nhập đầy đủ các mốc x và giá trị y."}), 400
+
+        x_nodes = [float(x) for x in x_nodes_str]
+        y_nodes = [float(y) for y in y_nodes_str]
+
+        result = None
+        formatted_result = None
+
+        if method_type == 'gauss_i':
+            result = central_gauss_i(x_nodes, y_nodes)
+            formatted_result = format_central_gauss_i_result(result)
+        # elif method_type == 'gauss_ii':
+        #     # Gọi hàm Gauss II và formatter tương ứng (chưa có)
+        #     return jsonify({"error": "Phương pháp Gauss II chưa được hỗ trợ."}), 400
+        # elif method_type == 'stirling':
+        #     # Gọi hàm Stirling và formatter tương ứng (chưa có)
+        #     return jsonify({"error": "Phương pháp Stirling chưa được hỗ trợ."}), 400
+        # elif method_type == 'bessel':
+        #     # Gọi hàm Bessel và formatter tương ứng (chưa có)
+        #     return jsonify({"error": "Phương pháp Bessel chưa được hỗ trợ."}), 400
+        else:
+            return jsonify({"error": f"Phương pháp nội suy trung tâm '{method_type}' không hợp lệ."}), 400
 
         return jsonify(formatted_result)
 

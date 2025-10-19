@@ -1563,6 +1563,175 @@ export function renderInterpolationSolution(container, data) {
         html += renderDetailsNewton("Chi tiết quá trình tính Newton Lùi", data.backward_interpolation, false, data.method === "Nội suy Newton mốc cách đều", data.h);
     }
 
+    if (data.method === "Nội suy trung tâm Gauss I") {
+        html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg border border-green-200">
+            <h3 class="font-semibold">Đa thức nội suy Gauss I P(x):</h3>
+            <div class="text-lg katex-render" data-formula="P(x) = ${data.polynomial_str_x}"></div>
+        </div>`;
+
+        // Bảng sai phân (Logic highlight không đổi)
+        // ... (code render bảng sai phân giữ nguyên) ...
+         if (data.finite_difference_table && data.finite_difference_table.length > 0) {
+            html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-2 text-center">Bảng sai phân hữu hạn (h = ${data.h.toFixed(precision)})</h3>`;
+            const tableDataFD = data.finite_difference_table;
+            const n_rowsFD = tableDataFD.length;
+            const start_row_index = Math.floor((n_rowsFD - 1) / 2);
+
+            html += `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
+            let headerHtmlFD = `<thead class="text-xs text-gray-800 bg-gray-100"><tr>
+                <th class="px-6 py-3">x_i</th>
+                <th class="px-6 py-3">y_i</th>`;
+            for (let i = 1; i < n_rowsFD; i++) {
+                headerHtmlFD += `<th class="px-6 py-3 katex-render-inline" data-formula="\\Delta^{${i}}y"></th>`;
+            }
+            headerHtmlFD += `</tr></thead>`;
+            html += headerHtmlFD;
+            html += `<tbody>`;
+
+            tableDataFD.forEach((row, rowIndex) => {
+                html += `<tr class="bg-white border-b">`;
+                row.forEach((cell, colIndex) => {
+                    let highlightClass = '';
+                    if (colIndex > 0) {
+                         const central_diff_index_in_list = colIndex - 1;
+                         if (central_diff_index_in_list >= 0 && central_diff_index_in_list < data.central_finite_diffs.length) {
+                             const expected_row_for_diff = start_row_index + Math.floor(central_diff_index_in_list / 2);
+                              if (rowIndex === expected_row_for_diff && colIndex <= rowIndex + 1) {
+                                  highlightClass = 'font-bold text-red-600';
+                              }
+                         }
+                    }
+                    if (colIndex <= rowIndex + 1) {
+                        html += `<td class="px-6 py-4 font-mono ${highlightClass.trim()}">${cell.toFixed(precision)}</td>`;
+                    } else {
+                        html += `<td class="px-6 py-4 font-mono"></td>`;
+                    }
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody></table></div>`;
+        }
+
+
+        // Chi tiết tính toán
+        html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg border">
+            <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết các bước tính toán Gauss I</summary>
+            <div class="mt-4 space-y-4 text-sm">
+                {/* ... (Thông tin mốc trung tâm, công thức P(t), sai phân trung tâm) ... */}
+                 <p>Mốc trung tâm: <span class="katex-render-inline" data-formula="x_0 = ${data.start_node.toFixed(precision)}"></span>, Bước nhảy: <span class="katex-render-inline" data-formula="h = ${data.h.toFixed(precision)}"></span>.</p>
+                <p>Công thức Gauss I (theo biến <span class="katex-render-inline" data-formula="t = (x-x_0)/h"></span>):</p>
+                <div class="text-center text-lg katex-render" data-formula="P_n(t) = y_0 + t \\Delta y_0 + \\frac{t(t-1)}{2!} \\Delta^2 y_{-1} + \\frac{t(t-1)(t+1)}{3!} \\Delta^3 y_{-1} + \\dots"></div>
+
+                <p class="font-semibold mt-4">1. Các sai phân trung tâm <span class="katex-render-inline" data-formula="\\Delta^i y_{k}"></span> được sử dụng:</p>
+                <div class="p-2 bg-white rounded border flex flex-wrap gap-x-4 gap-y-2 justify-center">`;
+        data.central_finite_diffs.forEach((diff, i) => {
+             let symbol = '';
+             let subscript_index = 0;
+             if (i === 0) { symbol = `y_0`; }
+             else {
+                 symbol = `\\Delta^{${i}}y`;
+                 subscript_index = Math.floor((1 - i) / 2);
+             }
+             const subscript = `_{${subscript_index}}`;
+             html += `<span class="katex-render-inline" data-formula="${symbol}${subscript} \\approx ${diff.toFixed(precision)}"></span>`;
+        });
+        html += `</div>
+
+                <p class="font-semibold mt-4">2. Tính các hệ số <span class="katex-render-inline" data-formula="a_i = \\frac{\\Delta^i y_k}{i! h^i}"></span>:</p> {/* Cập nhật công thức hiển thị a_i */}
+                <div class="overflow-x-auto my-2">
+                    <table class="w-full text-sm text-center">
+                        <thead class="bg-gray-200 text-xs text-gray-700">
+                            <tr>
+                                <th class="p-2">i</th>
+                                <th class="p-2">Sai phân sử dụng</th>
+                                <th class="p-2">Công thức aᵢ</th> {/* Thêm cột công thức */}
+                                <th class="p-2">Giá trị aᵢ</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            data.a_coeffs.forEach((a_coeff, i) => { // <<< Dùng a_coeffs (đã chia h^i)
+                 let symbol = '';
+                 let subscript_index = 0;
+                 if (i === 0) { symbol = `y_0`; }
+                 else {
+                     symbol = `\\Delta^{${i}}y`;
+                     subscript_index = Math.floor((1-i)/2);
+                 }
+                  const subscript = `_{${subscript_index}}`;
+                 const diff_symbol_latex = `${symbol}${subscript}`;
+                 // Hiển thị công thức đầy đủ
+                 const formula_latex = `a_{${i}} = \\frac{${diff_symbol_latex}}{${i}! h^{${i}}}`;
+
+                html += `<tr class="border-b bg-white">
+                            <td class="p-2 font-mono">${i}</td>
+                            <td class="p-2 katex-render-inline" data-formula="${diff_symbol_latex} \\approx ${data.central_finite_diffs[i].toFixed(precision)}"></td>
+                            <td class="p-2 katex-render-inline" data-formula="${formula_latex}"></td> {/* Hiển thị công thức */}
+                            <td class="p-2 font-mono">${a_coeff.toFixed(precision)}</td> {/* Hiển thị giá trị a_i cuối cùng */}
+                         </tr>`;
+            });
+            html += `</tbody></table></div>
+
+                <p class="font-semibold mt-4">3. Xây dựng các đa thức cơ sở <span class="katex-render-inline" data-formula="w_i(t)"></span>:</p>
+                 <div class="overflow-x-auto my-2">
+                    <table class="w-full text-sm text-center">
+                        <thead class="bg-gray-200 text-xs text-gray-700">
+                            <tr>
+                                <th class="p-2">i</th>
+                                <th class="p-2">Biểu thức wᵢ(t)</th>
+                                <th class="p-2">Hệ số wᵢ(t)</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            // --- TẠO CHUỖI w_i(t) Ở ĐÂY (LOGIC KHÔNG ĐỔI) ---
+            const n_nodes = data.finite_difference_table.length;
+            const start_idx_t = Math.floor((n_nodes - 1) / 2);
+
+            for(let i = 0; i < data.w_table_coeffs.length; i++) { // <<< Dùng w_table_coeffs
+                 const w_poly_coeffs = data.w_table_coeffs[i];
+                 const w_poly_str_coeffs = format_poly_str_js(w_poly_coeffs, 't');
+
+                 let w_poly_str_term = "1";
+                 if (i > 0) {
+                     w_poly_str_term = "";
+                     for (let k = 0; k < i; k++) {
+                         let node_index_in_t;
+                         // Logic xác định node_index_in_t cho Gauss I
+                         if (k % 2 === 0) { // Nhân tử dạng (t + j) -> t_node âm
+                             node_index_in_t = start_idx_t - Math.floor(k / 2) -1;
+                         } else { // Nhân tử dạng (t - j) -> t_node dương
+                             node_index_in_t = start_idx_t + Math.floor(k / 2) +1;
+                         }
+
+                         if (node_index_in_t >= 0 && node_index_in_t < data.t_nodes.length) {
+                            const t_node_val = data.t_nodes[node_index_in_t];
+                            // Làm tròn t_node_val về số nguyên gần nhất để hiển thị đẹp hơn
+                            const t_node_display = Math.round(t_node_val);
+                            w_poly_str_term += `(t ${t_node_display >= 0 ? '-' : '+'} ${Math.abs(t_node_display)})`;
+                         } else {
+                             // Xử lý trường hợp chỉ số ngoài phạm vi (nếu có thể xảy ra)
+                             w_poly_str_term += `(t - ?)` // Hoặc một placeholder khác
+                         }
+                     }
+                 }
+
+                 html += `<tr class="border-b bg-white">
+                            <td class="p-2 font-mono">${i}</td>
+                            <td class="p-2 text-left katex-render-inline" data-formula="${w_poly_str_term}"></td>
+                            <td class="p-2 text-left katex-render-inline" data-formula="${w_poly_str_coeffs}"></td>
+                          </tr>`;
+            }
+            html += `</tbody></table></div>
+
+                <p class="font-semibold mt-4">4. Tổng hợp đa thức <span class="katex-render-inline" data-formula="P(t) = \\sum a_i w_i(t)"></span>:</p>
+                 <div class="text-center text-lg p-2 bg-yellow-50 rounded katex-render" data-formula="P(t) = ${data.polynomial_str_t}"></div>
+
+                <p class="font-semibold mt-4">5. Đổi biến <span class="katex-render-inline" data-formula="x = x_0 + th = ${data.start_node.toFixed(precision)} + t \\cdot ${data.h.toFixed(precision)}"></span> để được đa thức cuối cùng P(x):</p>
+                <div class="text-center text-lg p-3 bg-green-100 rounded border border-green-300 katex-render" data-formula="P(x) = ${data.polynomial_str_x}"></div>
+
+            </div>
+        </details>`;
+    }
+
     container.innerHTML = html;
     
     // Render Katex sau khi chèn HTML

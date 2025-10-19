@@ -385,3 +385,21 @@ export async function calculateNewtonInterpolation(xNodes, yNodes, methodType) {
     }
     return response.json();
 }
+
+export async function calculateCentralInterpolation(xNodes, yNodes, methodType) { // <<< THÊM HÀM MỚI
+    const response = await fetch(`${API_BASE_URL}/interpolation/central-interpolation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            x_nodes: xNodes,
+            y_nodes: yNodes,
+            method_type: methodType
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}
