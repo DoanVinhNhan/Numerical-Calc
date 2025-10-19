@@ -6,16 +6,21 @@ from backend.numerical_methods.interpolation.divided_difference import divided_d
 from backend.numerical_methods.interpolation.finite_difference import finite_differences
 from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant, newton_interpolation_divided_difference
 from backend.numerical_methods.horner_table.change_variables import change_variables
+from backend.numerical_methods.interpolation.central import central_gauss_i
 if __name__ == "__main__":
-    x_nodes = [2.1, 2.3, 2.5, 2.7, 2.9, 3.1]
-    y_nodes = [0.5597, 1.0378, 1.5337, 1.9847, 2.3355, 2.5465]
+    x_nodes = [1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6]
+    y_nodes = [0.524, -0.084, -0.964, -2.121, -3.558, -5.272, -7.255, -9.494, -11.973]
 
-    result_1 = newton_interpolation_equidistant(x_nodes, y_nodes)['forward_interpolation']['polynomial_coeffs_x']
-    result_2 = lagrange_interpolation(x_nodes, y_nodes)['polynomial_coeffs']
-    result_3 = newton_interpolation_divided_difference(x_nodes, y_nodes)['forward_interpolation']['polynomial_coeffs']
-    print("Kết quả nội suy Newton mốc cách đều:")
-    print(result_1)
-    print("Kết quả nội suy Lagrange:")
-    print(result_2)
-    print("Kết quả nội suy Newton mốc bất kỳ:")
-    print(result_3)
+    result = central_gauss_i(x_nodes, y_nodes)
+    print("Bảng sai phân hữu hạn:")
+    for row in result['finite_difference_table']:
+        print(row)
+    print("Sai phân trung tâm:")
+    print(result['central_finite_diffs'])
+    print("Bảng tích w_i(t):")
+    for coeffs in result['w_table']:
+        print(coeffs)
+    print("a_coeffs:")
+    print(result['a_coeffs'])
+    print("Đa thức nội suy (hệ số):")
+    print(result['polynomial_coeffs'])
