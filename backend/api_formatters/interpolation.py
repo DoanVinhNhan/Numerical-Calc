@@ -224,7 +224,7 @@ def format_central_gauss_i_result(result):
 
     finite_difference_table = [[float(v) for v in row] for row in result.get("finite_difference_table", [])]
     central_finite_diffs = [float(v) for v in result.get("central_finite_diffs", [])]
-    a_coeffs = [float(v) for v in result.get("a_coeffs", [])] 
+    c_coeffs = [float(v) for v in result.get("c_coeffs", [])]
 
     w_table_coeffs_formatted = []
     for coeffs_list in result.get("w_table", []): 
@@ -242,7 +242,7 @@ def format_central_gauss_i_result(result):
         "t_nodes": [float(t) for t in result.get("t_nodes", [])], 
         "finite_difference_table": finite_difference_table,
         "central_finite_diffs": central_finite_diffs,
-        "a_coeffs": a_coeffs, 
+        "c_coeffs": c_coeffs,
         "w_table_coeffs": w_table_coeffs_formatted, 
         "polynomial_coeffs_t": polynomial_coeffs_t,
         "polynomial_str_t": _format_poly_str(polynomial_coeffs_t, variable='t'),

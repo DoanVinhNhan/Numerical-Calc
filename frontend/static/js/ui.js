@@ -1569,8 +1569,7 @@ export function renderInterpolationSolution(container, data) {
             <div class="text-lg katex-render" data-formula="P(x) = ${data.polynomial_str_x}"></div>
         </div>`;
 
-        // Bảng sai phân (Logic highlight không đổi)
-        // ... (code render bảng sai phân giữ nguyên) ...
+        // Bảng sai phân hữu hạn
          if (data.finite_difference_table && data.finite_difference_table.length > 0) {
             html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-2 text-center">Bảng sai phân hữu hạn (h = ${data.h.toFixed(precision)})</h3>`;
             const tableDataFD = data.finite_difference_table;
@@ -1595,7 +1594,7 @@ export function renderInterpolationSolution(container, data) {
                     if (colIndex > 0) {
                          const central_diff_index_in_list = colIndex - 1;
                          if (central_diff_index_in_list >= 0 && central_diff_index_in_list < data.central_finite_diffs.length) {
-                             const expected_row_for_diff = start_row_index + Math.floor(central_diff_index_in_list / 2);
+                             const expected_row_for_diff = start_row_index + Math.floor((central_diff_index_in_list + 1) / 2);
                               if (rowIndex === expected_row_for_diff && colIndex <= rowIndex + 1) {
                                   highlightClass = 'font-bold text-red-600';
                               }
@@ -1617,7 +1616,6 @@ export function renderInterpolationSolution(container, data) {
         html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg border">
             <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết các bước tính toán Gauss I</summary>
             <div class="mt-4 space-y-4 text-sm">
-                {/* ... (Thông tin mốc trung tâm, công thức P(t), sai phân trung tâm) ... */}
                  <p>Mốc trung tâm: <span class="katex-render-inline" data-formula="x_0 = ${data.start_node.toFixed(precision)}"></span>, Bước nhảy: <span class="katex-render-inline" data-formula="h = ${data.h.toFixed(precision)}"></span>.</p>
                 <p>Công thức Gauss I (theo biến <span class="katex-render-inline" data-formula="t = (x-x_0)/h"></span>):</p>
                 <div class="text-center text-lg katex-render" data-formula="P_n(t) = y_0 + t \\Delta y_0 + \\frac{t(t-1)}{2!} \\Delta^2 y_{-1} + \\frac{t(t-1)(t+1)}{3!} \\Delta^3 y_{-1} + \\dots"></div>
@@ -1627,7 +1625,7 @@ export function renderInterpolationSolution(container, data) {
         data.central_finite_diffs.forEach((diff, i) => {
              let symbol = '';
              let subscript_index = 0;
-             if (i === 0) { symbol = `y_0`; }
+             if (i === 0) { symbol = `y`; }
              else {
                  symbol = `\\Delta^{${i}}y`;
                  subscript_index = Math.floor((1 - i) / 2);
@@ -1637,22 +1635,21 @@ export function renderInterpolationSolution(container, data) {
         });
         html += `</div>
 
-                <p class="font-semibold mt-4">2. Tính các hệ số <span class="katex-render-inline" data-formula="a_i = \\frac{\\Delta^i y_k}{i! h^i}"></span>:</p> {/* Cập nhật công thức hiển thị a_i */}
-                <div class="overflow-x-auto my-2">
+                <p class="font-semibold mt-4">2. Tính các hệ số <span class="katex-render-inline" data-formula="a_i = \\frac{\\Delta^i y_k}{i! h^i}"></span>:</p> 
                     <table class="w-full text-sm text-center">
                         <thead class="bg-gray-200 text-xs text-gray-700">
                             <tr>
                                 <th class="p-2">i</th>
                                 <th class="p-2">Sai phân sử dụng</th>
-                                <th class="p-2">Công thức aᵢ</th> {/* Thêm cột công thức */}
+                                <th class="p-2">Công thức aᵢ</th>
                                 <th class="p-2">Giá trị aᵢ</th>
                             </tr>
                         </thead>
                         <tbody>`;
-            data.a_coeffs.forEach((a_coeff, i) => { // <<< Dùng a_coeffs (đã chia h^i)
+            data.c_coeffs.forEach((c_coeff, i) => { // <<< Dùng c_coeffs (đã chia h^i)
                  let symbol = '';
                  let subscript_index = 0;
-                 if (i === 0) { symbol = `y_0`; }
+                 if (i === 0) { symbol = `y`; }
                  else {
                      symbol = `\\Delta^{${i}}y`;
                      subscript_index = Math.floor((1-i)/2);
@@ -1665,8 +1662,8 @@ export function renderInterpolationSolution(container, data) {
                 html += `<tr class="border-b bg-white">
                             <td class="p-2 font-mono">${i}</td>
                             <td class="p-2 katex-render-inline" data-formula="${diff_symbol_latex} \\approx ${data.central_finite_diffs[i].toFixed(precision)}"></td>
-                            <td class="p-2 katex-render-inline" data-formula="${formula_latex}"></td> {/* Hiển thị công thức */}
-                            <td class="p-2 font-mono">${a_coeff.toFixed(precision)}</td> {/* Hiển thị giá trị a_i cuối cùng */}
+                            <td class="p-2 katex-render-inline" data-formula="${formula_latex}"></td> 
+                            <td class="p-2 font-mono">${c_coeff.toFixed(precision)}</td>
                          </tr>`;
             });
             html += `</tbody></table></div>
@@ -1677,46 +1674,17 @@ export function renderInterpolationSolution(container, data) {
                         <thead class="bg-gray-200 text-xs text-gray-700">
                             <tr>
                                 <th class="p-2">i</th>
-                                <th class="p-2">Biểu thức wᵢ(t)</th>
+                                <th class="p-2">t_i</th>
                                 <th class="p-2">Hệ số wᵢ(t)</th>
                             </tr>
                         </thead>
                         <tbody>`;
-            // --- TẠO CHUỖI w_i(t) Ở ĐÂY (LOGIC KHÔNG ĐỔI) ---
             const n_nodes = data.finite_difference_table.length;
-            const start_idx_t = Math.floor((n_nodes - 1) / 2);
-
-            for(let i = 0; i < data.w_table_coeffs.length; i++) { // <<< Dùng w_table_coeffs
-                 const w_poly_coeffs = data.w_table_coeffs[i];
-                 const w_poly_str_coeffs = format_poly_str_js(w_poly_coeffs, 't');
-
-                 let w_poly_str_term = "1";
-                 if (i > 0) {
-                     w_poly_str_term = "";
-                     for (let k = 0; k < i; k++) {
-                         let node_index_in_t;
-                         // Logic xác định node_index_in_t cho Gauss I
-                         if (k % 2 === 0) { // Nhân tử dạng (t + j) -> t_node âm
-                             node_index_in_t = start_idx_t - Math.floor(k / 2) -1;
-                         } else { // Nhân tử dạng (t - j) -> t_node dương
-                             node_index_in_t = start_idx_t + Math.floor(k / 2) +1;
-                         }
-
-                         if (node_index_in_t >= 0 && node_index_in_t < data.t_nodes.length) {
-                            const t_node_val = data.t_nodes[node_index_in_t];
-                            // Làm tròn t_node_val về số nguyên gần nhất để hiển thị đẹp hơn
-                            const t_node_display = Math.round(t_node_val);
-                            w_poly_str_term += `(t ${t_node_display >= 0 ? '-' : '+'} ${Math.abs(t_node_display)})`;
-                         } else {
-                             // Xử lý trường hợp chỉ số ngoài phạm vi (nếu có thể xảy ra)
-                             w_poly_str_term += `(t - ?)` // Hoặc một placeholder khác
-                         }
-                     }
-                 }
-
+            for(let i = 0; i < data.w_table_coeffs.length; i++) {
+                 const w_poly_str_coeffs = format_poly_str_js(data.w_table_coeffs[i], 't');
+                
                  html += `<tr class="border-b bg-white">
                             <td class="p-2 font-mono">${i}</td>
-                            <td class="p-2 text-left katex-render-inline" data-formula="${w_poly_str_term}"></td>
                             <td class="p-2 text-left katex-render-inline" data-formula="${w_poly_str_coeffs}"></td>
                           </tr>`;
             }

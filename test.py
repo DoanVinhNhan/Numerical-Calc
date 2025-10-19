@@ -11,16 +11,14 @@ if __name__ == "__main__":
     x_nodes = [1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6]
     y_nodes = [0.524, -0.084, -0.964, -2.121, -3.558, -5.272, -7.255, -9.494, -11.973]
 
-    result = central_gauss_i(x_nodes, y_nodes)
-    print("Bảng sai phân hữu hạn:")
-    for row in result['finite_difference_table']:
-        print(row)
-    print("Sai phân trung tâm:")
-    print(result['central_finite_diffs'])
-    print("Bảng tích w_i(t):")
-    for coeffs in result['w_table']:
-        print(coeffs)
-    print("a_coeffs:")
-    print(result['a_coeffs'])
-    print("Đa thức nội suy (hệ số):")
-    print(result['polynomial_coeffs'])
+    gauss = central_gauss_i(x_nodes, y_nodes)
+    coefficients = gauss['polynomial_coeffs_t']
+    print("Hệ số đa thức nội suy trung tâm Gauss I:", coefficients)
+    result = synthetic_division(coefficients, (1.43-1.8)/0.2)['value']
+    print("Kết quả:", result)
+
+    lagrange = lagrange_interpolation(x_nodes, y_nodes)
+    coefficients = lagrange['polynomial_coeffs']
+    print("Hệ số đa thức nội suy Lagrange:", coefficients)
+    result = synthetic_division(coefficients, 1.43)['value']
+    print("Kết quả:", result)
