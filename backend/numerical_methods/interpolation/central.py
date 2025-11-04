@@ -365,6 +365,8 @@ def bessel_interpolation(x_nodes, y_nodes):
     # Tính đa thức nội suy Bessel theo biến x
     bessel_polynomial_x = change_variables(bessel_polynomial_t, a=h, b=x_nodes[start_row_i])['variables_coeffs']
     return {
+        "start_node": x_nodes[start_row_i],
+        "h": h,
         "finite_difference_table": finite_diff_table,
         "central_finite_diffs_i": central_finite_diffs_i,
         "central_finite_diffs_ii": central_finite_diffs_ii,
