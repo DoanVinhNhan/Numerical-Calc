@@ -1,6 +1,6 @@
 # Numerical Calculator - Máy Tính Giải Tích Số
 
-Ứng dụng web được xây dựng để thực hiện các phương pháp tính toán của môn **Giải tích số / Phương pháp số** (MI3041/MI3042) tại Khoa Toán - Tin, Đại học Bách Khoa Hà Nội.
+Ứng dụng web được xây dựng để thực hiện các phương pháp tính toán của môn **Giải tích số / Phương pháp số** (MI3041/MI3042) của Khoa Toán - Tin, Đại học Bách Khoa Hà Nội.
 
 ---
 

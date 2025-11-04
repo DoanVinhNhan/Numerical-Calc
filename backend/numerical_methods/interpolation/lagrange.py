@@ -62,21 +62,22 @@ def lagrange_interpolation(x_nodes, y_nodes):
 
     # Tính toán đa thức nội suy Lagrange
     lagrange_polynomial = np.sum(terms, axis=0)
+
     return {
         "polynomial_coeffs": lagrange_polynomial.tolist(),
         "w_calculation": {
-            "coeffs": w_coeffs, # Đây đã là list từ calculate_w_function
-            "steps": w_steps  # w_steps đã chứa list
+            "coeffs": w_coeffs,
+            "steps": w_steps
         },
         "calculation_steps": [
             {
                 "i": i,
-                "xi": float(x_nodes[i]),
-                "yi": float(y_nodes[i]),
+                "xi": x_nodes[i],
+                "yi": y_nodes[i],
                 "w_division_table": division_tables[i].tolist(),
                 "w_over_x_minus_xi_coeffs": quotients[i].tolist(),
-                "Di_value": float(D[i]),
-                "Di_calculation_steps": D_steps[i], # all_derivatives đã trả về list
+                "Di_value": D[i],
+                "Di_calculation_steps": D_steps[i],
                 "term_coeffs": terms[i].tolist()
             } for i in range(n)
         ]

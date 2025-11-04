@@ -7,7 +7,8 @@ from backend.numerical_methods.interpolation.divided_difference import divided_d
 from backend.numerical_methods.interpolation.finite_difference import finite_differences
 from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant, newton_interpolation_divided_difference
 from backend.numerical_methods.horner_table.change_variables import change_variables
-from backend.numerical_methods.interpolation.central import central_gauss_i, central_gauss_ii
+from backend.numerical_methods.interpolation.central import bessel_interpolation, central_gauss_i, central_gauss_ii, stirlin_interpolation
+from pprint import pprint
 if __name__ == "__main__":
     """
     x_nodes = [1.6, 1.8, 2.0, 2.2, 2.4]
@@ -43,9 +44,18 @@ if __name__ == "__main__":
     print(t_0)
     """
 
-    x_nodes = [9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 10]
-    y_nodes = [9.4341319, 9.4307764, 9.4261142, 9.421191, 9.4170553, 9.4147476, 9.41529, 9.4196762, 9.4288617]
-    result = central_gauss_i(x_nodes, y_nodes)['polynomial_coeffs_t']
-    print(result)
-    value = synthetic_division(result, 9.68)['value']
-    print(value)
+    x_nodes = [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7]
+    y_nodes = [2.2074, 2.036, 1.7802, 1.4378, 1.0072, 0.4875, -0.1221, -0.8217]
+    result = bessel_interpolation(x_nodes, y_nodes)
+    # In ra các kết quả của result cho dễ nhìn
+    if isinstance(result, dict):
+        for key, value in result.items():
+            print(f"{key}:")
+            pprint(value)
+            print("-" * 40)
+    else:
+        pprint(result)
+
+    print(synthetic_division(result['bessel_polynomial_coeffs_u'], (1.43-1.3)/0.1-0.5)['value'])
+    print(synthetic_division(result['bessel_polynomial_coeffs_t'], (1.43-1.3)/0.1)['value'])
+    print(synthetic_division(result['bessel_polynomial_coeffs_x'], 1.43)['value'])
