@@ -11,8 +11,8 @@ from backend.numerical_methods.interpolation.newton import newton_interpolation_
 from backend.api_formatters.interpolation import format_newton_interpolation_result
 from backend.numerical_methods.interpolation.newton import newton_interpolation_equidistant, newton_interpolation_divided_difference 
 from backend.api_formatters.interpolation import format_newton_interpolation_result, format_newton_divided_interpolation_result
-from backend.numerical_methods.interpolation.central import central_gauss_i
-from backend.api_formatters.interpolation import format_central_gauss_i_result 
+from backend.numerical_methods.interpolation.central import central_gauss_i, central_gauss_ii, stirlin_interpolation, bessel_interpolation
+from backend.api_formatters.interpolation import format_central_gauss_i_result, format_central_gauss_ii_result, format_stirling_interpolation_result, format_bessel_interpolation_result
 import traceback
 
 interpolation_bp = Blueprint('interpolation', __name__, url_prefix='/api/interpolation')
@@ -135,7 +135,7 @@ def newton_interpolation_route():
     except Exception as e:
         return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
     
-@interpolation_bp.route('/central-interpolation', methods=['POST']) # <<< THÊM ROUTE MỚI
+@interpolation_bp.route('/central-interpolation', methods=['POST'])
 def central_interpolation_route():
     try:
         data = request.json
@@ -155,15 +155,18 @@ def central_interpolation_route():
         if method_type == 'gauss_i':
             result = central_gauss_i(x_nodes, y_nodes)
             formatted_result = format_central_gauss_i_result(result)
-        # elif method_type == 'gauss_ii':
-        #     # Gọi hàm Gauss II và formatter tương ứng (chưa có)
-        #     return jsonify({"error": "Phương pháp Gauss II chưa được hỗ trợ."}), 400
-        # elif method_type == 'stirling':
-        #     # Gọi hàm Stirling và formatter tương ứng (chưa có)
-        #     return jsonify({"error": "Phương pháp Stirling chưa được hỗ trợ."}), 400
-        # elif method_type == 'bessel':
-        #     # Gọi hàm Bessel và formatter tương ứng (chưa có)
-        #     return jsonify({"error": "Phương pháp Bessel chưa được hỗ trợ."}), 400
+        elif method_type == 'gauss_ii':
+            # <<< THÊM MỚI: Xử lý Gauss II >>>
+            result = central_gauss_ii(x_nodes, y_nodes)
+            formatted_result = format_central_gauss_ii_result(result)
+        elif method_type == 'stirlin':
+            # <<< THÊM MỚI: Xử lý Stirling >>>
+            result = stirlin_interpolation(x_nodes, y_nodes)
+            formatted_result = format_stirling_interpolation_result(result)
+        elif method_type == 'bessel':
+            # <<< THÊM MỚI: Xử lý Bessel >>>
+            result = bessel_interpolation(x_nodes, y_nodes)
+            formatted_result = format_bessel_interpolation_result(result)
         else:
             return jsonify({"error": f"Phương pháp nội suy trung tâm '{method_type}' không hợp lệ."}), 400
 

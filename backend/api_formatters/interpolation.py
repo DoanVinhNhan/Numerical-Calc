@@ -249,3 +249,123 @@ def format_central_gauss_i_result(result):
         "polynomial_coeffs_x": polynomial_coeffs_x,
         "polynomial_str_x": _format_poly_str(polynomial_coeffs_x, variable='x')
     }
+
+def format_central_gauss_ii_result(result):
+    """
+    Định dạng kết quả từ hàm nội suy trung tâm Gauss II.
+    """
+    if "error" in result:
+        return result
+
+    # Chuyển đổi tất cả các giá trị numpy/float sang kiểu Python gốc
+    finite_difference_table = [[float(v) for v in row] for row in result.get("finite_difference_table", [])]
+    central_finite_diffs = [float(v) for v in result.get("central_finite_diffs", [])]
+    c_coeffs = [float(v) for v in result.get("c_coeffs", [])]
+    
+    w_table_coeffs_formatted = []
+    for coeffs_list in result.get("w_table", []): 
+        w_table_coeffs_formatted.append([float(c) for c in coeffs_list])
+
+    polynomial_coeffs_t = [float(v) for v in result.get("polynomial_coeffs_t", [])]
+    polynomial_coeffs_x = [float(v) for v in result.get("polynomial_coeffs_x", [])]
+
+    return {
+        "status": "success",
+        "method": "Nội suy trung tâm Gauss II",
+        "message": f"Tính toán đa thức nội suy Gauss II thành công cho {len(finite_difference_table)} điểm.",
+        "start_node": float(result.get("start_node")),
+        "h": float(result.get("h")),
+        "t_nodes": [float(t) for t in result.get("t_nodes", [])], 
+        "finite_difference_table": finite_difference_table,
+        "central_finite_diffs": central_finite_diffs,
+        "c_coeffs": c_coeffs,
+        "w_table_coeffs": w_table_coeffs_formatted, 
+        "polynomial_coeffs_t": polynomial_coeffs_t,
+        "polynomial_str_t": _format_poly_str(polynomial_coeffs_t, variable='t'),
+        "polynomial_coeffs_x": polynomial_coeffs_x,
+        "polynomial_str_x": _format_poly_str(polynomial_coeffs_x, variable='x')
+    }
+
+def format_stirling_interpolation_result(result):
+    """
+    Định dạng kết quả từ hàm nội suy trung tâm Stirling.
+    """
+    if "error" in result:
+        return result
+
+    finite_difference_table = [[float(v) for v in row] for row in result.get("finite_difference_table", [])]
+    central_finite_diffs = [float(v) for v in result.get("central_finite_diffs", [])]
+    c_coeffs = [float(v) for v in result.get("c_coeffs", [])]
+    
+    w_table_coeffs_formatted = []
+    for coeffs_list in result.get("w_table", []): 
+        w_table_coeffs_formatted.append([float(c) for c in coeffs_list])
+
+    polynomial_coeffs_t = [float(v) for v in result.get("polynomial_coeffs_t", [])]
+    polynomial_coeffs_x = [float(v) for v in result.get("polynomial_coeffs_x", [])]
+
+    return {
+        "status": "success",
+        "method": "Nội suy Stirling",
+        "message": f"Tính toán đa thức nội suy Stirling thành công cho {len(finite_difference_table)} điểm.",
+        "start_node": float(result.get("start_node")),
+        "h": float(result.get("h")),
+        "t_nodes": [float(t) for t in result.get("t_nodes", [])], 
+        "finite_difference_table": finite_difference_table,
+        "central_finite_diffs": central_finite_diffs,
+        "c_coeffs": c_coeffs,
+        "w_table_coeffs": w_table_coeffs_formatted,
+        "polynomial_coeffs_t": polynomial_coeffs_t,
+        "polynomial_str_t": _format_poly_str(polynomial_coeffs_t, variable='t'),
+        "polynomial_coeffs_x": polynomial_coeffs_x,
+        "polynomial_str_x": _format_poly_str(polynomial_coeffs_x, variable='x'),
+        # Thêm các trường
+        "central_finite_diffs_i": [float(v) for v in result.get("central_finite_diffs_i", [])],
+        "central_finite_diffs_ii": [float(v) for v in result.get("central_finite_diffs_ii", [])],
+        "stirlin_polynomial_t_even": [float(v) for v in result.get("stirlin_polynomial_t_even", [])],
+        "stirlin_polynomial_t_odd": [float(v) for v in result.get("stirlin_polynomial_t_odd", [])],
+    }
+
+def format_bessel_interpolation_result(result):
+    """
+    Định dạng kết quả từ hàm nội suy trung tâm Bessel.
+    """
+    if "error" in result:
+        return result
+
+    finite_difference_table = [[float(v) for v in row] for row in result.get("finite_difference_table", [])]
+    central_finite_diffs = [float(v) for v in result.get("central_finite_diffs", [])]
+    c_coeffs = [float(v) for v in result.get("c_coeffs", [])]
+    
+    w_table_coeffs_formatted = []
+    for coeffs_list in result.get("w_table", []): 
+        w_table_coeffs_formatted.append([float(c) for c in coeffs_list])
+
+    polynomial_coeffs_u = [float(v) for v in result.get("bessel_polynomial_coeffs_u", [])]
+    polynomial_coeffs_t = [float(v) for v in result.get("bessel_polynomial_coeffs_t", [])]
+    polynomial_coeffs_x = [float(v) for v in result.get("bessel_polynomial_coeffs_x", [])]
+
+    return {
+        "status": "success",
+        "method": "Nội suy Bessel",
+        "message": f"Tính toán đa thức nội suy Bessel thành công cho {len(finite_difference_table)} điểm.",
+        "start_node": float(result.get("start_node")),
+        "h": float(result.get("h")),
+        "t_nodes": [float(t) for t in result.get("t_nodes", [])],
+        "u_nodes": [float(u) for u in result.get("u_nodes", [])],
+        "finite_difference_table": finite_difference_table,
+        "central_finite_diffs": central_finite_diffs,
+        "c_coeffs": c_coeffs,
+        "w_table_coeffs": w_table_coeffs_formatted,
+        "polynomial_coeffs_u": polynomial_coeffs_u,
+        "polynomial_str_u": _format_poly_str(polynomial_coeffs_u, variable='u'),
+        "polynomial_coeffs_t": polynomial_coeffs_t,
+        "polynomial_str_t": _format_poly_str(polynomial_coeffs_t, variable='t'),
+        "polynomial_coeffs_x": polynomial_coeffs_x,
+        "polynomial_str_x": _format_poly_str(polynomial_coeffs_x, variable='x'),
+        # Thêm các trường
+        "central_finite_diffs_i": [float(v) for v in result.get("central_finite_diffs_i", [])],
+        "central_finite_diffs_ii": [float(v) for v in result.get("central_finite_diffs_ii", [])],
+        "bessel_polynomial_u_even": [float(v) for v in result.get("bessel_polynomial_u_even", [])],
+        "bessel_polynomial_u_odd": [float(v) for v in result.get("bessel_polynomial_u_odd", [])],
+    }

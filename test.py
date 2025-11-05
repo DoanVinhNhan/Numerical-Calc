@@ -10,18 +10,22 @@ from backend.numerical_methods.horner_table.change_variables import change_varia
 from backend.numerical_methods.interpolation.central import bessel_interpolation, central_gauss_i, central_gauss_ii, stirlin_interpolation
 from pprint import pprint
 if __name__ == "__main__":
-    """
     x_nodes = [1.6, 1.8, 2.0, 2.2, 2.4]
     y_nodes = [4.23, 3.67, 2.99, 1.24, 0.87]
 
+    #Tính bảng sai phân
     finite_differences_table = finite_differences(x_nodes, y_nodes)["finite_difference_table"]
+    #Lấy gia trị sai phân Newton tiến
     f_coeff = [finite_differences_table[i][i+1] for i in range(len(finite_differences_table))]
 
+    #Tính t_0
     t_0 = (4 - 4.23)/f_coeff[1]
     print(t_0)
     t = t_0
     t_prev = t_0+100
     count = 0
+
+    # Xây dựng điều kiện dừng, lặp đến khi hội tụ
     while (abs(t-t_prev) >1e-5):
         count+=1
         t_prev = t
@@ -34,6 +38,7 @@ if __name__ == "__main__":
 
         t = t_0 - (sum_values)/f_coeff[1]
         print(t)
+    # Chuyển đổi về giá trị x
     x= 0.2*t+1.6
     print(x)
     print(count)
@@ -42,6 +47,7 @@ if __name__ == "__main__":
     result = synthetic_division(coeffs, x)['value']
     print(result)
     print(t_0)
+    print(f_coeff[1])
     """
 
     x_nodes = [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7]
@@ -59,3 +65,4 @@ if __name__ == "__main__":
     print(synthetic_division(result['bessel_polynomial_coeffs_u'], (1.43-1.3)/0.1-0.5)['value'])
     print(synthetic_division(result['bessel_polynomial_coeffs_t'], (1.43-1.3)/0.1)['value'])
     print(synthetic_division(result['bessel_polynomial_coeffs_x'], 1.43)['value'])
+    """

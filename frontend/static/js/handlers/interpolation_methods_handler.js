@@ -28,16 +28,15 @@ export function setupInterpolationHandlers() {
         newtonMethodSelect.addEventListener('change', updateNewtonMethodNote);
         updateNewtonMethodNote();
     }
-    const centralMethodSelect = document.getElementById('central-method-select'); // <<< THÊM LISTENER (optional for notes)
+    const centralMethodSelect = document.getElementById('central-method-select');
     if (centralMethodSelect) {
         centralMethodSelect.addEventListener('change', updateCentralMethodNote);
         updateCentralMethodNote(); // Initial call
     }
-    const calculateCentralBtn = document.getElementById('calculate-central-interpolation-btn'); // <<< THÊM LISTENER
+    const calculateCentralBtn = document.getElementById('calculate-central-interpolation-btn');
     if (calculateCentralBtn) {
         calculateCentralBtn.addEventListener('click', handleCentralInterpolationCalculation);
     }
-    // Thêm các handlers khác cho Lagrange, Newton... ở đây khi cần
 }
 
 async function handleChebyshevCalculation() {
@@ -53,9 +52,8 @@ async function handleChebyshevCalculation() {
     showLoading();
     try {
         const data = await getChebyshevNodes(a, b, n);
-        // Sử dụng một hàm render chung cho các kết quả nội suy
         renderInterpolationSolution(document.getElementById('results-area'), data);
-    } catch (error) {
+    } catch (error) { // <-- Lỗi từ backend sẽ được bắt ở đây
         showError(error.message);
     } finally {
         hideLoading();
@@ -75,7 +73,7 @@ async function handleLagrangeCalculation() {
     try {
         const data = await calculateLagrangeInterpolation(xNodes, yNodes);
         renderInterpolationSolution(document.getElementById('results-area'), data);
-    } catch (error) {
+    } catch (error) { // <-- Lỗi từ backend sẽ được bắt ở đây
         showError(error.message);
     } finally {
         hideLoading();
@@ -95,7 +93,7 @@ async function handleDividedDifferenceCalculation() {
     try {
         const data = await calculateDividedDifference(xNodes, yNodes);
         renderInterpolationSolution(document.getElementById('results-area'), data);
-    } catch (error) {
+    } catch (error) { // <-- Lỗi từ backend sẽ được bắt ở đây
         showError(error.message);
     } finally {
         hideLoading();
@@ -115,7 +113,7 @@ async function handleFiniteDifferenceCalculation() {
     try {
         const data = await calculateFiniteDifference(xNodes, yNodes);
         renderInterpolationSolution(document.getElementById('results-area'), data);
-    } catch (error) {
+    } catch (error) { // <-- Lỗi từ backend sẽ được bắt ở đây
         showError(error.message);
     } finally {
         hideLoading();
@@ -125,7 +123,7 @@ async function handleFiniteDifferenceCalculation() {
 async function handleNewtonInterpolation() {
     const xNodes = document.getElementById('newton-x-nodes').value;
     const yNodes = document.getElementById('newton-y-nodes').value;
-    const methodType = document.getElementById('newton-method-select').value; // <<< Lấy giá trị method
+    const methodType = document.getElementById('newton-method-select').value;
 
     if (!xNodes.trim() || !yNodes.trim()) {
         showError('Vui lòng nhập đầy đủ các mốc x và giá trị y.');
@@ -134,10 +132,9 @@ async function handleNewtonInterpolation() {
 
     showLoading();
     try {
-        // <<< Truyền methodType vào hàm API >>>
         const data = await calculateNewtonInterpolation(xNodes, yNodes, methodType);
-        renderInterpolationSolution(document.getElementById('results-area'), data); // Dùng chung render
-    } catch (error) {
+        renderInterpolationSolution(document.getElementById('results-area'), data);
+    } catch (error) { // <-- Lỗi từ backend sẽ được bắt ở đây
         showError(error.message);
     } finally {
         hideLoading();
@@ -171,27 +168,14 @@ async function handleCentralInterpolationCalculation() {
     showLoading();
     try {
         const data = await calculateCentralInterpolation(xNodes, yNodes, methodType);
-        renderInterpolationSolution(document.getElementById('results-area'), data); // Dùng chung render
-    } catch (error) {
+        renderInterpolationSolution(document.getElementById('results-area'), data);
+    } catch (error) { // <-- Lỗi chẵn/lẻ từ backend sẽ được bắt ở đây
         showError(error.message);
     } finally {
         hideLoading();
     }
 }
 
-function updateCentralMethodNote() { // <<< THÊM HÀM NOTE (optional)
+function updateCentralMethodNote() { 
     const select = document.getElementById('central-method-select');
-    // Add logic here if you want to display specific notes based on the selected central method (Gauss I/II, Stirling, Bessel)
-    // For now, it does nothing, but the structure is here.
-    // Example:
-    // const note = document.getElementById('central-method-note');
-    // if (select && note) {
-    //     if (select.value === 'gauss_i' || select.value === 'gauss_ii') {
-    //         note.textContent = 'Phương pháp Gauss yêu cầu số mốc lẻ.';
-    //         note.style.display = 'block';
-    //     } else {
-    //         note.textContent = 'Phương pháp Stirling/Bessel yêu cầu số mốc chẵn.';
-    //         note.style.display = 'block';
-    //     }
-    // }
 }
