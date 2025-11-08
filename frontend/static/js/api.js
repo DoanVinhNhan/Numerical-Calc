@@ -403,3 +403,47 @@ export async function calculateCentralInterpolation(xNodes, yNodes, methodType) 
     }
     return response.json();
 }
+
+/**
+ * Gửi yêu cầu tính toán Hàm ghép trơn (Spline).
+ * @param {object} payload - Dữ liệu yêu cầu (x_nodes, y_nodes, spline_type, điều kiện biên...).
+ * @returns {Promise<object>}
+ */
+export async function calculateSpline(payload) {
+    const response = await fetch(`${API_BASE_URL}/interpolation/spline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}
+
+/**
+ * Gửi yêu cầu tính toán Bình phương tối thiểu.
+ * @param {string} xNodes - Chuỗi các mốc x.
+ * @param {string} yNodes - Chuỗi các giá trị y.
+ * @param {string[]} basisFuncs - Mảng các chuỗi hàm cơ sở.
+ * @returns {Promise<object>}
+ */
+export async function calculateLeastSquares(xNodes, yNodes, basisFuncs) {
+    const response = await fetch(`${API_BASE_URL}/interpolation/least-squares`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            x_nodes: xNodes,
+            y_nodes: yNodes,
+            basis_funcs: basisFuncs // Gửi dưới dạng mảng các chuỗi
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}

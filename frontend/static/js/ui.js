@@ -1741,3 +1741,145 @@ export function renderInterpolationSolution(container, data) {
     }
 }
 
+/**
+ * Hiển thị kết quả cho Hàm ghép trơn (Spline).
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderSplineSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    if (!data || data.status !== 'success') {
+        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ.');
+        return;
+    }
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+
+    // Hiển thị các giá trị m (cho Cấp 2) hoặc alpha (cho Cấp 3)
+    if (data.m_values) {
+        html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm tại mốc S'(xᵢ):</h3>
+                 <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm">
+                 ${data.m_values.map((m, i) => `m<sub>${i}</sub> = ${m.toFixed(precision)}`).join('; &nbsp; ')}
+                 </div>`;
+    }
+    if (data.alpha_values) {
+        html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm cấp hai tại mốc S''(xᵢ):</h3>
+                 <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm">
+                 ${data.alpha_values.map((a, i) => `<span class="katex-render-inline" data-formula="\\alpha_{${i}} = ${a.toFixed(precision)}"></span>`).join('; &nbsp; ')}
+                 </div>`;
+    }
+
+    // Hiển thị các đoạn spline
+    html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Các hàm spline trên từng đoạn:</h3>
+             <div class="space-y-4">`;
+
+    data.splines.forEach(segment => {
+        let poly_str = "";
+        const [x_start, x_end] = segment.interval;
+        
+        if (data.spline_type === "Linear (Cấp 1)") {
+            const [a, b] = segment.coeffs;
+            poly_str = `${a.toFixed(precision)} x + (${b.toFixed(precision)})`;
+        } else if (data.spline_type === "Quadratic (Cấp 2)") {
+            const [a, b, c] = segment.coeffs;
+            poly_str = `${a.toFixed(precision)} x^2 + (${b.toFixed(precision)}) x + (${c.toFixed(precision)})`;
+        } else if (data.spline_type === "Cubic (Cấp 3)") {
+            const [a, b, c, d] = segment.coeffs;
+            const t = `(x - ${segment.shift_point.toFixed(precision)})`;
+            poly_str = `${a.toFixed(precision)} ${t}^3 + (${b.toFixed(precision)}) ${t}^2 + (${c.toFixed(precision)}) ${t} + (${d.toFixed(precision)})`;
+        }
+
+        html += `<div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p class="font-semibold text-blue-800">Đoạn ${segment.k + 1} (trên [${x_start.toFixed(precision)}, ${x_end.toFixed(precision)}]):</p>
+                    <div class="text-center text-lg mt-2 katex-render" data-formula="S_{${segment.k}}(x) = ${poly_str.replace(/\+ \-/g, '- ')}"></div>
+                 </div>`;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+    // Render Katex
+    if (window.katex) {
+        container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: elem.classList.contains('katex-render')
+                });
+            } catch (e) { elem.textContent = elem.dataset.formula; }
+        });
+    }
+}
+
+/**
+ * Hiển thị kết quả cho Bình phương tối thiểu.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderLsqSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    if (!data || data.status !== 'success') {
+        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ.');
+        return;
+    }
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+    let html = `<h2 class="result-heading">Kết quả - ${data.method_name}</h2>`;
+
+    // Hiển thị hàm xấp xỉ
+    html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg border border-green-200">
+        <h3 class="font-semibold">Hàm xấp xỉ g(x):</h3>
+        <div class="text-xl mt-2 katex-render" data-formula="g(x) = ${data.g_x_str_latex.replace(/\+ \-/g, '- ')}"></div>
+    </div>`;
+
+    // Hiển thị các hệ số
+    html += `<div class="my-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Vector hệ số a:</h3>
+        <div class="matrix-display">${formatMatrix(data.coefficients.map(c => [c]), 'a')}</div>
+    </div>`;
+
+    // Hiển thị sai số
+    html += `<div class="my-6 text-center p-3 bg-gray-50 rounded-lg">
+        <p class="text-sm font-medium">Tổng bình phương sai số (S): <span class="font-mono text-lg">${data.error_metrics.sum_squared_errors.toFixed(precision)}</span></p>
+        <p class="text-sm font-medium mt-2">Sai số trung bình phương (σ): <span class="font-mono text-lg">${data.error_metrics.std_error.toFixed(precision)}</span></p>
+    </div>`;
+
+    // Hiển thị các ma trận trung gian
+    html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg border">
+        <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết hệ phương trình chuẩn (Ma = b)</summary>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <div class="md:col-span-2">
+                <h4 class="text-md font-semibold text-center mb-2">Ma trận M = ΦᵀΦ</h4>
+                <div class="matrix-display">${formatMatrix(data.intermediate_matrices.m_matrix, 'M')}</div>
+            </div>
+            <div>
+                <h4 class="text-md font-semibold text-center mb-2">Vector b = Φᵀy</h4>
+                <div class="matrix-display">${formatMatrix(data.intermediate_matrices.rhs_vector, 'b')}</div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <h4 class="text-md font-semibold text-center mb-2">Ma trận cơ sở Φ</h4>
+            <div class="matrix-display">${formatMatrix(data.intermediate_matrices.phi_matrix, 'Φ')}</div>
+        </div>
+    </details>`;
+
+    container.innerHTML = html;
+
+    // Render Katex
+    if (window.katex) {
+        container.querySelectorAll('.katex-render').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: true
+                });
+            } catch (e) { elem.textContent = elem.dataset.formula; }
+        });
+    }
+}

@@ -9,9 +9,10 @@ import { setupRootFindingHandlers } from './handlers/root_finding_handler.js';
 import { setupPolynomialHandlers } from './handlers/polynomial_handler.js';
 import { setupNonlinearSystemsHandlers } from './handlers/nonlinear_systems_handler.js';
 import { setupInterpolationHandlers } from './handlers/interpolation_methods_handler.js';
-import { setuphornerHandlers } from './handlers/horner_handler.js';
+import { setupHornerHandlers } from './handlers/horner_handler.js';
 import { setupTabHandlers, setupSidebarHandlers } from './tab-handlers.js';
-
+import { setupSplineHandlers } from './handlers/spline_handler.js';
+import { setupLeastSquaresHandlers } from './handlers/least_squares_handler.js';
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
  */
@@ -122,7 +123,9 @@ function rebindEventHandlers(container) {
     setupPolynomialHandlers();
     setupNonlinearSystemsHandlers();
     setupInterpolationHandlers();
-    setuphornerHandlers();
+    setupHornerHandlers();
+    setupSplineHandlers();
+    setupLeastSquaresHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây
     // setupIterativeMethodsHandlers();
     // setupEigenMethodsHandlers();

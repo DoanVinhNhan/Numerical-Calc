@@ -2,7 +2,7 @@
 import { calculateSyntheticDivision, calculateAllDerivatives, calculateReverseHorner, calculateWFunction, calculateChangeVariables } from '../api.js'; // Thêm calculateWFunction
 import { renderAllDerivativesSolution, renderHornerSolution, renderReverseHornerSolution, renderWFunctionSolution, renderChangeVariablesSolution, showLoading, hideLoading, showError } from '../ui.js'; // Thêm renderWFunctionSolution
 
-export function setuphornerHandlers() {
+export function setupHornerHandlers() {
     const calculateBtn = document.getElementById('calculate-synthetic-division-btn');
     if (calculateBtn) {
         calculateBtn.addEventListener('click', handleSyntheticDivision);

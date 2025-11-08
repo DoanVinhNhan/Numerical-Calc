@@ -256,12 +256,74 @@ def test_least_squares_complex_plot():
         traceback.print_exc()
 
 
+def test_least_squares_trigonometric_plot():
+    """
+    Kiểm tra LSQ với dữ liệu từ spline và bộ hàm cơ sở lượng giác.
+    """
+    print("\n--- Bắt đầu kiểm tra Bình phương tối thiểu (Lượng giác) ---")
+    
+    # 1. Dữ liệu (từ yêu cầu của bạn, giống hệt dữ liệu spline)
+    x_data = [0.3, 0.7, 1.2, 1.5, 1.8, 2.2, 2.6, 3.0]
+    y_data = [1.2, 2.7, 3.0, 2.3, 3.2, 1.0, 0.8, 7.0]
+    
+    # 2. Hàm cơ sở (từ yêu cầu của bạn)
+    basis_funcs_str = ['1', 'sin(x)', 'cos(x)', 'sin(2*x)', 'cos(2*x)', 'sin(3*x)', 'cos(3*x)']
+    
+    print(f"Dữ liệu X: {x_data}")
+    print(f"Dữ liệu Y: {y_data}")
+    print(f"Hàm cơ sở: {basis_funcs_str}")
+
+    try:
+        # 3. Gọi hàm tính toán
+        result = least_squares_approximation(x_data, y_data, basis_funcs_str)
+        if result["status"] != "success":
+            print(f"Lỗi: {result.get('error')}")
+            return
+            
+        a = result["coefficients"]
+        g_x_str = result["g_x_str_latex"]
+        print(f"Hàm xấp xỉ: g(x) = {g_x_str}")
+        print(f"Các hệ số: a = {[float(f'{c:.4f}') for c in a]}")
+        print(f"Sai số TB phương: {result['error_metrics']['std_error']:.4f}")
+
+        # 4. Chuẩn bị vẽ đồ thị
+        plt.figure(figsize=(10, 6))
+        # Vẽ dữ liệu điểm
+        plt.plot(x_data, y_data, 'o', color='blue', markersize=8, label='Data Points')
+
+        # 5. Vẽ hàm xấp xỉ
+        x_sym = symbols('x')
+        # Thay thế \cdot bằng * để sympify hiểu
+        g_x_str_sympy = g_x_str.replace('\\cdot', '*')
+        
+        # Thêm thư viện numpy vào cho lambdify
+        g_x_lambda = lambdify(x_sym, sympify(g_x_str_sympy), 'numpy')
+
+        x_fit = np.linspace(min(x_data), max(x_data), 200)
+        y_fit = g_x_lambda(x_fit)
+        
+        plt.plot(x_fit, y_fit, 'r-', linewidth=2, label=f'Hàm xấp xỉ g(x)')
+        plt.title('Kiểm tra Bình phương tối thiểu (Hàm lượng giác)')
+        plt.xlabel('Trục X'); plt.ylabel('Trục Y')
+        plt.legend(); plt.grid(True, linestyle='--', alpha=0.6)
+        
+        output_filename = 'test_least_squares_trig.png'
+        plt.savefig(output_filename)
+        print(f"Đã lưu đồ thị vào file: {output_filename}")
+
+    except Exception as e:
+        print(f"Đã xảy ra lỗi: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
     # Chạy tất cả các bài test
     test_linear_spline_plot()
     test_quadratic_spline_plot()
     test_cubic_spline_plot()
     test_least_squares_simple_plot()
-    test_least_squares_complex_plot() # Thêm test mới
+    test_least_squares_complex_plot()
+    test_least_squares_trigonometric_plot() # Thêm test mới
     
     print("\nĐã chạy tất cả các kiểm tra.")
