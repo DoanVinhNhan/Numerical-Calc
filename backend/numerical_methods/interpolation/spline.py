@@ -1,4 +1,4 @@
-#backend/numerical_methods/interpolation/spline.py
+# backend/numerical_methods/interpolation/spline.py
 import numpy as np
 from typing import List, Dict, Any
 
@@ -126,11 +126,15 @@ def spline_quadratic(x_nodes: List[float], y_nodes: List[float], boundary_m1: fl
     # Khởi tạo mảng chứa các giá trị đạo hàm m_i = S'(x_i)
     m = np.zeros(n)
     m[0] = boundary_m1  # Áp dụng điều kiện biên
+    
+    # *** THÊM MỚI: Lưu trữ gamma_k để hiển thị ***
+    gammas = np.zeros(n - 1)
 
     # Giải hệ n-1 phương trình để tìm m_2, ..., m_n
     # m_k + m_{k+1} = 2 * (y_{k+1} - y_k) / h_k => m_{k+1} = ... - m_k
     for k in range(n - 1):
         gamma_k = 2 * (y[k+1] - y[k]) / h[k]
+        gammas[k] = gamma_k # *** THÊM MỚI ***
         m[k+1] = gamma_k - m[k]
 
     # Tính toán các hệ số a_k, b_k, c_k cho từng đoạn spline
@@ -165,6 +169,7 @@ def spline_quadratic(x_nodes: List[float], y_nodes: List[float], boundary_m1: fl
         "n_points": n,
         "n_segments": n - 1,
         "m_values": m.tolist(),  # Trả về các giá trị S'(x_i) đã tính được
+        "gammas": gammas.tolist(), # *** THÊM MỚI ***
         "splines": splines,
         "x_nodes_sorted": x.tolist(),
         "y_nodes_sorted": y.tolist()
@@ -302,5 +307,10 @@ def spline_cubic(x_nodes: List[float], y_nodes: List[float],
         "alpha_values": alpha.tolist(), # Trả về các giá trị S''(x_i)
         "splines": splines,
         "x_nodes_sorted": x.tolist(),
-        "y_nodes_sorted": y.tolist()
+        "y_nodes_sorted": y.tolist(),
+        # *** THÊM MỚI: Trả về hệ phương trình đã giải ***
+        "intermediate_system": {
+            "M": M,
+            "R": R.reshape(-1, 1) # Đảm bảo R là vector cột
+        }
     }

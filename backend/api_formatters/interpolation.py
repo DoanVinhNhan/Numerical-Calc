@@ -400,8 +400,19 @@ def format_spline_result(result):
 
     if "m_values" in result:
         formatted["m_values"] = [float(v) for v in result["m_values"]]
+    # *** THÊM MỚI: Chuyển đổi gammas ***
+    if "gammas" in result:
+        formatted["gammas"] = [float(g) for g in result["gammas"]]
+        
     if "alpha_values" in result:
         formatted["alpha_values"] = [float(v) for v in result["alpha_values"]]
+    
+    # *** THÊM MỚI: Chuyển đổi hệ phương trình M, R cho cubic ***
+    if "intermediate_system" in result:
+        formatted["intermediate_system"] = {
+            "M": result["intermediate_system"]["M"].tolist(),
+            "R": result["intermediate_system"]["R"].tolist()
+        }
 
     return formatted
 

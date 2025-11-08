@@ -1751,7 +1751,7 @@ export function renderSplineSolution(container, data) {
     if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
 
     if (!data || data.status !== 'success') {
-        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ.');
+        showError(data ? data : 'Đã nhận được phản hồi không hợp lệ.');
         return;
     }
 
@@ -1759,19 +1759,84 @@ export function renderSplineSolution(container, data) {
     let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
     html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
 
-    // Hiển thị các giá trị m (cho Cấp 2) hoặc alpha (cho Cấp 3)
-    if (data.m_values) {
-        html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm tại mốc S'(xᵢ):</h3>
-                 <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm">
+    // *** BẮT ĐẦU THAY ĐỔI: Thêm chi tiết cho Spline Cấp 2 ***
+    if (data.spline_type === "Quadratic (Cấp 2)" && data.m_values && data.gammas) {
+        html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm tại mốc S'(xᵢ) = mᵢ:</h3>
+                 <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm mb-4">
                  ${data.m_values.map((m, i) => `m<sub>${i}</sub> = ${m.toFixed(precision)}`).join('; &nbsp; ')}
                  </div>`;
-    }
-    if (data.alpha_values) {
-        html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm cấp hai tại mốc S''(xᵢ):</h3>
-                 <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm">
+        
+        html += `<details class="mt-4 bg-gray-50 p-3 rounded-lg border">
+            <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết tính toán hệ số S'(xᵢ)</summary>
+            <div class="mt-4">
+                <p class="text-sm">Áp dụng công thức truy hồi: <span class="katex-render-inline" data-formula="m_k + m_{k+1} = \\gamma_k"></span>, với <span class="katex-render-inline" data-formula="\\gamma_k = \\frac{2(y_{k+1} - y_k)}{h_k}"></span>.</p>
+                <p class="text-sm mt-2">Điều kiện biên: <span class="katex-render-inline" data-formula="m_0 = ${data.m_values[0].toFixed(precision)}"></span>.</p>
+                <h4 class="text-md font-semibold mt-4 mb-2">Bảng tính toán:</h4>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">
+                    <thead class="text-xs text-gray-800 bg-gray-100"><tr>
+                        <th class="px-4 py-2">k</th>
+                        <th class="px-4 py-2"><span class="katex-render-inline" data-formula="[x_k, x_{k+1}]"></span></th>
+                        <th class="px-4 py-2"><span class="katex-render-inline" data-formula="\\gamma_k"></span></th>
+                        <th class="px-4 py-2"><span class="katex-render-inline" data-formula="m_k"></span></th>
+                        <th class="px-4 py-2">Tính <span class="katex-render-inline" data-formula="m_{k+1} = \\gamma_k - m_k"></span></th>
+                    </tr></thead><tbody>`;
+        
+        for (let k = 0; k < data.gammas.length; k++) {
+            html += `<tr class="bg-white border-b">
+                <td class="px-4 py-2 font-medium">${k}</td>
+                <td class="px-4 py-2 font-mono">[${data.x_nodes_sorted[k].toFixed(precision)}, ${data.x_nodes_sorted[k+1].toFixed(precision)}]</td>
+                <td class="px-4 py-2 font-mono">${data.gammas[k].toFixed(precision)}</td>
+                <td class="px-4 py-2 font-mono">${data.m_values[k].toFixed(precision)}</td>
+                <td class="px-4 py-2 font-mono">${data.m_values[k+1].toFixed(precision)}</td>
+            </tr>`;
+        }
+        
+        html += `</tbody></table></div></div></details>`;
+    
+    // *** BẮT ĐẦU THAY ĐỔI: Thêm chi tiết cho Spline Cấp 3 ***
+    } else if (data.spline_type === "Cubic (Cấp 3)" && data.alpha_values && data.intermediate_system) {
+        html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm cấp hai tại mốc S''(xᵢ) = αᵢ:</h3>
+                 <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm mb-4">
                  ${data.alpha_values.map((a, i) => `<span class="katex-render-inline" data-formula="\\alpha_{${i}} = ${a.toFixed(precision)}"></span>`).join('; &nbsp; ')}
                  </div>`;
+
+        html += `<details class="mt-4 bg-gray-50 p-3 rounded-lg border">
+            <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết tính toán hệ số S''(xᵢ)</summary>
+            <div class="mt-4">
+                <p class="text-sm">Để tìm các giá trị <span class="katex-render-inline" data-formula="\\alpha_1, ..., \\alpha_{n-2}"></span>, ta giải hệ phương trình <span class="katex-render-inline" data-formula="M \\cdot [\\alpha_1, ..., \\alpha_{n-2}]^T = R"></span>.</p>
+                <p class="text-sm mt-2">Hệ được xây dựng từ công thức (với $k = 1, ..., n-2$):</p>
+                <p class="text-center my-2"><span class="katex-render" data-formula="\\frac{h_{k-1}}{6}\\alpha_{k-1} + \\frac{h_{k-1}+h_k}{3}\\alpha_k + \\frac{h_k}{6}\\alpha_{k+1} = \\frac{y_{k+1}-y_k}{h_k} - \\frac{y_k-y_{k-1}}{h_{k-1}}"></span></p>
+                <p class="text-sm mt-2">Với điều kiện biên:</p>
+                <ul class="list-disc list-inside text-sm ml-4">
+                    <li><span class="katex-render-inline" data-formula="\\alpha_0 = ${data.alpha_values[0].toFixed(precision)}"></span></li>
+                    <li><span class="katex-render-inline" data-formula="\\alpha_{${data.alpha_values.length - 1}} = ${data.alpha_values[data.alpha_values.length - 1].toFixed(precision)}"></span></li>
+                </ul>
+                
+                <h4 class="text-md font-semibold mt-4 mb-2">Hệ phương trình (Mα = R):</h4>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <div class="matrix-display">${formatMatrix(data.intermediate_system.M, 'M')}</div>
+                    <div class="matrix-display">${formatMatrix(data.intermediate_system.R, 'R')}</div>
+                </div>
+            </div>
+        </details>`;
+
+    // Fallback cho Spline Cấp 1 hoặc nếu thiếu dữ liệu
+    } else {
+        if (data.m_values) {
+            html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm tại mốc S'(xᵢ):</h3>
+                     <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm">
+                     ${data.m_values.map((m, i) => `m<sub>${i}</sub> = ${m.toFixed(precision)}`).join('; &nbsp; ')}
+                     </div>`;
+        }
+        if (data.alpha_values) {
+            html += `<h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Các giá trị đạo hàm cấp hai tại mốc S''(xᵢ):</h3>
+                     <div class="p-2 bg-gray-50 rounded-lg text-center font-mono text-sm">
+                     ${data.alpha_values.map((a, i) => `<span class="katex-render-inline" data-formula="\\alpha_{${i}} = ${a.toFixed(precision)}"></span>`).join('; &nbsp; ')}
+                     </div>`;
+        }
     }
+    // *** KẾT THÚC THAY ĐỔI ***
+
 
     // Hiển thị các đoạn spline
     html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Các hàm spline trên từng đoạn:</h3>
@@ -1783,13 +1848,16 @@ export function renderSplineSolution(container, data) {
         
         if (data.spline_type === "Linear (Cấp 1)") {
             const [a, b] = segment.coeffs;
+            // *** THAY ĐỔI: Hiển thị công thức rõ ràng hơn ***
             poly_str = `${a.toFixed(precision)} x + (${b.toFixed(precision)})`;
         } else if (data.spline_type === "Quadratic (Cấp 2)") {
             const [a, b, c] = segment.coeffs;
+            // *** THAY ĐỔI: Hiển thị công thức rõ ràng hơn ***
             poly_str = `${a.toFixed(precision)} x^2 + (${b.toFixed(precision)}) x + (${c.toFixed(precision)})`;
         } else if (data.spline_type === "Cubic (Cấp 3)") {
             const [a, b, c, d] = segment.coeffs;
             const t = `(x - ${segment.shift_point.toFixed(precision)})`;
+            // *** THAY ĐỔI: Hiển thị công thức rõ ràng hơn ***
             poly_str = `${a.toFixed(precision)} ${t}^3 + (${b.toFixed(precision)}) ${t}^2 + (${c.toFixed(precision)}) ${t} + (${d.toFixed(precision)})`;
         }
 
@@ -1825,16 +1893,32 @@ export function renderLsqSolution(container, data) {
     if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
 
     if (!data || data.status !== 'success') {
-        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ.');
+        showError(data ? data : 'Đã nhận được phản hồi không hợp lệ.');
         return;
     }
 
     const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
     let html = `<h2 class="result-heading">Kết quả - ${data.method_name}</h2>`;
 
+    // *** BẮT ĐẦU THAY ĐỔI: Thêm công thức ***
+    const m = data.coefficients.length;
+    let basis_sum_str = "";
+    if (m > 3) {
+        basis_sum_str = `a_1 \\phi_1(x) + a_2 \\phi_2(x) + \\dots + a_${m} \\phi_${m}(x)`;
+    } else {
+        basis_sum_str = Array.from({length: m}, (_, i) => `a_{${i+1}} \\phi_{${i+1}}(x)`).join(' + ');
+    }
+    
+    html += `<div class="my-6 text-center p-3 bg-gray-50 rounded-lg">
+        <p class="text-sm">Hàm xấp xỉ có dạng:</p>
+        <div class="text-lg katex-render" data-formula="g(x) = ${basis_sum_str}"></div>
+    </div>`;
+    // *** KẾT THÚC THAY ĐỔI ***
+
+
     // Hiển thị hàm xấp xỉ
     html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg border border-green-200">
-        <h3 class="font-semibold">Hàm xấp xỉ g(x):</h3>
+        <h3 class="font-semibold">Hàm xấp xỉ tìm được g(x):</h3>
         <div class="text-xl mt-2 katex-render" data-formula="g(x) = ${data.g_x_str_latex.replace(/\+ \-/g, '- ')}"></div>
     </div>`;
 
@@ -1849,6 +1933,13 @@ export function renderLsqSolution(container, data) {
         <p class="text-sm font-medium">Tổng bình phương sai số (S): <span class="font-mono text-lg">${data.error_metrics.sum_squared_errors.toFixed(precision)}</span></p>
         <p class="text-sm font-medium mt-2">Sai số trung bình phương (σ): <span class="font-mono text-lg">${data.error_metrics.std_error.toFixed(precision)}</span></p>
     </div>`;
+    
+    // *** BẮT ĐẦU THAY ĐỔI: Thêm công thức cho hệ PT chuẩn ***
+    html += `<div class="my-6 text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <p class="text-sm">Các hệ số 'a' được tìm bằng cách giải hệ phương trình chuẩn:</p>
+        <div class="text-lg katex-render" data-formula="(\\Phi^T\\Phi) a = \\Phi^T y \\quad \\Longleftrightarrow \\quad Ma = b"></div>
+    </div>`;
+    // *** KẾT THÚC THAY ĐỔI ***
 
     // Hiển thị các ma trận trung gian
     html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg border">
@@ -1859,7 +1950,7 @@ export function renderLsqSolution(container, data) {
                 <div class="matrix-display">${formatMatrix(data.intermediate_matrices.m_matrix, 'M')}</div>
             </div>
             <div>
-                <h4 class="text-md font-semibold text-center mb-2">Vector b = Φᵀy</h4>
+                <h4 class_name="text-md font-semibold text-center mb-2">Vector b = Φᵀy</h4>
                 <div class="matrix-display">${formatMatrix(data.intermediate_matrices.rhs_vector, 'b')}</div>
             </div>
         </div>
@@ -1873,11 +1964,12 @@ export function renderLsqSolution(container, data) {
 
     // Render Katex
     if (window.katex) {
-        container.querySelectorAll('.katex-render').forEach(elem => {
+        container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
             try {
+                // *** THAY ĐỔI: Đảm bảo render cả inline ***
                 katex.render(elem.dataset.formula, elem, {
                     throwOnError: false,
-                    displayMode: true
+                    displayMode: elem.classList.contains('katex-render')
                 });
             } catch (e) { elem.textContent = elem.dataset.formula; }
         });
