@@ -439,3 +439,13 @@ def format_node_selection_result(result):
     # Thêm tên phương thức để hiển thị trên UI
     result["method"] = "Trích xuất mốc nội suy"
     return result
+
+def format_find_intervals_result(result): # <-- THÊM MỚI
+    """
+    Định dạng kết quả từ hàm tìm khoảng cách ly nghiệm.
+    """
+    if result.get("status") != "success":
+        return result
+    
+    result["method"] = "Tìm khoảng cách ly nghiệm"
+    return result

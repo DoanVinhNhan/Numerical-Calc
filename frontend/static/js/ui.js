@@ -2114,3 +2114,67 @@ export function renderNodeSelectionSolution(container, data) {
         });
     }
 }
+
+/**
+ * Hiển thị kết quả tìm khoảng cách ly nghiệm.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderFindIntervalsSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    if (!data || data.status !== 'success') {
+        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ.');
+        return;
+    }
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-4 ${data.num_intervals_found > 0 ? 'text-green-600' : 'text-gray-600'}">${data.method_description}</p>`;
+
+    // Hiển thị cảnh báo nếu có mốc trùng lặp
+    if (data.warning_message) {
+        html += `<div class="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg text-center text-sm text-yellow-800">
+            ${data.warning_message}
+        </div>`;
+    }
+
+    // Hiển thị bảng các khoảng tìm được
+    if (data.intervals && data.intervals.length > 0) {
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-4 text-center">Các khoảng cách ly đã mở rộng (cho ȳ = ${data.y_bar})</h3>`;
+        
+        data.intervals.forEach((interval) => {
+            html += `<div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">`;
+            // Cập nhật tiêu đề
+            html += `<h4 class="text-md font-semibold text-blue-800 mb-3">Khoảng ${interval.interval_index} (Tìm thấy ${interval.num_nodes_found} mốc, mở rộng từ [${interval.original_interval[0].toFixed(precision)}, ${interval.original_interval[1].toFixed(precision)}])</h4>`;
+            
+            html += `<div class="overflow-x-auto flex justify-center">`;
+            html += `<table class="text-sm text-center border border-collapse border-gray-300 bg-white">`;
+            html += `<thead class="text-xs text-gray-800 bg-gray-100">`;
+
+            // Hàng x_i
+            html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">xᵢ
+                <button class="copy-btn" data-copy-content="${interval.selected_x.join(' ')}">Copy</button>
+            </th>`;
+            interval.selected_x.forEach(x_val => {
+                html += `<td class="px-4 py-2 border border-gray-300 font-mono">${x_val.toFixed(precision)}</td>`;
+            });
+            html += `</tr>`;
+
+            // Hàng y_i
+            html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">yᵢ
+                <button class="copy-btn" data-copy-content="${interval.selected_y.join(' ')}">Copy</button>
+            </th>`;
+            interval.selected_y.forEach(y_val => {
+                html += `<td class="px-4 py-2 border border-gray-300 font-mono">${y_val.toFixed(precision)}</td>`;
+            });
+            html += `</tr>`;
+
+            html += `</thead></table></div>`;
+            html += `</div>`;
+        });
+    }
+
+    container.innerHTML = html;
+}

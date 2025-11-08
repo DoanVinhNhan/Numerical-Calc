@@ -466,3 +466,22 @@ export async function calculateNodeSelection(formData) {
     
     return response.json();
 }
+
+/**
+ * Gửi yêu cầu tìm khoảng cách ly nghiệm từ file.
+ * @param {FormData} formData - Đối tượng FormData chứa file và giá trị y_bar.
+ * @returns {Promise<object>}
+ */
+export async function calculateFindIntervals(formData) { // <-- THÊM MỚI
+    const response = await fetch(`${API_BASE_URL}/interpolation/find-intervals`, {
+        method: 'POST',
+        body: formData, // Không cần 'Content-Type', trình duyệt sẽ tự đặt
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định từ máy chủ.');
+    }
+    
+    return response.json();
+}

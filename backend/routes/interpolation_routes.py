@@ -18,6 +18,8 @@ from backend.numerical_methods.interpolation.least_squares import least_squares_
 from backend.api_formatters.interpolation import format_spline_result, format_lsq_result
 from backend.numerical_methods.interpolation.node_selection import select_interpolation_nodes
 from backend.api_formatters.interpolation import format_node_selection_result
+from backend.numerical_methods.interpolation.find_intervals import find_root_intervals
+from backend.api_formatters.interpolation import format_find_intervals_result
 import io
 import traceback
 
@@ -273,6 +275,34 @@ def select_nodes_route():
         
         # Định dạng và trả về
         formatted_result = format_node_selection_result(result)
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+    
+@interpolation_bp.route('/find-intervals', methods=['POST'])
+def find_intervals_route():
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "Không tìm thấy file nào trong request."}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "Không có file nào được chọn."}), 400
+
+        file_stream = io.BytesIO(file.read())
+        
+        data = request.form
+        y_bar = float(data.get('y_bar'))
+        num_nodes = int(data.get('num_nodes'))
+        # method = data.get('method', 'both') # <-- ĐÃ XÓA
+
+        # Gọi hàm xử lý với các tham số mới
+        result = find_root_intervals(file_stream, y_bar, num_nodes) # <-- XÓA method
+        
+        formatted_result = format_find_intervals_result(result)
         return jsonify(formatted_result)
 
     except (ValueError, TypeError) as e:

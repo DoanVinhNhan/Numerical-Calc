@@ -14,6 +14,7 @@ import { setupTabHandlers, setupSidebarHandlers } from './tab-handlers.js';
 import { setupSplineHandlers } from './handlers/spline_handler.js';
 import { setupLeastSquaresHandlers } from './handlers/least_squares_handler.js';
 import { setupNodeSelectionHandlers } from './handlers/node_selection_handler.js';
+import { setupFindIntervalsHandlers } from './handlers/find_intervals_handler.js';
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
  */
@@ -28,6 +29,7 @@ const PAGE_TITLES = {
     'nonlinear-solve': 'Giải phương trình f(x)=0',
     'polynomial-solve': 'Giải phương trình đa thức',
     'nonlinear-system-solve': 'Giải hệ phương trình phi tuyến',
+    'find-intervals': 'Tìm khoảng cách ly nghiệm',
     'node-selection': 'Trích xuất mốc nội suy',
     'approximation': 'Xấp xỉ hàm số',
     'horner-table': 'Sơ đồ Horner',
@@ -158,6 +160,7 @@ function rebindEventHandlers(container) {
     setupRootFindingHandlers();
     setupPolynomialHandlers();
     setupNonlinearSystemsHandlers();
+    setupFindIntervalsHandlers();
     setupNodeSelectionHandlers();
     setupInterpolationHandlers();
     setupHornerHandlers();
