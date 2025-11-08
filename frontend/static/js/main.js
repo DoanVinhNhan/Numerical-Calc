@@ -14,7 +14,6 @@ import { setupTabHandlers, setupSidebarHandlers } from './tab-handlers.js';
 import { setupSplineHandlers } from './handlers/spline_handler.js';
 import { setupLeastSquaresHandlers } from './handlers/least_squares_handler.js';
 import { setupNodeSelectionHandlers } from './handlers/node_selection_handler.js';
-import { setupInterpolationHandlers } from './handlers/interpolation_methods_handler.js';
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
  */
