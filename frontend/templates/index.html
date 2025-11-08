@@ -54,7 +54,12 @@
                 <li>
                     <button class="w-full text-left px-3 py-2 rounded hover:bg-red-50 font-medium text-gray-800" data-page="horner-table">Sơ đồ horner</button>
                 </li>
-
+                <li>
+                    <button class="w-full text-left px-3 py-2 rounded hover:bg-cyan-50 font-medium text-gray-800" data-page="spline-interpolation">Hàm ghép trơn (Spline)</button>
+                </li>
+                <li>
+                    <button class="w-full text-left px-3 py-2 rounded hover:bg-indigo-50 font-medium text-gray-800" data-page="least-squares">Bình phương tối thiểu</button>
+                </li>
             </ul>
         </nav>
     </aside>
@@ -596,6 +601,8 @@ sidebarToggle.addEventListener('click', () => {
             <button data-tab="approx-lagrange" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy Lagrange</button>
             <button data-tab="approx-newton" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy Newton</button>
             <button data-tab="approx-central" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Nội suy trung tâm</button>
+            <button data-tab="approx-spline" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Hàm ghép trơn (Spline)</button>
+            <button data-tab="approx-least-squares" class="approx-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">Bình phương tối thiểu</button>
         </div>
     </nav>
     <div id="approx-optimal-content" class="approx-tab-content">
@@ -713,6 +720,8 @@ sidebarToggle.addEventListener('click', () => {
             <button id="calculate-divided-difference-btn" class="action-btn bg-pink-600 hover:bg-pink-700">Tính Tỷ Sai Phân</button>
         </div>
     </div>
+    <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
+    <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
     <div id="results-area"></div>
 </div>
 
@@ -820,6 +829,94 @@ sidebarToggle.addEventListener('click', () => {
         </div>
     </div>
     
+    <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
+    <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
+    <div id="results-area"></div>
+</div>
+</div>
+
+<div id="spline-interpolation-page" class="hidden">
+    <div class="mb-6">
+        <h2 class="text-2xl font-semibold">Hàm ghép trơn (Spline)</h2>
+    </div>
+    <nav class="border-b border-gray-200 mb-6">
+        <div class="-mb-px flex space-x-6">
+            <button data-tab="spline-linear" class="spline-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-cyan-600 border-cyan-500">Spline Cấp 1 (Tuyến tính)</button>
+            <button data-tab="spline-quadratic" class="spline-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent">Spline Cấp 2 (Bậc hai)</button>
+            <button data-tab="spline-cubic" class="spline-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent">Spline Cấp 3 (Bậc ba)</button>
+        </div>
+    </nav>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <label for="spline-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc xᵢ (cách nhau bằng dấu cách)</label>
+            <textarea id="spline-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 font-mono" placeholder="0 1 2 3"></textarea>
+        </div>
+        <div>
+            <label for="spline-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị yᵢ (cách nhau bằng dấu cách)</label>
+            <textarea id="spline-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 font-mono" placeholder="1 0.866 0 -0.866"></textarea>
+        </div>
+    </div>
+
+    <div id="spline-linear-content" class="spline-tab-content">
+        <div class="mb-6">
+            <button id="calculate-spline-linear-btn" class="action-btn bg-cyan-600 hover:bg-cyan-700">Tính Spline Cấp 1</button>
+        </div>
+    </div>
+    <div id="spline-quadratic-content" class="spline-tab-content hidden">
+        <div class="mb-4">
+            <label for="spline-quad-boundary" class="block text-sm font-medium text-gray-700">Điều kiện biên (ví dụ: S'(x₀))</label>
+            <input type="number" id="spline-quad-boundary" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 font-mono" value="0">
+        </div>
+        <div class="mb-6">
+            <button id="calculate-spline-quadratic-btn" class="action-btn bg-cyan-600 hover:bg-cyan-700">Tính Spline Cấp 2</button>
+        </div>
+    </div>
+    <div id="spline-cubic-content" class="spline-tab-content hidden">
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="spline-cubic-boundary1" class="block text-sm font-medium text-gray-700">Điều kiện biên 1 (S''(x₀))</label>
+                <input type="number" id="spline-cubic-boundary1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 font-mono" value="0">
+            </div>
+             <div>
+                <label for="spline-cubic-boundary2" class="block text-sm font-medium text-gray-700">Điều kiện biên 2 (S''(xₙ))</label>
+                <input type="number" id="spline-cubic-boundary2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 font-mono" value="0">
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mb-6">Ghi chú: Cả hai giá trị bằng 0 tương ứng với Spline Tự nhiên.</p>
+        <div class="mb-6">
+            <button id="calculate-spline-cubic-btn" class="action-btn bg-cyan-600 hover:bg-cyan-700">Tính Spline Cấp 3</button>
+        </div>
+    </div>
+    
+    <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
+    <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
+    <div id="results-area"></div>
+</div>
+
+<div id="least-squares-page" class="hidden">
+    <div class="mb-6">
+        <h2 class="text-2xl font-semibold">Bình phương tối thiểu</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <label for="lsq-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc xᵢ (cách nhau bằng dấu cách)</label>
+            <textarea id="lsq-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 font-mono" placeholder="1 2 3 4"></textarea>
+        </div>
+        <div>
+            <label for="lsq-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị yᵢ (cách nhau bằng dấu cách)</label>
+            <textarea id="lsq-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 font-mono" placeholder="2.1 3.9 6.1 8.0"></textarea>
+        </div>
+    </div>
+    <div>
+        <label for="lsq-basis-funcs" class="block text-sm font-medium text-gray-700">Các hàm cơ sở φⱼ(x) (mỗi hàm một dòng, dùng 'x')</label>
+        <textarea id="lsq-basis-funcs" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 font-mono" placeholder="1&#10;x"></textarea>
+        <p class="text-xs text-gray-500 mt-1">Ví dụ: Để xấp xỉ $g(x) = a_1 \cdot 1 + a_2 \cdot x$, nhập 2 dòng: `1` và `x`.</p>
+    </div>
+    <div class="mt-8 mb-8">
+        <button id="calculate-least-squares-btn" class="action-btn bg-indigo-600 hover:bg-indigo-700">Tìm hàm xấp xỉ</button>
+    </div>
+
     <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
     <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
     <div id="results-area"></div>

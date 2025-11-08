@@ -139,4 +139,10 @@ function rebindEventHandlers(container) {
         activeTextColor: 'text-pink-600', 
         activeBorderColor: 'border-pink-500'
     });
+    setupTabHandlers({
+    tabClass: '.spline-tab',
+    contentClass: '.spline-tab-content',
+    activeTextColor: 'text-cyan-600', 
+    activeBorderColor: 'border-cyan-500'
+    });
 }
