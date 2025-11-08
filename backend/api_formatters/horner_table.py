@@ -56,6 +56,7 @@ def format_synthetic_division_result(result):
         "method": "Sơ đồ Horner cho P(x)/(x-c)",
         "polynomial_str": p_x_str,
         "quotient_str": q_x_str,
+        "quotient_coeffs": result['quotient_coeffs'].tolist(),
         "value": value,
         "root": root,
         "result_str_latex": result_str_latex,
@@ -127,6 +128,7 @@ def format_reverse_horner_result(result):
         "method": "Sơ đồ Horner cho P(x) * (x-c)",
         "polynomial_str": p_x_str,
         "product_str": q_x_str,
+        "product_coeffs": result['coeffs'],
         "root": root,
         "result_str_latex": result_str_latex,
         "reverse_table": result['reverse_table']
@@ -164,6 +166,7 @@ def format_w_function_result(result):
         "method": "Tính Đa thức Omega",
         "w_n_plus_1_latex": w_n_plus_1_latex,
         "final_poly_str": final_poly_str,
+        "final_poly_coeffs": final_coeffs,
         "steps": formatted_steps
     }
 
@@ -217,6 +220,7 @@ def format_change_variables_result(result):
         "method": "Đổi biến đa thức",
         "original_poly_str": original_poly_str,
         "new_poly_str": new_poly_str,
+        "new_poly_coeffs": result['variables_coeffs'],
         "a": a,
         "b": b,
         "root": x0,

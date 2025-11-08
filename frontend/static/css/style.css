@@ -165,3 +165,26 @@ body {
     max-height: 500px;
     opacity: 1;
 }
+
+.copy-btn {
+    background-color: #f3f4f6; /* gray-100 */
+    border: 1px solid #d1d5db; /* gray-300 */
+    color: #374151; /* gray-700 */
+    padding: 2px 6px;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 500; /* font-medium */
+    border-radius: 4px;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.copy-btn:hover {
+    background-color: #e5e7eb; /* gray-200 */
+    border-color: #9ca3af; /* gray-400 */
+}
+/* Trạng thái khi đã copy */
+.copy-btn.copied {
+    background-color: #d1fae5; /* green-100 */
+    color: #065f46; /* green-800 */
+    border-color: #6ee7b7; /* green-300 */
+}

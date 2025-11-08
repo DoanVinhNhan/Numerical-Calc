@@ -1000,7 +1000,9 @@ export function renderHornerSolution(container, data) {
     // Kết quả
     html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-            <h4 class="font-semibold">Đa thức thương Q(x):</h4>
+            <h4 class="font-semibold">Đa thức thương Q(x):
+                <button class="copy-btn" data-copy-content="${data.quotient_coeffs.join(' ')}">Copy hệ số</button>
+            </h4>
             <div class="text-lg katex-render" data-formula="Q(x) = ${data.quotient_str}"></div>
         </div>
         <div>
@@ -1063,7 +1065,9 @@ export function renderAllDerivativesSolution(container, data) {
 
     // Khai triển Taylor
     html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg">
-        <h4 class="font-semibold">Khai triển Taylor của P(x) tại c = ${data.root}:</h4>
+        <h4 class="font-semibold">Khai triển Taylor của P(x) tại c = ${data.root}:
+             <button class="copy-btn" data-copy-content="${data.values.join(' ')}">Copy hệ số (dₖ)</button>
+        </h4>
         <div class="text-lg katex-render" data-formula="P(x) = ${data.taylor_str}"></div>
     </div>`;
 
@@ -1128,7 +1132,9 @@ export function renderReverseHornerSolution(container, data) {
     // Kết quả
     html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center">
         <div>
-            <h4 class="font-semibold">Đa thức tích Q(x):</h4>
+            <h4 class="font-semibold">Đa thức tích Q(x):
+                <button class="copy-btn" data-copy-content="${data.product_coeffs.join(' ')}">Copy hệ số</button>
+            </h4>
             <div class="text-lg katex-render" data-formula="Q(x) = ${data.product_str}"></div>
         </div>
     </div>`;
@@ -1205,7 +1211,9 @@ export function renderChangeVariablesSolution(container, data) {
 
     // Kết quả cuối cùng (Giữ nguyên)
     html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center border border-green-200">
-        <h4 class="font-semibold">Đa thức theo biến t (Kết quả cuối cùng):</h4>
+        <h4 class="font-semibold">Đa thức theo biến t (Kết quả cuối cùng):
+            <button class="copy-btn" data-copy-content="${data.new_poly_coeffs.join(' ')}">Copy hệ số</button>
+        </h4>
         <div class="text-lg katex-render" data-formula="Q(t) = ${data.new_poly_str}"></div>
     </div>`;
 
@@ -1246,7 +1254,9 @@ export function renderWFunctionSolution(container, data) {
     
     // Kết quả cuối cùng
     html += `<div class="mt-6 p-4 bg-green-50 rounded-lg text-center">
-        <h4 class="font-semibold">Đa thức kết quả:</h4>
+        <h4 class="font-semibold">Đa thức kết quả:
+            <button class="copy-btn" data-copy-content="${data.final_poly_coeffs.join(' ')}">Copy hệ số</button>
+        </h4>
         <div class="text-lg katex-render" data-formula="w(x) = ${data.final_poly_str}"></div>
     </div>`;
 
@@ -1320,14 +1330,18 @@ export function renderInterpolationSolution(container, data) {
             html += `<thead class="text-xs text-gray-800 bg-gray-100">`;
 
             // Hàng tiêu đề x_i
-            html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">xᵢ</th>`;
+            html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">xᵢ
+                <button class="copy-btn" data-copy-content="${data.x_nodes_sorted.join(' ')}">Copy</button>
+            </th>`;
             data.x_nodes_sorted.forEach(x_val => {
                 html += `<td class="px-4 py-2 border border-gray-300 font-mono">${x_val.toFixed(precision)}</td>`;
             });
             html += `</tr>`;
 
             // Hàng giá trị y_i
-            html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">yᵢ</th>`;
+            html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">yᵢ
+                <button class="copy-btn" data-copy-content="${data.y_nodes_sorted.join(' ')}">Copy</button>
+            </th>`;
             data.y_nodes_sorted.forEach(y_val => {
                 html += `<td class="px-4 py-2 border border-gray-300 font-mono">${y_val.toFixed(precision)}</td>`;
             });
@@ -1340,7 +1354,9 @@ export function renderInterpolationSolution(container, data) {
     // Hiển thị kết quả cho Lagrange
     if (data.method === "Nội suy Lagrange") {
         html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg">
-            <h3 class="font-semibold">Đa thức nội suy Lagrange P(x):</h3>
+            <h3 class="font-semibold">Đa thức nội suy Lagrange P(x):
+                <button class="copy-btn" data-copy-content="${data.polynomial_coeffs.join(' ')}">Copy hệ số</button>
+            </h3>
             <div class="text-lg katex-render" data-formula="P(x) = ${data.polynomial_str}"></div>
         </div>`;
 
@@ -1552,7 +1568,10 @@ export function renderInterpolationSolution(container, data) {
                  resultHtml += `<p class="text-sm font-semibold">2. Tổng hợp đa thức P(x):</p>
                  <p class="text-xs text-center">(Cộng các tích [Hệ số * Đa thức cơ sở])</p>`;
             }
-            resultHtml += `<div class="text-lg text-center p-3 bg-green-50 rounded-md katex-render" data-formula="P_n(x) = ${final_poly_str}"></div>
+            resultHtml += `<div class="text-lg text-center p-3 bg-green-50 rounded-md">
+                <div class="katex-render" data-formula="P_n(x) = ${final_poly_str}"></div>
+                <button class="copy-btn" data-copy-content="${final_poly_str === '0' ? '0' : (isEquidistant ? details.polynomial_coeffs_x : details.polynomial_coeffs_x).join(' ')}">Copy hệ số</button>
+            </div>
                 </div>
             </div>`;
             return resultHtml;
@@ -1570,7 +1589,9 @@ export function renderInterpolationSolution(container, data) {
     {
         // Hiển thị đa thức kết quả
         html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg border border-green-200">
-            <h3 class="font-semibold">Đa thức nội suy ${data.method} P(x):</h3>
+            <h3 class="font-semibold">Đa thức nội suy ${data.method} P(x):
+                <button class="copy-btn" data-copy-content="${data.polynomial_coeffs_x.join(' ')}">Copy hệ số</button>
+            </h3>
             <div class="text-lg katex-render" data-formula="P(x) = ${data.polynomial_str_x}"></div>
         </div>`;
 
@@ -1862,7 +1883,9 @@ export function renderSplineSolution(container, data) {
         }
 
         html += `<div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p class="font-semibold text-blue-800">Đoạn ${segment.k + 1} (trên [${x_start.toFixed(precision)}, ${x_end.toFixed(precision)}]):</p>
+                    <p class="font-semibold text-blue-800">Đoạn ${segment.k + 1} (trên [${x_start.toFixed(precision)}, ${x_end.toFixed(precision)}]):
+                        <button class="copy-btn" data-copy-content="${segment.coeffs.join(' ')}">Copy hệ số</button>
+                    </p>
                     <div class="text-center text-lg mt-2 katex-render" data-formula="S_{${segment.k}}(x) = ${poly_str.replace(/\+ \-/g, '- ')}"></div>
                  </div>`;
     });
@@ -1918,7 +1941,9 @@ export function renderLsqSolution(container, data) {
 
     // Hiển thị hàm xấp xỉ
     html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg border border-green-200">
-        <h3 class="font-semibold">Hàm xấp xỉ tìm được g(x):</h3>
+        <h3 class="font-semibold">Hàm xấp xỉ tìm được g(x):
+            <button class="copy-btn" data-copy-content="${data.coefficients.join(' ')}">Copy hệ số</button>
+        </h3>
         <div class="text-xl mt-2 katex-render" data-formula="g(x) = ${data.g_x_str_latex.replace(/\+ \-/g, '- ')}"></div>
     </div>`;
 
@@ -2009,14 +2034,18 @@ export function renderNodeSelectionSolution(container, data) {
         html += `<thead class="text-xs text-gray-800 bg-gray-100">`;
 
         // Hàng tiêu đề x_i
-        html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">xᵢ</th>`;
+        html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">xᵢ
+            <button class="copy-btn" data-copy-content="${data.selected_x.join(' ')}">Copy</button>
+        </th>`;
         data.selected_x.forEach(x_val => {
             html += `<td class="px-4 py-2 border border-gray-300 font-mono">${x_val.toFixed(precision)}</td>`;
         });
         html += `</tr>`;
 
         // Hàng giá trị y_i
-        html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">yᵢ</th>`;
+        html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">yᵢ
+            <button class="copy-btn" data-copy-content="${data.selected_y.join(' ')}">Copy</button>
+        </th>`;
         data.selected_y.forEach(y_val => {
             html += `<td class="px-4 py-2 border border-gray-300 font-mono">${y_val.toFixed(precision)}</td>`;
         });

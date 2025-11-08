@@ -108,6 +108,39 @@ function navigateToPage(pageId, mainContentContainer, titleElement) {
 }
 
 /**
+ * Xử lý sự kiện click cho tất cả các nút copy.
+ * Sử dụng event delegation.
+ * @param {Event} e - Sự kiện click.
+ */
+function handleCopyClick(e) {
+    const copyBtn = e.target.closest('.copy-btn');
+    if (!copyBtn) return; // Bỏ qua nếu không phải nút copy
+
+    const content = copyBtn.dataset.copyContent;
+    if (content === undefined || content === null) return;
+
+    navigator.clipboard.writeText(content).then(() => {
+        // Thành công: thay đổi text của nút
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Đã chép!';
+        copyBtn.classList.add('copied');
+        
+        // Quay lại text cũ sau 1.5 giây
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.classList.remove('copied');
+        }, 1500);
+    }).catch(err => {
+        // Thất bại: báo lỗi (ví dụ: nếu không có quyền)
+        console.error('Không thể sao chép: ', err);
+        copyBtn.textContent = 'Lỗi!';
+        setTimeout(() => {
+            copyBtn.textContent = 'Copy';
+        }, 1500);
+    });
+}
+
+/**
  * Gắn lại các trình xử lý sự kiện cho các nút trong nội dung vừa được tải.
  * Điều này cần thiết vì innerHTML sẽ tạo ra các phần tử mới.
  * @param {HTMLElement} container - Vùng chứa nội dung.
@@ -115,6 +148,7 @@ function navigateToPage(pageId, mainContentContainer, titleElement) {
 function rebindEventHandlers(container) {
     // Chỉ cần gọi lại hàm setup cho nhóm phương pháp tương ứng
     // Trong trường hợp này là các phương pháp trực tiếp
+    container.addEventListener('click', handleCopyClick);
     setupDirectMethodsHandlers();
     setupInverseMethodsHandlers();
     setupIterativeMethodsHandlers();

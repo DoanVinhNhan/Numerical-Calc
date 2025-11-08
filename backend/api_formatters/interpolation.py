@@ -74,6 +74,7 @@ def format_lagrange_interpolation_result(result):
         "status": "success",
         "method": "Nội suy Lagrange",
         "polynomial_str": _format_poly_str(result['polynomial_coeffs']),
+        "polynomial_coeffs": result['polynomial_coeffs'],
         "w_poly_str": _format_poly_str(result['w_calculation']['coeffs']),
         "calculation_steps": formatted_steps
     }
