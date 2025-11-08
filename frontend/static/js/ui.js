@@ -1532,24 +1532,43 @@ export function renderInterpolationSolution(container, data) {
             let w_polynomials = isEquidistant ? details.w_polynomials_t : details.w_polynomials_x;
             let coeffs_scaled_or_diffs = isEquidistant ? details.coeffs_scaled : details.diffs;
 
+            // --- BẮT ĐẦU SỬA ĐỔI: Hiển thị bảng hệ số w_i(t) theo cột ---
+            const max_degree_w = w_polynomials.length > 0 ? w_polynomials[w_polynomials.length - 1].length - 1 : 0;
+            
             let w_table_html = `<div class="overflow-x-auto my-4">
                 <table class="w-full text-sm text-center">
                     <thead class="bg-gray-200 text-xs text-gray-700">
                         <tr>
-                            <th class="p-2">i</th>
-                            <th class="p-2">Hệ số (${isEquidistant ? `${diff_label}^iy / i!` : 'Tỷ sai phân'})</th>
-                            <th class="p-2">Đa thức cơ sở wᵢ(${variable})</th>
+                            <th class="p-2" rowspan="2">i</th>
+                            <th class="p-2" rowspan="2">Hệ số (${isEquidistant ? `${diff_label}^iy / i!` : 'Tỷ sai phân'})</th>
+                            <th class="p-2" colspan="${max_degree_w + 1}">Hệ số của wᵢ(${variable}) (theo bậc giảm dần)</th>
                         </tr>
+                        <tr>`;
+            // Tạo các cột bậc
+            for (let k = max_degree_w; k >= 0; k--) {
+                w_table_html += `<th class="p-2 font-mono">${variable}<sup>${k}</sup></th>`;
+            }
+            w_table_html += `</tr>
                     </thead>
                     <tbody>`;
+            
             w_polynomials.forEach((w_poly, i) => {
                 w_table_html += `<tr class="border-b bg-white">
                     <td class="p-2 font-mono">${i}</td>
-                    <td class="p-2 font-mono">${coeffs_scaled_or_diffs[i].toFixed(precision)}</td>
-                    <td class="p-2 text-left katex-render-inline" data-formula="${format_poly_str_js(w_poly, variable)}"></td>
-                </tr>`;
+                    <td class="p-2 font-mono">${coeffs_scaled_or_diffs[i].toFixed(precision)}</td>`;
+                
+                // Pad mảng hệ số với số 0 ở đầu để căn chỉnh
+                const padding_len = (max_degree_w + 1) - w_poly.length;
+                const padded_coeffs = Array(padding_len).fill(0).concat(w_poly);
+
+                padded_coeffs.forEach(coeff => {
+                    w_table_html += `<td class="p-2 font-mono">${coeff.toFixed(precision)}</td>`;
+                });
+
+                w_table_html += `</tr>`;
             });
             w_table_html += `</tbody></table></div>`;
+            // --- KẾT THÚC SỬA ĐỔI ---
 
             let resultHtml = `
             <div class="mt-8">
@@ -1716,13 +1735,40 @@ export function renderInterpolationSolution(container, data) {
                             <tr><th class="p-2">i</th><th class="p-2">Đa thức cơ sở wᵢ</th></tr>
                         </thead>
                         <tbody>`;
-            const var_name = (data.method === "Nội suy Bessel") ? 'u' : 't';
-            data.w_table_coeffs.forEach((w_poly, i) => {
-                 const w_poly_str_coeffs = format_poly_str_js(w_poly, var_name);
+                        const var_name = (data.method === "Nội suy Bessel") ? 'u' : 't';
+            const w_polynomials_central = data.w_table_coeffs;
+            const max_degree_w_central = w_polynomials_central.length > 0 ? w_polynomials_central[w_polynomials_central.length - 1].length - 1 : 0;
+
+            html += `<p class="font-semibold mt-4">3. Xây dựng các đa thức cơ sở <span class="katex-render-inline" data-formula="w_i(${var_name})"></span>:</p>
+                 <div class="overflow-x-auto my-2">
+                    <table class="w-full text-sm text-center">
+                        <thead class="bg-gray-200 text-xs text-gray-700">
+                             <tr>
+                                <th class="p-2" rowspan="2">i</th>
+                                <th class="p-2" colspan="${max_degree_w_central + 1}">Hệ số của wᵢ(${var_name}) (theo bậc giảm dần)</th>
+                            </tr>
+                            <tr>`;
+            // Tạo các cột bậc
+            for (let k = max_degree_w_central; k >= 0; k--) {
+                html += `<th class="p-2 font-mono">${var_name}<sup>${k}</sup></th>`;
+            }
+            html += `</tr>
+                        </thead>
+                        <tbody>`;
+            
+            w_polynomials_central.forEach((w_poly, i) => {
                  html += `<tr class="border-b bg-white">
-                            <td class="p-2 font-mono">${i}</td>
-                            <td class="p-2 text-left katex-render-inline" data-formula="${w_poly_str_coeffs}"></td>
-                          </tr>`;
+                            <td class="p-2 font-mono">${i}</td>`;
+                 
+                 // Pad mảng hệ số với số 0 ở đầu để căn chỉnh
+                const padding_len = (max_degree_w_central + 1) - w_poly.length;
+                const padded_coeffs = Array(padding_len).fill(0).concat(w_poly);
+
+                padded_coeffs.forEach(coeff => {
+                    html += `<td class="p-2 font-mono">${coeff.toFixed(precision)}</td>`;
+                });
+                 
+                 html += `</tr>`;
             });
             html += `</tbody></table></div>`;
 
