@@ -16,6 +16,9 @@ from backend.api_formatters.interpolation import format_central_gauss_i_result, 
 from backend.numerical_methods.interpolation.spline import spline_linear, spline_quadratic, spline_cubic
 from backend.numerical_methods.interpolation.least_squares import least_squares_approximation
 from backend.api_formatters.interpolation import format_spline_result, format_lsq_result
+from backend.numerical_methods.interpolation.node_selection import select_interpolation_nodes
+from backend.api_formatters.interpolation import format_node_selection_result
+import io
 import traceback
 
 interpolation_bp = Blueprint('interpolation', __name__, url_prefix='/api/interpolation')
@@ -234,6 +237,42 @@ def least_squares_route():
 
         # Hàm format LSQ đơn giản là trả về kết quả vì nó đã được định dạng
         formatted_result = format_lsq_result(result)
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+    
+@interpolation_bp.route('/select-nodes', methods=['POST'])
+def select_nodes_route():
+    try:
+        # Kiểm tra xem file có trong request không
+        if 'file' not in request.files:
+            return jsonify({"error": "Không tìm thấy file nào trong request."}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "Không có file nào được chọn."}), 400
+
+        # Đọc dữ liệu từ file
+        try:
+            # Đọc file dưới dạng bytes và đưa vào BytesIO
+            file_stream = io.BytesIO(file.read())
+        except Exception as e:
+            return jsonify({"error": f"Không thể đọc file: {str(e)}"}), 400
+
+        # Lấy các tham số khác từ form
+        data = request.form
+        x_bar = float(data.get('x_bar'))
+        num_nodes = int(data.get('num_nodes'))
+        method = data.get('method', 'both')
+
+        # Gọi hàm xử lý
+        result = select_interpolation_nodes(file_stream, x_bar, num_nodes, method)
+        
+        # Định dạng và trả về
+        formatted_result = format_node_selection_result(result)
         return jsonify(formatted_result)
 
     except (ValueError, TypeError) as e:

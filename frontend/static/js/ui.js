@@ -1975,3 +1975,67 @@ export function renderLsqSolution(container, data) {
         });
     }
 }
+
+/**
+ * Hiển thị kết quả trích xuất mốc nội suy.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderNodeSelectionSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    if (!data || data.status !== 'success') {
+        showError(data ? data.error : 'Đã nhận được phản hồi không hợp lệ.');
+        return;
+    }
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-4 text-green-600">${data.method_description}</p>`;
+
+    // Hiển thị cảnh báo nếu có mốc trùng lặp
+    if (data.warning_message) {
+        html += `<div class="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg text-center text-sm text-yellow-800">
+            ${data.warning_message}
+        </div>`;
+    }
+
+    // Hiển thị bảng các mốc đã trích xuất
+    if (data.selected_x && data.selected_y) {
+        html += `<h3 class="text-lg font-semibold text-gray-700 mt-6 mb-2 text-center">Các mốc đã trích xuất (${data.num_nodes_found} mốc)</h3>`;
+        html += `<div class="overflow-x-auto mb-4 flex justify-center">`;
+        html += `<table class="text-sm text-center border border-collapse border-gray-300">`;
+        html += `<thead class="text-xs text-gray-800 bg-gray-100">`;
+
+        // Hàng tiêu đề x_i
+        html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">xᵢ</th>`;
+        data.selected_x.forEach(x_val => {
+            html += `<td class="px-4 py-2 border border-gray-300 font-mono">${x_val.toFixed(precision)}</td>`;
+        });
+        html += `</tr>`;
+
+        // Hàng giá trị y_i
+        html += `<tr><th class="px-4 py-2 border border-gray-300 font-semibold text-gray-600">yᵢ</th>`;
+        data.selected_y.forEach(y_val => {
+            html += `<td class="px-4 py-2 border border-gray-300 font-mono">${y_val.toFixed(precision)}</td>`;
+        });
+        html += `</tr>`;
+
+        html += `</thead></table></div>`;
+    }
+
+    container.innerHTML = html;
+
+    // Render Katex (nếu cần)
+    if (window.katex) {
+        container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: elem.classList.contains('katex-render')
+                });
+            } catch (e) { elem.textContent = elem.dataset.formula; }
+        });
+    }
+}

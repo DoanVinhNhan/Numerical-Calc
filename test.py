@@ -1,329 +1,211 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import sys
+import unittest
 import os
-# Đảm bảo import đầy đủ các hàm từ sympy
-from sympy import symbols, lambdify, sympify
+import sys
+import io
+import pandas as pd
 
-# --- Thêm đường dẫn dự án ---
-# Giả định test.py nằm ở thư mục gốc, cùng cấp với 'backend'
+# --- Thêm đường dẫn dự án vào sys.path ---
+# Điều này giả định test.py nằm ở thư mục gốc của dự án,
+# cùng cấp với thư mục 'backend'.
 project_root = os.path.abspath(os.path.dirname(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
-# --- Kết thúc ---
+# --- Kết thúc thêm đường dẫn ---
 
 try:
-    # Import các hàm Spline
-    from backend.numerical_methods.interpolation.spline import (
-        spline_linear, 
-        spline_quadratic, 
-        spline_cubic
-    )
-    # Import hàm Bình phương tối thiểu
-    from backend.numerical_methods.interpolation.least_squares import (
-        least_squares_approximation
-    )
-except ImportError as e:
-    print(f"Lỗi Import: {e}")
-    print("Không thể tìm thấy các module cần thiết.")
-    print("Hãy đảm bảo bạn đã tạo các file sau:")
-    print("  - backend/numerical_methods/interpolation/spline.py")
-    print("  - backend/numerical_methods/interpolation/least_squares.py")
-    print("...và đang chạy 'test.py' từ thư mục gốc của dự án.")
+    from backend.numerical_methods.interpolation.node_selection import select_interpolation_nodes
+except ImportError:
+    print("\nLỗi: Không thể import `select_interpolation_nodes`.")
+    print("Hãy đảm bảo rằng file test.py đang ở thư mục gốc của dự án 'Numerical-Calc-...'")
+    print("Và file cần test đang ở: backend/numerical_methods/interpolation/node_selection.py\n")
     sys.exit(1)
 
-# --- Dữ liệu chung cho Spline (từ slide 18_Spline 20251.pdf) ---
-spline_x_nodes = [0.3, 0.7, 1.2, 1.5, 1.8, 2.2, 2.6]
-spline_y_nodes = [1.2, 2.7, 3.0, 2.3, 3.2, 1.0, 0.8]
+# --- SỬA LỖI: Định nghĩa đường dẫn file ở đây ---
+# Định nghĩa đường dẫn file CSV như một hằng số
+CSV_FILE_PATH = '20241GKtest2.csv'
+# ---------------------------------------------
 
-def test_linear_spline_plot():
+class TestNodeSelection(unittest.TestCase):
     """
-    Kiểm tra và vẽ đồ thị cho hàm spline_linear.
+    Các trường hợp kiểm thử cho hàm select_interpolation_nodes
+    sử dụng file dữ liệu 20241GKtest2.csv.
     """
-    print("\n--- Bắt đầu kiểm tra Spline Cấp 1 ---")
-    try:
-        result = spline_linear(spline_x_nodes, spline_y_nodes)
-        if result["status"] != "success":
-            print(f"Lỗi: {result.get('error')}")
-            return
 
-        print(f"Đã tính toán {result['n_segments']} đoạn spline cấp 1.")
-        plt.figure(figsize=(10, 6))
-        plt.plot(spline_x_nodes, spline_y_nodes, 'o', color='blue', markersize=8, label='Data Points')
-
-        for i, segment in enumerate(result["splines"]):
-            x_start, x_end = segment["interval"]
-            a_k, b_k = segment["coeffs"]
-            x_seg = np.linspace(x_start, x_end, 10)
-            y_seg = a_k * x_seg + b_k
-            plt.plot(x_seg, y_seg, 'r-', label='Spline Cấp 1' if i == 0 else None)
-
-        plt.title('Kiểm tra Spline Tuyến tính (Cấp 1)')
-        plt.xlabel('Trục X'); plt.ylabel('Trục Y')
-        plt.legend(); plt.grid(True, linestyle='--', alpha=0.6)
+    @classmethod
+    def setUpClass(cls):
+        """
+        Tải nội dung file CSV vào bộ nhớ một lần trước khi chạy các test case.
+        """
+        # --- SỬA LỖI: Sử dụng hằng số đã định nghĩa ---
+        cls.csv_file_path = CSV_FILE_PATH 
+        if not os.path.exists(cls.csv_file_path):
+            raise FileNotFoundError(
+                f"Không tìm thấy file {cls.csv_file_path}. "
+                "Hãy đảm bảo file này nằm cùng cấp với test.py."
+            )
         
-        output_filename = 'test_spline_linear.png'
-        plt.savefig(output_filename)
-        print(f"Đã lưu đồ thị vào file: {output_filename}")
+        with open(cls.csv_file_path, 'rb') as f:
+            cls.file_content = f.read()
 
-    except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
+    def test_select_both_center(self):
+        """
+        Kiểm tra phương pháp 'both' (lấy lân cận hai phía).
+        Chọn 4 mốc gần nhất với x_bar = 3.5.
+        
+        Dữ liệu gốc quanh 3.5:
+        ...
+        3.34, 6.5061   (dist = 0.160) - 3rd
+        3.457, 6.4321 (dist = 0.043) - 1st
+        --- (x_bar = 3.5) ---
+        3.574, 6.3054 (dist = 0.074) - 2nd
+        3.691, 6.1283 (dist = 0.191) - 4th
+        3.808, 5.9039 (dist = 0.308)
+        ...
+        Các mốc được chọn (đã sắp xếp): [3.34, 3.457, 3.574, 3.691]
+        """
+        print("\nĐang kiểm tra: [both], x_bar=3.5, num_nodes=4")
+        stream = io.BytesIO(self.file_content)
+        result = select_interpolation_nodes(stream, x_bar=3.5, num_nodes=4, method='both')
+        
+        expected_x = [3.34, 3.457, 3.574, 3.691]
+        expected_y = [6.5061, 6.4321, 6.3054, 6.1283]
+        
+        self.assertEqual(result['status'], 'success')
+        self.assertEqual(result['num_nodes_found'], 4)
+        # Sử dụng assertAlmostEqual cho so sánh số thực
+        for res_x, exp_x in zip(result['selected_x'], expected_x):
+            self.assertAlmostEqual(res_x, exp_x)
+        for res_y, exp_y in zip(result['selected_y'], expected_y):
+            self.assertAlmostEqual(res_y, exp_y)
 
-def test_quadratic_spline_plot():
-    """
-    Kiểm tra và vẽ đồ thị cho hàm spline_quadratic.
-    """
-    print("\n--- Bắt đầu kiểm tra Spline Cấp 2 ---")
-    boundary_m1 = 0.0  # Điều kiện biên S'(x_0) = 0
-    
-    try:
-        result = spline_quadratic(spline_x_nodes, spline_y_nodes, boundary_m1)
-        if result["status"] != "success":
-            print(f"Lỗi: {result.get('error')}")
-            return
+    def test_select_left(self):
+        """
+        Kiểm tra phương pháp 'left' (lấy mốc bên trái).
+        Chọn 4 mốc bên trái gần nhất với x_bar = 3.5 (tức là x <= 3.5).
+        
+        Dữ liệu gốc:
+        ...
+        3.106, 6.4899
+        3.223, 6.5257
+        3.34, 6.5061
+        3.457, 6.4321
+        --- (x_bar = 3.5) ---
+        ...
+        Các mốc được chọn (đã sắp xếp): [3.106, 3.223, 3.34, 3.457]
+        """
+        print("\nĐang kiểm tra: [left], x_bar=3.5, num_nodes=4")
+        stream = io.BytesIO(self.file_content)
+        result = select_interpolation_nodes(stream, x_bar=3.5, num_nodes=4, method='left')
+        
+        expected_x = [3.106, 3.223, 3.34, 3.457]
+        expected_y = [6.4899, 6.5257, 6.5061, 6.4321]
+        
+        self.assertEqual(result['status'], 'success')
+        for res_x, exp_x in zip(result['selected_x'], expected_x):
+            self.assertAlmostEqual(res_x, exp_x)
+        for res_y, exp_y in zip(result['selected_y'], expected_y):
+            self.assertAlmostEqual(res_y, exp_y)
+
+    def test_select_right(self):
+        """
+        Kiểm tra phương pháp 'right' (lấy mốc bên phải).
+        Chọn 4 mốc bên phải gần nhất với x_bar = 3.5 (tức là x >= 3.5).
+        
+        Dữ liệu gốc:
+        ...
+        --- (x_bar = 3.5) ---
+        3.574, 6.3054
+        3.691, 6.1283
+        3.808, 5.9039
+        3.925, 5.6358
+        ...
+        Các mốc được chọn (đã sắp xếp): [3.574, 3.691, 3.808, 3.925]
+        """
+        print("\nĐang kiểm tra: [right], x_bar=3.5, num_nodes=4")
+        stream = io.BytesIO(self.file_content)
+        result = select_interpolation_nodes(stream, x_bar=3.5, num_nodes=4, method='right')
+        
+        expected_x = [3.574, 3.691, 3.808, 3.925]
+        expected_y = [6.3054, 6.1283, 5.9039, 5.6358]
+        
+        self.assertEqual(result['status'], 'success')
+        for res_x, exp_x in zip(result['selected_x'], expected_x):
+            self.assertAlmostEqual(res_x, exp_x)
+        for res_y, exp_y in zip(result['selected_y'], expected_y):
+            self.assertAlmostEqual(res_y, exp_y)
+
+    def test_error_too_many_nodes(self):
+        """
+        Kiểm tra lỗi khi yêu cầu số mốc nhiều hơn số mốc có trong file.
+        """
+        print("\nĐang kiểm tra: Lỗi yêu cầu quá nhiều mốc")
+        stream = io.BytesIO(self.file_content)
+        with self.assertRaises(ValueError) as context:
+            select_interpolation_nodes(stream, x_bar=3.5, num_nodes=200, method='both')
+        
+        self.assertIn("lớn hơn số điểm dữ liệu", str(context.exception))
+
+    def test_error_not_enough_nodes_left(self):
+        """
+        Kiểm tra lỗi khi không có đủ mốc bên trái x_bar.
+        """
+        print("\nĐang kiểm tra: Lỗi không đủ mốc bên trái")
+        stream = io.BytesIO(self.file_content)
+        # Điểm x nhỏ nhất trong file là 1.0
+        with self.assertRaises(ValueError) as context:
+            select_interpolation_nodes(stream, x_bar=0.5, num_nodes=4, method='left')
             
-        print(f"Đã tính toán {result['n_segments']} đoạn spline cấp 2.")
-        plt.figure(figsize=(10, 6))
-        plt.plot(spline_x_nodes, spline_y_nodes, 'o', color='blue', markersize=8, label='Data Points')
+        self.assertIn("Không tìm thấy đủ", str(context.exception))
+        self.assertIn("bên trái", str(context.exception))
 
-        for i, segment in enumerate(result["splines"]):
-            x_start, x_end = segment["interval"]
-            a_k, b_k, c_k = segment["coeffs"]  # S(x) = ax^2 + bx + c
-            x_seg = np.linspace(x_start, x_end, 50)
-            y_seg = a_k * (x_seg**2) + b_k * x_seg + c_k
-            plt.plot(x_seg, y_seg, 'g-', label='Spline Cấp 2' if i == 0 else None)
-
-        plt.title("Kiểm tra Spline Bậc 2 (Cấp 2) với S'(x₀)=0")
-        plt.xlabel('Trục X'); plt.ylabel('Trục Y')
-        plt.legend(); plt.grid(True, linestyle='--', alpha=0.6)
-        
-        output_filename = 'test_spline_quadratic.png'
-        plt.savefig(output_filename)
-        print(f"Đã lưu đồ thị vào file: {output_filename}")
-
-    except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
-
-def test_cubic_spline_plot():
-    """
-    Kiểm tra và vẽ đồ thị cho hàm spline_cubic.
-    """
-    print("\n--- Bắt đầu kiểm tra Spline Cấp 3 ---")
-    # Điều kiện biên: Spline Tự nhiên
-    boundary_alpha_start = 0.0  # S''(x_0) = 0
-    boundary_alpha_end = 0.0    # S''(x_n) = 0
-    
-    try:
-        result = spline_cubic(spline_x_nodes, spline_y_nodes, boundary_alpha_start, boundary_alpha_end)
-        if result["status"] != "success":
-            print(f"Lỗi: {result.get('error')}")
-            return
+    def test_error_not_enough_nodes_right(self):
+        """
+        Kiểm tra lỗi khi không có đủ mốc bên phải x_bar.
+        """
+        print("\nĐang kiểm tra: Lỗi không đủ mốc bên phải")
+        stream = io.BytesIO(self.file_content)
+        # Điểm x lớn nhất trong file là 13.285
+        with self.assertRaises(ValueError) as context:
+            select_interpolation_nodes(stream, x_bar=14.0, num_nodes=4, method='right')
             
-        print(f"Đã tính toán {result['n_segments']} đoạn spline cấp 3.")
-        plt.figure(figsize=(10, 6))
-        plt.plot(spline_x_nodes, spline_y_nodes, 'o', color='blue', markersize=8, label='Data Points')
+        self.assertIn("Không tìm thấy đủ", str(context.exception))
+        self.assertIn("bên phải", str(context.exception))
 
-        for i, segment in enumerate(result["splines"]):
-            x_start, x_end = segment["interval"]
-            x_k = segment["shift_point"]
-            a_k, b_k, c_k, d_k = segment["coeffs"] # S(x) = a(t)^3 + b(t)^2 + c(t) + d, t = x - x_k
+    def test_error_bad_csv_format(self):
+        """
+        Kiểm tra lỗi khi file CSV có định dạng hoàn toàn sai.
+        """
+        print("\nĐang kiểm tra: Lỗi file CSV không hợp lệ")
+        bad_content = b"day la file text\nkhong phai la file csv\na,b,c"
+        bad_stream = io.BytesIO(bad_content)
+        with self.assertRaises(ValueError) as context:
+            select_interpolation_nodes(bad_stream, x_bar=1.0, num_nodes=2, method='both')
             
-            x_seg = np.linspace(x_start, x_end, 50)
-            t_seg = x_seg - x_k 
-            y_seg = a_k * (t_seg**3) + b_k * (t_seg**2) + c_k * t_seg + d_k
-            plt.plot(x_seg, y_seg, 'm-', label='Spline Cấp 3 (Tự nhiên)' if i == 0 else None)
+        self.assertIn("không chứa dữ liệu số", str(context.exception))
 
-        plt.title('Kiểm tra Spline Bậc 3 (Tự nhiên)')
-        plt.xlabel('Trục X'); plt.ylabel('Trục Y')
-        plt.legend(); plt.grid(True, linestyle='--', alpha=0.6)
-        
-        output_filename = 'test_spline_cubic.png'
-        plt.savefig(output_filename)
-        print(f"Đã lưu đồ thị vào file: {output_filename}")
-
-    except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
-
-def test_least_squares_simple_plot():
-    """
-    Kiểm tra LSQ với dữ liệu đường thẳng đơn giản.
-    """
-    print("\n--- Bắt đầu kiểm tra Bình phương tối thiểu (Đơn giản) ---")
-    
-    x_data = [1, 2, 3, 4]
-    y_data = [2.1, 3.9, 6.1, 8.0]
-    basis_funcs_str = ['1', 'x'] # g(x) = a_1 * 1 + a_2 * x
-    
-    print(f"Dữ liệu X: {x_data}")
-    print(f"Dữ liệu Y: {y_data}")
-    print(f"Hàm cơ sở: {basis_funcs_str}")
-
-    try:
-        result = least_squares_approximation(x_data, y_data, basis_funcs_str)
-        if result["status"] != "success":
-            print(f"Lỗi: {result.get('error')}")
-            return
+    def test_error_empty_file(self):
+        """
+        Kiểm tra lỗi khi file CSV rỗng.
+        """
+        print("\nĐang kiểm tra: Lỗi file rỗng")
+        empty_content = b""
+        empty_stream = io.BytesIO(empty_content)
+        with self.assertRaises(ValueError) as context:
+            select_interpolation_nodes(empty_stream, x_bar=1.0, num_nodes=2, method='both')
             
-        g_x_str = result["g_x_str_latex"]
-        print(f"Hàm xấp xỉ: g(x) = {g_x_str}")
+        self.assertIn("không chứa dữ liệu số", str(context.exception))
 
-        plt.figure(figsize=(10, 6))
-        plt.plot(x_data, y_data, 'o', color='blue', markersize=8, label='Data Points')
-
-        x_sym = symbols('x')
-        g_x_lambda = lambdify(x_sym, sympify(g_x_str.replace('\\cdot', '*')), 'numpy')
-
-        x_fit = np.linspace(min(x_data), max(x_data), 100)
-        y_fit = g_x_lambda(x_fit)
-        
-        plt.plot(x_fit, y_fit, 'r-', label=f'Hàm xấp xỉ g(x)')
-        plt.title('Kiểm tra Bình phương tối thiểu (Đường thẳng)')
-        plt.xlabel('Trục X'); plt.ylabel('Trục Y')
-        plt.legend(); plt.grid(True, linestyle='--', alpha=0.6)
-        
-        output_filename = 'test_least_squares_simple.png'
-        plt.savefig(output_filename)
-        print(f"Đã lưu đồ thị vào file: {output_filename}")
-
-    except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
-        import traceback
-        traceback.print_exc()
-
-def test_least_squares_complex_plot():
-    """
-    Kiểm tra LSQ với dữ liệu phi tuyến, nhiều điểm và có nhiễu.
-    """
-    print("\n--- Bắt đầu kiểm tra Bình phương tối thiểu (Phức tạp) ---")
+if __name__ == '__main__':
+    print(f"--- Bắt đầu kiểm tra cho 'node_selection.py' ---")
     
-    np.random.seed(42) # Để kết quả nhiễu có thể lặp lại
-    N_POINTS = 50
+    # --- SỬA LỖI Ở ĐÂY ---
+    # In hằng số toàn cục thay vì thuộc tính lớp chưa được khởi tạo
+    print(f"Sử dụng file dữ liệu: '{CSV_FILE_PATH}'")
+    # ---------------------
     
-    # 1. Tạo dữ liệu gốc
-    x_data = np.linspace(0, 10, N_POINTS)
-    # Hàm gốc: f(x) = 0.1x^2 + 2sin(x) + 5
-    y_true = 0.1 * (x_data**2) + 2 * np.sin(x_data) + 5
-    # Thêm nhiễu
-    noise = np.random.normal(0, 0.5, size=x_data.shape)
-    y_data = y_true + noise
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(TestNodeSelection))
     
-    # 2. Chọn hàm cơ sở
-    # Thử mô hình g(x) = a1*1 + a2*x + a3*x^2 + a4*sin(x)
-    basis_funcs_str = ['1', 'x', 'x**2', 'sin(x)']
-    
-    print(f"Dữ liệu: {N_POINTS} điểm, dựa trên 0.1x^2 + 2sin(x) + 5 + nhiễu")
-    print(f"Hàm cơ sở xấp xỉ: {basis_funcs_str}")
-
-    try:
-        # 3. Gọi hàm tính toán
-        result = least_squares_approximation(x_data.tolist(), y_data.tolist(), basis_funcs_str)
-        if result["status"] != "success":
-            print(f"Lỗi: {result.get('error')}")
-            return
-            
-        a = result["coefficients"]
-        g_x_str = result["g_x_str_latex"]
-        print(f"Hàm xấp xỉ: g(x) = {g_x_str}")
-        print(f"Các hệ số: a = {[float(f'{c:.4f}') for c in a]}")
-        print(f"Sai số TB phương: {result['error_metrics']['std_error']:.4f}")
-
-        # 4. Chuẩn bị vẽ đồ thị
-        plt.figure(figsize=(10, 6))
-        # Vẽ dữ liệu nhiễu
-        plt.plot(x_data, y_data, 'o', color='blue', markersize=4, alpha=0.7, label='Data Points (w/ Noise)')
-        # Vẽ hàm gốc
-        plt.plot(x_data, y_true, '--', color='gray', linewidth=2, label='Hàm gốc f(x)')
-
-        # 5. Vẽ hàm xấp xỉ
-        x_sym = symbols('x')
-        g_x_lambda = lambdify(x_sym, sympify(g_x_str.replace('\\cdot', '*')), 'numpy')
-
-        x_fit = np.linspace(min(x_data), max(x_data), 200)
-        y_fit = g_x_lambda(x_fit)
-        
-        plt.plot(x_fit, y_fit, 'r-', linewidth=2, label=f'Hàm xấp xỉ g(x)')
-        plt.title('Kiểm tra Bình phương tối thiểu (Phức tạp)')
-        plt.xlabel('Trục X'); plt.ylabel('Trục Y')
-        plt.legend(); plt.grid(True, linestyle='--', alpha=0.6)
-        
-        output_filename = 'test_least_squares_complex.png'
-        plt.savefig(output_filename)
-        print(f"Đã lưu đồ thị vào file: {output_filename}")
-
-    except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
-        import traceback
-        traceback.print_exc()
-
-
-def test_least_squares_trigonometric_plot():
-    """
-    Kiểm tra LSQ với dữ liệu từ spline và bộ hàm cơ sở lượng giác.
-    """
-    print("\n--- Bắt đầu kiểm tra Bình phương tối thiểu (Lượng giác) ---")
-    
-    # 1. Dữ liệu (từ yêu cầu của bạn, giống hệt dữ liệu spline)
-    x_data = [0.3, 0.7, 1.2, 1.5, 1.8, 2.2, 2.6, 3.0]
-    y_data = [1.2, 2.7, 3.0, 2.3, 3.2, 1.0, 0.8, 7.0]
-    
-    # 2. Hàm cơ sở (từ yêu cầu của bạn)
-    basis_funcs_str = ['1', 'sin(x)', 'cos(x)', 'sin(2*x)', 'cos(2*x)', 'sin(3*x)', 'cos(3*x)']
-    
-    print(f"Dữ liệu X: {x_data}")
-    print(f"Dữ liệu Y: {y_data}")
-    print(f"Hàm cơ sở: {basis_funcs_str}")
-
-    try:
-        # 3. Gọi hàm tính toán
-        result = least_squares_approximation(x_data, y_data, basis_funcs_str)
-        if result["status"] != "success":
-            print(f"Lỗi: {result.get('error')}")
-            return
-            
-        a = result["coefficients"]
-        g_x_str = result["g_x_str_latex"]
-        print(f"Hàm xấp xỉ: g(x) = {g_x_str}")
-        print(f"Các hệ số: a = {[float(f'{c:.4f}') for c in a]}")
-        print(f"Sai số TB phương: {result['error_metrics']['std_error']:.4f}")
-
-        # 4. Chuẩn bị vẽ đồ thị
-        plt.figure(figsize=(10, 6))
-        # Vẽ dữ liệu điểm
-        plt.plot(x_data, y_data, 'o', color='blue', markersize=8, label='Data Points')
-
-        # 5. Vẽ hàm xấp xỉ
-        x_sym = symbols('x')
-        # Thay thế \cdot bằng * để sympify hiểu
-        g_x_str_sympy = g_x_str.replace('\\cdot', '*')
-        
-        # Thêm thư viện numpy vào cho lambdify
-        g_x_lambda = lambdify(x_sym, sympify(g_x_str_sympy), 'numpy')
-
-        x_fit = np.linspace(min(x_data), max(x_data), 200)
-        y_fit = g_x_lambda(x_fit)
-        
-        plt.plot(x_fit, y_fit, 'r-', linewidth=2, label=f'Hàm xấp xỉ g(x)')
-        plt.title('Kiểm tra Bình phương tối thiểu (Hàm lượng giác)')
-        plt.xlabel('Trục X'); plt.ylabel('Trục Y')
-        plt.legend(); plt.grid(True, linestyle='--', alpha=0.6)
-        
-        output_filename = 'test_least_squares_trig.png'
-        plt.savefig(output_filename)
-        print(f"Đã lưu đồ thị vào file: {output_filename}")
-
-    except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
-        import traceback
-        traceback.print_exc()
-
-
-if __name__ == "__main__":
-    # Chạy tất cả các bài test
-    test_linear_spline_plot()
-    test_quadratic_spline_plot()
-    test_cubic_spline_plot()
-    test_least_squares_simple_plot()
-    test_least_squares_complex_plot()
-    test_least_squares_trigonometric_plot() # Thêm test mới
-    
-    print("\nĐã chạy tất cả các kiểm tra.")
+    # Chạy test với verbosity
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)

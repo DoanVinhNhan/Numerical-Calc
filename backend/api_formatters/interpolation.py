@@ -426,3 +426,15 @@ def format_lsq_result(result):
     # Hàm g(x) đã được định dạng LaTeX từ backend
     # Các ma trận trung gian cũng đã được chuyển đổi sang list
     return result
+
+def format_node_selection_result(result):
+    """
+    Định dạng kết quả từ hàm trích xuất mốc nội suy.
+    """
+    if result.get("status") != "success":
+        return result
+    
+    # Hàm select_interpolation_nodes đã trả về dict có cấu trúc tốt
+    # Thêm tên phương thức để hiển thị trên UI
+    result["method"] = "Trích xuất mốc nội suy"
+    return result
