@@ -369,3 +369,49 @@ def format_bessel_interpolation_result(result):
         "bessel_polynomial_u_even": [float(v) for v in result.get("bessel_polynomial_u_even", [])],
         "bessel_polynomial_u_odd": [float(v) for v in result.get("bessel_polynomial_u_odd", [])],
     }
+
+def format_spline_result(result):
+    """
+    Định dạng kết quả từ các hàm spline.
+    """
+    if result.get("status") != "success":
+        return result
+
+    # Chuyển đổi tất cả các giá trị numpy/float sang kiểu Python gốc
+    splines_formatted = []
+    for segment in result.get("splines", []):
+        splines_formatted.append({
+            "k": segment["k"],
+            "interval": [float(v) for v in segment["interval"]],
+            "coeffs": [float(v) for v in segment["coeffs"]],
+            # Thêm shift_point nếu có (cho spline bậc 3)
+            "shift_point": float(segment["shift_point"]) if "shift_point" in segment else None
+        })
+
+    formatted = {
+        "status": "success",
+        "method": f"Hàm ghép trơn {result['spline_type']}",
+        "message": f"Tính toán {result['n_segments']} đoạn spline thành công.",
+        "spline_type": result['spline_type'],
+        "x_nodes_sorted": [float(v) for v in result.get("x_nodes_sorted", [])],
+        "y_nodes_sorted": [float(v) for v in result.get("y_nodes_sorted", [])],
+        "splines": splines_formatted
+    }
+
+    if "m_values" in result:
+        formatted["m_values"] = [float(v) for v in result["m_values"]]
+    if "alpha_values" in result:
+        formatted["alpha_values"] = [float(v) for v in result["alpha_values"]]
+
+    return formatted
+
+def format_lsq_result(result):
+    """
+    Định dạng kết quả từ hàm bình phương tối thiểu.
+    """
+    if result.get("status") != "success":
+        return result
+    
+    # Hàm g(x) đã được định dạng LaTeX từ backend
+    # Các ma trận trung gian cũng đã được chuyển đổi sang list
+    return result

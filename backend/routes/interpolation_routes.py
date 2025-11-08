@@ -13,6 +13,9 @@ from backend.numerical_methods.interpolation.newton import newton_interpolation_
 from backend.api_formatters.interpolation import format_newton_interpolation_result, format_newton_divided_interpolation_result
 from backend.numerical_methods.interpolation.central import central_gauss_i, central_gauss_ii, stirlin_interpolation, bessel_interpolation
 from backend.api_formatters.interpolation import format_central_gauss_i_result, format_central_gauss_ii_result, format_stirling_interpolation_result, format_bessel_interpolation_result
+from backend.numerical_methods.interpolation.spline import spline_linear, spline_quadratic, spline_cubic
+from backend.numerical_methods.interpolation.least_squares import least_squares_approximation
+from backend.api_formatters.interpolation import format_spline_result, format_lsq_result
 import traceback
 
 interpolation_bp = Blueprint('interpolation', __name__, url_prefix='/api/interpolation')
@@ -170,6 +173,67 @@ def central_interpolation_route():
         else:
             return jsonify({"error": f"Phương pháp nội suy trung tâm '{method_type}' không hợp lệ."}), 400
 
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+    
+@interpolation_bp.route('/spline', methods=['POST'])
+def spline_route():
+    try:
+        data = request.json
+        x_nodes_str = data.get('x_nodes', '').split()
+        y_nodes_str = data.get('y_nodes', '').split()
+        spline_type = data.get('spline_type', 'linear')
+
+        if not x_nodes_str or not y_nodes_str:
+            return jsonify({"error": "Vui lòng nhập đầy đủ các mốc x và giá trị y."}), 400
+
+        x_nodes = [float(x) for x in x_nodes_str]
+        y_nodes = [float(y) for y in y_nodes_str]
+
+        result = None
+        if spline_type == 'linear':
+            result = spline_linear(x_nodes, y_nodes)
+        elif spline_type == 'quadratic':
+            boundary_m1 = float(data.get('boundary_m1', 0.0))
+            result = spline_quadratic(x_nodes, y_nodes, boundary_m1)
+        elif spline_type == 'cubic':
+            boundary_start = float(data.get('boundary_start', 0.0))
+            boundary_end = float(data.get('boundary_end', 0.0))
+            result = spline_cubic(x_nodes, y_nodes, boundary_start, boundary_end)
+        else:
+            return jsonify({"error": "Loại spline không được hỗ trợ."}), 400
+
+        formatted_result = format_spline_result(result)
+        return jsonify(formatted_result)
+
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+
+@interpolation_bp.route('/least-squares', methods=['POST'])
+def least_squares_route():
+    try:
+        data = request.json
+        x_nodes_str = data.get('x_nodes', '').split()
+        y_nodes_str = data.get('y_nodes', '').split()
+        # Nhận mảng các chuỗi hàm cơ sở, đã được split từ frontend
+        basis_funcs_str = data.get('basis_funcs', [])
+
+        if not x_nodes_str or not y_nodes_str or not basis_funcs_str:
+            return jsonify({"error": "Vui lòng nhập đầy đủ mốc x, giá trị y, và các hàm cơ sở."}), 400
+
+        x_nodes = [float(x) for x in x_nodes_str]
+        y_nodes = [float(y) for y in y_nodes_str]
+
+        result = least_squares_approximation(x_nodes, y_nodes, basis_funcs_str)
+
+        # Hàm format LSQ đơn giản là trả về kết quả vì nó đã được định dạng
+        formatted_result = format_lsq_result(result)
         return jsonify(formatted_result)
 
     except (ValueError, TypeError) as e:
