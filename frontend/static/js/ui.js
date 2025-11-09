@@ -1577,7 +1577,7 @@ export function renderInterpolationSolution(container, data) {
                 <div class="p-4 bg-gray-50 rounded-lg border space-y-4">
                     <p class="text-sm">Bắt đầu từ mốc <span class="katex-render-inline" data-formula="x_{${isForward ? '0' : 'n'}} = ${details.start_node}"></span>, áp dụng công thức:</p>
                     <div class="text-center text-lg katex-render" data-formula="${formula}"></div>
-                    <p class="text-sm font-semibold">1. Xây dựng các đa thức cơ sở wᵢ(${variable}) và hệ số:</p>
+                    <p class="text-sm font-semibold">1. Bảng tích wᵢ(${variable}) và hệ số:</p>
                     ${w_table_html}`;
 
             if (isEquidistant) {
@@ -1642,22 +1642,21 @@ export function renderInterpolationSolution(container, data) {
                 html += `<tr class="bg-white border-b">`;
                 row.forEach((cell, colIndex) => {
                     let highlightClass = '';
-                    // Chỉ xét các ô sai phân (cột 1 trở đi) và nằm trong tam giác
                     if (colIndex > 0 && colIndex <= rowIndex + 1) {
                         const j = colIndex; // j là cấp sai phân (bắt đầu từ 1 = y_i)
                         const i = rowIndex; // i là chỉ số hàng (bắt đầu từ 0)
 
                         if (data.method === "Nội suy trung tâm Gauss I") {
-                            const expected_row = start_row_index + Math.floor(j / 2);
+                            const expected_row = start_row_index + Math.floor((j -1) / 2);
                             if (i === expected_row) highlightClass = 'font-bold text-red-600';
                         
                         } else if (data.method === "Nội suy trung tâm Gauss II") {
-                            const expected_row = start_row_index + Math.floor((j - 1) / 2);
+                            const expected_row = start_row_index + Math.floor(j / 2);
                             if (i === expected_row) highlightClass = 'font-bold text-red-600';
                         
                         } else if (data.method === "Nội suy Stirling") {
-                            const expected_row_i = start_row_index + Math.floor(j / 2);
-                            const expected_row_ii = start_row_index + Math.floor((j - 1) / 2);
+                            const expected_row_i = start_row_index + Math.floor((j - 1) / 2);
+                            const expected_row_ii = start_row_index + Math.floor(j / 2);
                             // Highlight cả 2 đường Gauss I và II
                             if (i === expected_row_i || i === expected_row_ii) highlightClass = 'font-bold text-red-600';
                         
@@ -1665,7 +1664,7 @@ export function renderInterpolationSolution(container, data) {
                             // Bessel dùng Gauss I từ hàng start_row_index
                             const expected_row_i = start_row_index + Math.floor(j / 2);
                             // và Gauss II từ hàng start_row_ii_index
-                            const expected_row_ii = start_row_ii_index + Math.floor((j - 1) / 2);
+                            const expected_row_ii = start_row_ii_index + Math.floor((j -1) / 2);
                             if (i === expected_row_i || i === expected_row_ii) highlightClass = 'font-bold text-red-600';
                         }
                     }
@@ -1710,13 +1709,13 @@ export function renderInterpolationSolution(container, data) {
         });
         html += `</div>
 
-                <p class="font-semibold mt-4">2. Tính các hệ số <span class="katex-render-inline" data-formula="a_i = d_i / i! h^i"></span>:</p> 
+                <p class="font-semibold mt-4">2. Tính các hệ số <span class="katex-render-inline" data-formula="a_i = d_i / i!"></span>:</p> 
                     <table class="w-full text-sm text-center">
                         <thead class="bg-gray-200 text-xs text-gray-700">
                             <tr>
                                 <th class="p-2">i</th>
                                 <th class="p-2">Sai phân <span class="katex-render-inline" data-formula="d_i"></span></th>
-                                <th class="p-2">Giá trị <span class="katex-render-inline" data-formula="a_i = d_i/i!h^i"></span></th>
+                                <th class="p-2">Giá trị <span class="katex-render-inline" data-formula="a_i = d_i/i!"></span></th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -1728,8 +1727,6 @@ export function renderInterpolationSolution(container, data) {
                          </tr>`;
             });
             html += `</tbody></table></div>
-
-                <p class="font-semibold mt-4">3. Xây dựng các đa thức cơ sở <span class="katex-render-inline" data-formula="w_i(t \text{ hoặc } u)"></span>:</p>
                  <div class="overflow-x-auto my-2">
                     <table class="w-full text-sm text-center">
                         <thead class="bg-gray-200 text-xs text-gray-700">
@@ -1740,7 +1737,7 @@ export function renderInterpolationSolution(container, data) {
             const w_polynomials_central = data.w_table_coeffs;
             const max_degree_w_central = w_polynomials_central.length > 0 ? w_polynomials_central[w_polynomials_central.length - 1].length - 1 : 0;
 
-            html += `<p class="font-semibold mt-4">3. Xây dựng các đa thức cơ sở <span class="katex-render-inline" data-formula="w_i(${var_name})"></span>:</p>
+            html += `<p class="font-semibold mt-4">3. Bảng tích <span class="katex-render-inline" data-formula="w_i(${var_name})"></span>:</p>
                  <div class="overflow-x-auto my-2">
                     <table class="w-full text-sm text-center">
                         <thead class="bg-gray-200 text-xs text-gray-700">
@@ -2233,7 +2230,7 @@ export function renderInverseInterpolationSolution(container, data) {
     // Bước 3: Công thức lặp và t0
     const t0FormulaLatex = (data.method && data.method.includes('Tiến'))
         ? `\\frac{\\overline{y}-y_0}{\\Delta y_0}`
-        : `\\frac{\\overline{y}-y_0}{\\nabla y_n}`;
+        : `\\frac{\\overline{y}-y_n}{\\nabla y_n}`;
 
     html += `<div class="p-3 bg-white rounded border">
         <p><b>Bước 3: Công thức lặp</b></p>

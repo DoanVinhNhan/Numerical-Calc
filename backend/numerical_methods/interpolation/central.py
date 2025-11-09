@@ -47,7 +47,7 @@ def central_gauss_i(x_nodes, y_nodes):
     start_row = (n-1)//2
 
     for j in range(1,n+1):
-        i = start_row + (j // 2) 
+        i = start_row + (j - 1)// 2 
         if (i < n and j < len(finite_diff_table[i])):
                 central_finite_diffs.append(finite_diff_table[i][j])
         else:
@@ -132,7 +132,7 @@ def central_gauss_ii(x_nodes, y_nodes):
     start_row = (n-1)//2
 
     for j in range(1,n+1):
-        i = start_row + (j-1) // 2
+        i = start_row + (j // 2)
         if (i < n and j < len(finite_diff_table[i])):
                 central_finite_diffs.append(finite_diff_table[i][j])
         else:
@@ -211,7 +211,7 @@ def stirlin_interpolation(x_nodes, y_nodes):
     start_row = (n-1)//2
 
     for j in range(1,n+1):
-        i = start_row + (j // 2)
+        i = start_row + (j - 1 )// 2
         if (i < n and j < len(finite_diff_table[i])):
                 central_finite_diffs_i.append(finite_diff_table[i][j])
         else:
@@ -219,7 +219,7 @@ def stirlin_interpolation(x_nodes, y_nodes):
     # Lấy các sai phân trung tâm của Gauss II
     central_finite_diffs_ii = []
     for j in range(1,n+1):
-        i = start_row + (j -1) // 2
+        i = start_row + (j  // 2)
         if (i < n and j < len(finite_diff_table[i])):
                 central_finite_diffs_ii.append(finite_diff_table[i][j])
         else:
@@ -308,20 +308,20 @@ def bessel_interpolation(x_nodes, y_nodes):
     finite_diff_table = finite_diff_result['finite_difference_table']
     # Lấy các sai phân gauss I
     central_finite_diffs_i = []
-    start_row_i = (n-1)//2
+    start_row_i = n // 2
 
     for j in range(1,n+1):
-        i = start_row_i + (j // 2) 
+        i = start_row_i + (j - 1) // 2
         if (i < n and j < len(finite_diff_table[i])):
                 central_finite_diffs_i.append(finite_diff_table[i][j])
         else:
             break
     # Lấy các sai phân gauss II
     central_finite_diffs_ii = []
-    start_row_ii = (n-1)//2+1
+    start_row_ii = n // 2 - 1
 
     for j in range(1,n+1):
-        i = start_row_ii + (j-1) // 2
+        i = start_row_ii + j // 2
         if (i < n and j < len(finite_diff_table[i])):
                 central_finite_diffs_ii.append(finite_diff_table[i][j])
         else:
