@@ -180,14 +180,14 @@ def newton_interpolation_divided_difference(x_nodes, y_nodes):
             "start_node": x_nodes[0],
             "diffs": divided_diffs_forward,
             "coeffs_scaled": coeffs_forward,
-            "w_polynomials_t": w_forward,
+            "w_polynomials_x": w_forward,
             "polynomial_coeffs": coeffs_forward.tolist(),
         },
         "backward_interpolation": {
             "start_node": x_nodes[-1],
             "diffs": divided_diffs_backward,
             "coeffs_scaled": coeffs_backward,
-            "w_polynomials_t": w_backward,
+            "w_polynomials_x": w_backward,
             "polynomial_coeffs": coeffs_backward.tolist(),
         }
     }

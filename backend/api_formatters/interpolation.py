@@ -207,7 +207,7 @@ def format_newton_divided_interpolation_result(result):
         terms_str = []
         for i in range(len(details["diffs"])):
             coeff = details["diffs"][i] # Hệ số là tỷ sai phân luôn
-            w_poly = details["w_polynomials_t"][i] # Đây thực chất là w_polynomials_x
+            w_poly = details["w_polynomials_x"][i]
 
             if abs(coeff) < 1e-12:
                 continue
@@ -228,11 +228,27 @@ def format_newton_divided_interpolation_result(result):
 
         poly_sum_str = " ".join(terms_str).lstrip(" +")
 
+        # Tạo chuỗi nhân tử w_i
+        is_forward = (details["start_node"] == result["x_nodes_sorted"][0])
+        x_nodes = result["x_nodes_sorted"]
+        n = len(x_nodes)
+        w_factors_str = ['1']  # w_0
+        
+        if len(details["w_polynomials_x"]) > 1:
+            if is_forward:
+                # Tiến: (x-x0), (x-x1), ...
+                for i in range(len(details["w_polynomials_x"]) - 1):
+                    w_factors_str.append(f"(x - {x_nodes[i]:g})")
+            else:
+                # Lùi: (x-xn), (x-x_{n-1}), ...
+                for i in range(len(details["w_polynomials_x"]) - 1):
+                    w_factors_str.append(f"(x - {x_nodes[n-1-i]:g})")
+
         return {
             "start_node": details["start_node"],
             "diffs": [float(d) for d in details["diffs"]],
-            # "coeffs_scaled" không cần thiết vì dùng trực tiếp diffs
-            "w_polynomials_x": [[float(c) for c in p] for p in details["w_polynomials_t"]], # Đổi tên cho rõ
+            "w_polynomials_x": [[float(c) for c in p] for p in details["w_polynomials_x"]],
+            "w_factors_str": w_factors_str,
             "polynomial_sum_str_x": poly_sum_str or "0",
             "polynomial_str_x": _format_poly_str(details["polynomial_coeffs"], variable='x'),
             "polynomial_coeffs_x": details["polynomial_coeffs"]

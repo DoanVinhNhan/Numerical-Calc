@@ -1568,8 +1568,8 @@ export function renderInterpolationSolution(container, data) {
                 <table class="w-full text-sm text-center">
                     <thead class="bg-gray-200 text-xs text-gray-700">
                         <tr>
-                            <th class="p-2" rowspan="2">Nhân tử (Factor)</th>
-                            <th class="p-2" rowspan="2">Hệ số (${isEquidistant ? `${diff_label}^iy / i!` : 'Tỷ sai phân'})</th>
+                            <th class="p-2" rowspan="2">Nhân tử</th>
+                            <th class="p-2" rowspan="2">Hệ số ${isEquidistant ? `${diff_label}^iy / i!` : 'Tỷ sai phân'}</th>
                             <th class="p-2" colspan="${max_degree_w + 1}">Hệ số của wᵢ(${variable}) (theo bậc giảm dần)</th>
                         </tr>
                         <tr>`;
@@ -1583,7 +1583,7 @@ export function renderInterpolationSolution(container, data) {
             
             w_polynomials.forEach((w_poly, i) => {
                 w_table_html += `<tr class="border-b bg-white">
-                    <td class="p-2 font-mono katex-render-inline" data-formula="${details.w_factors_str[i] || i}"></td>
+                    <td class="p-2 font-mono katex-render-inline" data-formula="\\times ${details.w_factors_str[i] || i}"></td>
                     <td class="p-2 font-mono">${coeffs_scaled_or_diffs[i].toFixed(precision)}</td>`;
                 
                 // Pad mảng hệ số với số 0 ở đầu để căn chỉnh
@@ -1778,7 +1778,7 @@ export function renderInterpolationSolution(container, data) {
                     <table class="w-full text-sm text-center">
                         <thead class="bg-gray-200 text-xs text-gray-700">
                              <tr>
-                                <th class="p-2" rowspan="2">Nhân tử (Factor)</th>
+                                <th class="p-2" rowspan="2">Nhân tử</th>
                                 <th class="p-2" colspan="${max_degree_w_central + 1}">Hệ số của wᵢ(${var_name}) (theo bậc giảm dần)</th>
                             </tr>
                             <tr>`;
