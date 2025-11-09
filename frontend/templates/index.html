@@ -54,10 +54,13 @@
                     <button class="w-full text-left px-3 py-2 rounded hover:bg-teal-50 font-medium text-gray-800" data-page="node-selection">Trích xuất mốc nội suy</button>
                 </li>
                 <li>
+                    <button class="w-full text-left px-3 py-2 rounded hover:bg-red-50 font-medium text-gray-800" data-page="horner-table">Sơ đồ horner</button>
+                </li>
+                <li>
                     <button class="w-full text-left px-3 py-2 rounded hover:bg-pink-50 font-medium text-gray-800" data-page="approximation">Xấp xỉ hàm số</button>
                 </li>
                 <li>
-                    <button class="w-full text-left px-3 py-2 rounded hover:bg-red-50 font-medium text-gray-800" data-page="horner-table">Sơ đồ horner</button>
+                    <button class="w-full text-left px-3 py-2 rounded hover:bg-orange-50 font-medium text-gray-800" data-page="inverse-interpolation">Nội suy ngược (Lặp)</button>
                 </li>
                 <li>
                     <button class="w-full text-left px-3 py-2 rounded hover:bg-cyan-50 font-medium text-gray-800" data-page="spline-interpolation">Hàm ghép trơn (Spline)</button>
@@ -989,12 +992,70 @@ sidebarToggle.addEventListener('click', () => {
             </div>
         </div>
 
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Phương pháp mở rộng</label>
+            <div class="mt-2 flex flex-wrap gap-x-6 gap-y-2 p-3 bg-gray-50 rounded-md">
+                <div class="flex items-center">
+                    <input id="find-int-both" name="find-intervals-method" type="radio" value="both" checked class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                    <label for="find-int-both" class="ml-2 block text-sm text-gray-900">Cả 2 bên</label>
+                </div>
+                <div class="flex items-center">
+                    <input id="find-int-left" name="find-intervals-method" type="radio" value="left" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                    <label for="find-int-left" class="ml-2 block text-sm text-gray-900">Bên trái</label>
+                </div>
+                <div class="flex items-center">
+                    <input id="find-int-right" name="find-intervals-method" type="radio" value="right" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                    <label for="find-int-right" class="ml-2 block text-sm text-gray-900">Bên phải</label>
+                </div>
+            </div>
         </div>
+
     
     <div class="mt-8 mb-8">
         <button id="calculate-find-intervals-btn" class="action-btn bg-orange-600 hover:bg-orange-700">Tìm & Mở rộng khoảng cách ly</button>
     </div>
 
+    <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
+    <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
+    <div id="results-area"></div>
+</div>
+<div id="inverse-interpolation-page" class="hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <label for="inv-inter-x-nodes" class="block text-sm font-medium text-gray-700">Các mốc xᵢ (cách đều, cách nhau bằng dấu cách)</label>
+            <textarea id="inv-inter-x-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 font-mono" placeholder="1.0 1.1 1.2 1.3"></textarea>
+        </div>
+        <div>
+            <label for="inv-inter-y-nodes" class="block text-sm font-medium text-gray-700">Các giá trị yᵢ (cách nhau bằng dấu cách)</label>
+            <textarea id="inv-inter-y-nodes" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 font-mono" placeholder="2.718 3.004 3.320 3.669"></textarea>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <label for="inv-inter-y-bar" class="block text-sm font-medium text-gray-700">Giá trị ȳ cần tìm</label>
+            <input type="number" step="any" id="inv-inter-y-bar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 font-mono" placeholder="3.5">
+        </div>
+        <div>
+            <label for="inv-inter-epsilon" class="block text-sm font-medium text-gray-700">Sai số ε</label>
+            <input type="number" step="any" id="inv-inter-epsilon" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 font-mono" value="0.00001">
+        </div>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Phương pháp</label>
+        <div class="mt-2 flex gap-x-6 p-3 bg-gray-50 rounded-md">
+            <div class="flex items-center">
+                <input id="inv-inter-forward" name="inv-inter-method" type="radio" value="forward" checked class="h-4 w-4 text-orange-600 border-gray-300">
+                <label for="inv-inter-forward" class="ml-2 block text-sm text-gray-900">Newton Tiến (dùng x₀)</label>
+            </div>
+            <div class="flex items-center">
+                <input id="inv-inter-backward" name="inv-inter-method" type="radio" value="backward" class="h-4 w-4 text-orange-600 border-gray-300">
+                <label for="inv-inter-backward" class="ml-2 block text-sm text-gray-900">Newton Lùi (dùng xₙ)</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-6 mt-8">
+        <button id="calculate-inv-inter-btn" class="action-btn bg-orange-600 hover:bg-orange-700">Tính Nội suy ngược</button>
+    </div>
     <div id="loading-spinner" class="text-center my-6 hidden"><p class="text-lg font-medium">Đang tính toán...</p></div>
     <div id="error-message" class="text-center text-red-600 bg-red-100 p-4 rounded-md my-6 hidden"></div>
     <div id="results-area"></div>

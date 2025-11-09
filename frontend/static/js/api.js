@@ -485,3 +485,22 @@ export async function calculateFindIntervals(formData) { // <-- THÊM MỚI
     
     return response.json();
 }
+
+/**
+ * Gửi yêu cầu tính toán Nội suy ngược Lặp.
+ * @param {object} payload - Dữ liệu yêu cầu (x_nodes, y_nodes, y_bar, epsilon, method).
+ * @returns {Promise<object>}
+ */
+export async function calculateInverseInterpolation(payload) {
+    const response = await fetch(`${API_BASE_URL}/interpolation/inverse-iterative`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Lỗi không xác định.');
+    }
+    return response.json();
+}

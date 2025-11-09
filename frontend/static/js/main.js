@@ -15,6 +15,7 @@ import { setupSplineHandlers } from './handlers/spline_handler.js';
 import { setupLeastSquaresHandlers } from './handlers/least_squares_handler.js';
 import { setupNodeSelectionHandlers } from './handlers/node_selection_handler.js';
 import { setupFindIntervalsHandlers } from './handlers/find_intervals_handler.js';
+import { setupInverseInterpolationHandlers } from './handlers/inverse_interpolation_handler.js';
 /**
  * Ánh xạ từ data-page sang tiêu đề của trang.
  */
@@ -31,8 +32,11 @@ const PAGE_TITLES = {
     'nonlinear-system-solve': 'Giải hệ phương trình phi tuyến',
     'find-intervals': 'Tìm khoảng cách ly nghiệm',
     'node-selection': 'Trích xuất mốc nội suy',
-    'approximation': 'Xấp xỉ hàm số',
     'horner-table': 'Sơ đồ Horner',
+    'approximation': 'Xấp xỉ hàm số',
+    'inverse-interpolation': 'Nội suy ngược (Phương pháp lặp)',
+    'spline-interpolation': 'Hàm ghép trơn (Spline)',
+    'least-squares': 'Bình phương tối thiểu',
     // Thêm các trang khác ở đây nếu cần
 };
 
@@ -162,8 +166,9 @@ function rebindEventHandlers(container) {
     setupNonlinearSystemsHandlers();
     setupFindIntervalsHandlers();
     setupNodeSelectionHandlers();
-    setupInterpolationHandlers();
     setupHornerHandlers();
+    setupInterpolationHandlers();
+    setupInverseInterpolationHandlers();
     setupSplineHandlers();
     setupLeastSquaresHandlers();
     // Khi bạn thêm các file handler khác, hãy gọi chúng ở đây

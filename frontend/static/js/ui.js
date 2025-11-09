@@ -1,5 +1,5 @@
 // frontend/static/js/ui.js
-import {format_poly_str_js, formatCell, formatMatrix, formatGeneralSolution, renderHornerDivisionTable, renderHornerReverseTable } from './formatters.js';
+import {format_poly_str_js, formatCell, formatMatrix, formatGeneralSolution, renderHornerDivisionTable, renderHornerReverseTable, renderFiniteDifferenceTableForInverse } from './formatters.js';
 
 // KHÔNG khai báo biến const ở đây nữa.
 
@@ -146,6 +146,7 @@ export function renderMatrixSolution(container, data) {
 
     container.innerHTML = html;
 }
+
 
 /**
  * Hiển thị kết quả tính ma trận nghịch đảo.
@@ -2177,4 +2178,99 @@ export function renderFindIntervalsSolution(container, data) {
     }
 
     container.innerHTML = html;
+}
+
+/**
+ * Hiển thị kết quả tìm nội suy ngược bằng phương pháp lặp.
+ * @param {HTMLElement} container - Vùng chứa để hiển thị kết quả.
+ * @param {object} data - Dữ liệu từ API.
+ */
+export function renderInverseInterpolationSolution(container, data) {
+    const errorMessageDiv = document.getElementById('error-message');
+    if (errorMessageDiv) errorMessageDiv.classList.add('hidden');
+
+    if (!data || data.status !== 'success') {
+        showError(data ? (data.error || 'Đã nhận được phản hồi không hợp lệ.') : 'Đã nhận được phản hồi không hợp lệ.');
+        return;
+    }
+
+    const precision = parseInt(document.getElementById('setting-precision')?.value || '7');
+    let html = `<h2 class="result-heading">Kết quả - ${data.method}</h2>`;
+    html += `<p class="text-center font-semibold text-lg mb-6 text-green-600">${data.message}</p>`;
+
+    // Kết quả cuối cùng
+    const x_start_symbol = data.method.includes('Tiến') ? 'x_0' : 'x_n';
+    html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-center">
+        <div class="p-3 bg-green-50 rounded-lg">
+            <p class="text-sm text-gray-600">Nghiệm t tìm được</p>
+            <p class="text-2xl font-bold text-green-800">${data.t_final.toFixed(precision)}</p>
+        </div>
+        <div class="p-3 bg-blue-50 rounded-lg">
+            <p class="text-sm text-gray-600">Nghiệm <span class="katex-render-inline" data-formula="x = ${x_start_symbol} + th"></span></p>
+            <p class="text-2xl font-bold text-blue-800">${data.x_final.toFixed(precision)}</p>
+        </div>
+    </div>`;
+    
+    // Chi tiết tính toán
+    html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg border">
+        <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết các bước tính toán</summary>
+        <div class="mt-4 space-y-4 text-sm">`;
+    
+    // Bước 1: Thông tin ban đầu
+    html += `<div class="p-3 bg-white rounded border">
+        <p><b>Bước 1: Thông tin ban đầu</b></p>
+        <p>Mốc bắt đầu: <span class="katex-render-inline" data-formula="${x_start_symbol} = ${data.start_node}"></span></p>
+        <p>Bước nhảy: <span class="katex-render-inline" data-formula="h = ${data.h}"></span></p>
+        <p>Các sai phân được chọn: ${data.selected_diffs.map(d => d.toFixed(precision)).join('; ')}</p>
+    </div>`;
+
+    // Bước 2: Bảng sai phân
+    html += `<div class="p-3 bg-white rounded border">
+        <p><b>Bước 2: Bảng sai phân</b> (Các giá trị được chọn được tô màu)</p>
+        ${renderFiniteDifferenceTableForInverse(data.finite_difference_table, data.method.includes('Tiến'), precision)}
+    </div>`;
+
+    // Bước 3: Công thức lặp và t0
+    html += `<div class="p-3 bg-white rounded border">
+        <p><b>Bước 3: Công thức lặp</b></p>
+        <div class="text-center my-2 katex-render" data-formula="${data.formula_latex}"></div>
+        <p>Giá trị ban đầu: <span class="katex-render-inline" data-formula="t_0 = ${data.t0.toFixed(precision)}"></span></p>
+    </div>`;
+
+    // Bước 4: Bảng lặp
+    html += `<div class="p-3 bg-white rounded border">
+        <p><b>Bước 4: Bảng lặp</b> (Dừng khi |tₖ₊₁ - tₖ| < ε)</p>
+        <div class="overflow-x-auto mt-2"><table class="w-full text-sm">
+            <thead class="bg-gray-100"><tr>
+                <th class="p-2">k</th>
+                <th class="p-2">tₖ</th>
+                <th class="p-2">tₖ₊₁ = φ(tₖ)</th>
+                <th class="p-2">|tₖ₊₁ - tₖ|</th>
+            </tr></thead>
+            <tbody>`;
+    data.iteration_table.forEach(step => {
+        html += `<tr class="border-b">
+            <td class="p-2">${step.k}</td>
+            <td class="p-2 font-mono">${step.t_k.toFixed(precision)}</td>
+            <td class="p-2 font-mono">${step['t_k+1'].toFixed(precision)}</td>
+            <td class="p-2 font-mono">${step.error.toExponential(4)}</td>
+        </tr>`;
+    });
+    html += `</tbody></table></div>
+    </div>`;
+    
+    html += `</div></details>`; // Đóng details
+    container.innerHTML = html;
+
+    // Render Katex
+    if (window.katex) {
+        container.querySelectorAll('.katex-render, .katex-render-inline').forEach(elem => {
+            try {
+                katex.render(elem.dataset.formula, elem, {
+                    throwOnError: false,
+                    displayMode: elem.classList.contains('katex-render')
+                });
+            } catch (e) { elem.textContent = elem.dataset.formula; }
+        });
+    }
 }

@@ -7,11 +7,14 @@ from typing import List, Dict, Any
 def find_root_intervals(
     file_stream: io.BytesIO,
     y_bar: float,
-    num_nodes: int
+    num_nodes: int,
+    method: str = 'both'
 ) -> Dict[str, Any]:
     """
     Tìm các khoảng cách ly nghiệm f(x) = y_bar từ file CSV và mở rộng
-    khoảng đó ra k mốc lân cận mà vẫn đảm bảo tính cách ly nghiệm.
+    khoảng đó ra k mốc lân cận dựa trên phương pháp mở rộng được chọn.
+
+    method: 'left' | 'right' | 'both' (mặc định 'both')
     """
     try:
         df = pd.read_csv(
@@ -74,8 +77,8 @@ def find_root_intervals(
         sign_left = df['sign'].iloc[left_idx]
         sign_right = df['sign'].iloc[right_idx]
 
-        can_expand_left = (left_idx > 0)
-        can_expand_right = (right_idx < total_valid_nodes - 1)
+        can_expand_left = (left_idx > 0) and (method in ('left', 'both'))
+        can_expand_right = (right_idx < total_valid_nodes - 1) and (method in ('right', 'both'))
 
         # Mở rộng xen kẽ 2 bên cho đến khi đủ k mốc hoặc bị chặn
         while current_nodes < num_nodes:
@@ -108,6 +111,12 @@ def find_root_intervals(
                 else:
                     # Không hợp lệ
                     can_expand_right = False
+            
+            # Nếu chỉ mở rộng một bên, khóa luôn cờ bên kia
+            if method == 'left':
+                can_expand_right = False
+            elif method == 'right':
+                can_expand_left = False
         
         # --- Kết thúc logic mở rộng ---
 
@@ -124,10 +133,18 @@ def find_root_intervals(
                 "num_nodes_found": len(selected_df)
             })
 
+    method_text = ""
+    if method == 'left':
+        method_text = "về bên trái"
+    elif method == 'right':
+        method_text = "về bên phải"
+    else:
+        method_text = "về cả hai bên"
+
     if not intervals:
         method_description = f"Không tìm thấy khoảng cách ly nghiệm nào cho y = {y_bar}."
     else:
-        method_description = f"Tìm thấy {len(intervals)} khoảng cách ly. Đã mở rộng mỗi khoảng để lấy tối đa {num_nodes} mốc."
+        method_description = f"Tìm thấy {len(intervals)} khoảng. Đã mở rộng {method_text} để lấy tối đa {num_nodes} mốc."
 
     return {
         "status": "success",

@@ -13,7 +13,8 @@ async function handleFindIntervalsCalculation() {
     const fileInput = document.getElementById('find-intervals-file-input');
     const yBar = document.getElementById('find-intervals-y-bar').value;
     const num_nodes = document.getElementById('find-intervals-num-nodes').value;
-    // const method = document.querySelector('input[name="find-intervals-method"]:checked').value; // <-- ĐÃ XÓA
+    const methodInput = document.querySelector('input[name="find-intervals-method"]:checked');
+    const method = methodInput ? methodInput.value : 'both';
     const resultsArea = document.getElementById('results-area');
 
     if (!fileInput.files || fileInput.files.length === 0) {
@@ -36,7 +37,7 @@ async function handleFindIntervalsCalculation() {
     formData.append('file', file);
     formData.append('y_bar', yBar);
     formData.append('num_nodes', num_nodes);
-    // formData.append('method', method); // <-- ĐÃ XÓA
+    formData.append('method', method);
 
     showLoading();
     try {

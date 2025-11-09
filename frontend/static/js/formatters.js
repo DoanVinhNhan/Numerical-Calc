@@ -180,3 +180,49 @@ export function format_poly_str_js(coeffs, variable = 'x') {
     if (poly_str.startsWith('+ ')) poly_str = poly_str.substring(2);
     return poly_str;
 }
+
+export function renderFiniteDifferenceTableForInverse(tableData, isForward, precision) {
+    if (!tableData || tableData.length === 0) return '';
+    
+    const n_rows = tableData.length;
+    const n_cols = tableData[0].length;
+    
+    let html = `<div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-700">`;
+    
+    // Header
+    let headerHtml = `<thead class="text-xs text-gray-800 bg-gray-100"><tr>
+        <th class="px-6 py-3">x_i</th>
+        <th class="px-6 py-3">y_i</th>`;
+    for(let i = 2; i < n_cols; i++) {
+        headerHtml += `<th class="px-6 py-3 katex-render-inline" data-formula="\\Delta^{${i-1}}y"></th>`;
+    }
+    headerHtml += `</tr></thead>`;
+    html += headerHtml;
+    
+    // Body
+    html += `<tbody>`;
+    tableData.forEach((row, rowIndex) => {
+        html += `<tr class="bg-white border-b">`;
+        row.forEach((cell, colIndex) => {
+            let highlightClass = '';
+            // Chỉ highlight từ cột y_i (colIndex = 1) trở đi
+            if (colIndex > 0) {
+                if (isForward && colIndex === rowIndex + 1) { // Đường chéo tiến
+                    highlightClass = 'font-bold text-red-600';
+                } else if (!isForward && rowIndex === n_rows - 1) { // Hàng cuối
+                    highlightClass = 'font-bold text-red-600';
+                }
+            }
+            
+            // Chỉ render các ô trong tam giác dưới
+            if (colIndex <= rowIndex + 1) {
+                html += `<td class="px-6 py-4 font-mono ${highlightClass}">${formatCell(cell, precision)}</td>`;
+            } else {
+                html += `<td class="px-6 py-4 font-mono"></td>`; // Ô trống
+            }
+        });
+        html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+    return html;
+}

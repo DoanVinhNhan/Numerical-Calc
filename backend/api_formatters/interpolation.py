@@ -449,3 +449,40 @@ def format_find_intervals_result(result): # <-- THÊM MỚI
     
     result["method"] = "Tìm khoảng cách ly nghiệm"
     return result
+
+def format_inverse_interpolation_result(result):
+    """
+    Định dạng kết quả từ hàm nội suy ngược lặp.
+    """
+    if "error" in result:
+        return result
+    
+    if result.get("status") != "success":
+        return {"error": result.get("message", "Lỗi không xác định")}
+
+    # Dọn dẹp dữ liệu trước khi gửi
+    finite_diff_table_clean = [[float(v) for v in row] for row in result.get("finite_difference_table", [])]
+    
+    iteration_table_clean = []
+    for step in result.get("iteration_table", []):
+        iteration_table_clean.append({
+            "k": step["k"],
+            "t_k": float(step["t_k"]),
+            "t_k+1": float(step["t_k+1"]),
+            "error": float(step["error"])
+        })
+
+    return {
+        "status": "success",
+        "method": f"Nội suy ngược - Lặp {result.get('method_name', '')}",
+        "message": f"Tìm thấy nghiệm thành công sau {len(iteration_table_clean)} lần lặp.",
+        "start_node": float(result.get("start_node")),
+        "h": float(result.get("h")),
+        "finite_difference_table": finite_diff_table_clean,
+        "selected_diffs": [float(d) for d in result.get("selected_diffs", [])],
+        "formula_latex": result.get("formula_latex", ""),
+        "t0": float(result.get("t0")),
+        "iteration_table": iteration_table_clean,
+        "t_final": float(result.get("t_final")),
+        "x_final": float(result.get("x_final"))
+    }

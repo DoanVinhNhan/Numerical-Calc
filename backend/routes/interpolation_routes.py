@@ -20,6 +20,8 @@ from backend.numerical_methods.interpolation.node_selection import select_interp
 from backend.api_formatters.interpolation import format_node_selection_result
 from backend.numerical_methods.interpolation.find_intervals import find_root_intervals
 from backend.api_formatters.interpolation import format_find_intervals_result
+from backend.numerical_methods.interpolation.inverse_interpolation import solve_inverse_iterative
+from backend.api_formatters.interpolation import format_inverse_interpolation_result
 import io
 import traceback
 
@@ -297,14 +299,41 @@ def find_intervals_route():
         data = request.form
         y_bar = float(data.get('y_bar'))
         num_nodes = int(data.get('num_nodes'))
-        # method = data.get('method', 'both') # <-- ĐÃ XÓA
+        method = data.get('method', 'both')
 
-        # Gọi hàm xử lý với các tham số mới
-        result = find_root_intervals(file_stream, y_bar, num_nodes) # <-- XÓA method
+        # Gọi hàm xử lý với các tham số mới (bao gồm phương thức mở rộng)
+        result = find_root_intervals(file_stream, y_bar, num_nodes, method)
         
         formatted_result = format_find_intervals_result(result)
         return jsonify(formatted_result)
 
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi server: {str(e)}\n{traceback.format_exc()}"}), 500
+    
+@interpolation_bp.route('/inverse-iterative', methods=['POST'])
+def inverse_iterative_route():
+    try:
+        data = request.json
+        x_nodes_str = data.get('x_nodes', '').split()
+        y_nodes_str = data.get('y_nodes', '').split()
+        
+        if not x_nodes_str or not y_nodes_str:
+            return jsonify({"error": "Vui lòng nhập đầy đủ các mốc x và giá trị y."}), 400
+
+        y_bar = float(data.get('y_bar'))
+        epsilon = float(data.get('epsilon'))
+        method = data.get('method') # 'forward' or 'backward'
+
+        x_nodes = [float(x) for x in x_nodes_str]
+        y_nodes = [float(y) for y in y_nodes_str]
+        
+        result = solve_inverse_iterative(x_nodes, y_nodes, y_bar, epsilon, method)
+        
+        formatted_result = format_inverse_interpolation_result(result)
+        return jsonify(formatted_result)
+        
     except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
