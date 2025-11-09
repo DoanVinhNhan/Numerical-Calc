@@ -2231,10 +2231,14 @@ export function renderInverseInterpolationSolution(container, data) {
     </div>`;
 
     // Bước 3: Công thức lặp và t0
+    const t0FormulaLatex = (data.method && data.method.includes('Tiến'))
+        ? `\\frac{\\overline{y}-y_0}{\\Delta y_0}`
+        : `\\frac{\\overline{y}-y_0}{\\nabla y_n}`;
+
     html += `<div class="p-3 bg-white rounded border">
         <p><b>Bước 3: Công thức lặp</b></p>
         <div class="text-center my-2 katex-render" data-formula="${data.formula_latex}"></div>
-        <p>Giá trị ban đầu: <span class="katex-render-inline" data-formula="t_0 = ${data.t0.toFixed(precision)}"></span></p>
+        <p>Giá trị ban đầu: <span class="katex-render-inline" data-formula="t_0 = ${t0FormulaLatex} = ${data.t0.toFixed(precision)}"></span></p>
     </div>`;
 
     // Bước 4: Bảng lặp

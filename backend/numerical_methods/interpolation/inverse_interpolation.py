@@ -10,7 +10,7 @@ def solve_inverse_iterative(
     y_bar: float, 
     epsilon: float, 
     method: str, 
-    max_iter: int = 100
+    max_iter: int = 500
 ) -> Dict[str, Any]:
     """
     Giải bài toán nội suy ngược f(x) = y_bar bằng phương pháp lặp
@@ -66,7 +66,7 @@ def solve_inverse_iterative(
         
         phi = phi_forward
         result["method_name"] = "Newton Tiến"
-        result["formula_latex"] = f"t = \\frac{{1}}{{\\Delta y_0}} (\\bar{{y}} - y_0 - \\sum_{{k=2}}^{{{n_nodes-1}}} \\frac{{\\Delta^k y_0}}{{k!}} \\cdot w_k(t))"
+        result["formula_latex"] = f"t =t_0 - \\frac{{1}}{{\\Delta y_0}}\\sum_{{k=2}}^{{{n_nodes-1}}} \\frac{{\\Delta^k y_0}}{{k!}} \\cdot w_k(t)"
         result["selected_diffs"] = selected_diffs[1:] # Trả về [Δy0, Δ²y0, ...]
         
     elif method == 'backward':
@@ -92,7 +92,7 @@ def solve_inverse_iterative(
 
         phi = phi_backward
         result["method_name"] = "Newton Lùi"
-        result["formula_latex"] = f"t = \\frac{{1}}{{\\nabla y_n}} (\\bar{{y}} - y_n - \\sum_{{k=2}}^{{{n_nodes-1}}} \\frac{{\\nabla^k y_n}}{{k!}} \\cdot w_k(t))"
+        result["formula_latex"] = f"t = t_0 - \\frac{{1}}{{\\nabla y_n}} \\sum_{{k=2}}^{{{n_nodes-1}}} \\frac{{\\nabla^k y_n}}{{k!}} \\cdot w_k(t)"
         result["selected_diffs"] = selected_diffs[1:] # Trả về [∇y_n, ∇²y_n, ...]
 
     else:
