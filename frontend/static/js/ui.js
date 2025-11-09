@@ -1367,19 +1367,25 @@ export function renderInterpolationSolution(container, data) {
 
     // Hiển thị kết quả cho Lagrange
     if (data.method === "Nội suy Lagrange") {
-        html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg">
-            <h3 class="font-semibold">Đa thức nội suy Lagrange P(x):
-                <button class="copy-btn" data-copy-content="${data.polynomial_coeffs.join(' ')}">Copy hệ số</button>
-            </h3>
-            <div class="text-lg katex-render" data-formula="P(x) = ${data.polynomial_str}"></div>
-        </div>`;
+        if (!data.polynomial_coeffs || !data.polynomial_str) {
+            html += `<div class="my-6 text-center p-4 bg-red-50 rounded-lg">
+                <h3 class="font-semibold text-red-600">Lỗi: Không thể tính toán đa thức nội suy</h3>
+            </div>`;
+        } else {
+            html += `<div class="my-6 text-center p-4 bg-green-50 rounded-lg">
+                <h3 class="font-semibold">Đa thức nội suy Lagrange P(x):
+                    <button class="copy-btn" data-copy-content="${data.polynomial_coeffs.join(' ')}">Copy hệ số</button>
+                </h3>
+                <div class="text-lg katex-render" data-formula="P(x) = ${data.polynomial_str}"></div>
+            </div>`;
+        }
 
         html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg">
             <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết các bước tính toán</summary>
             <div class="mt-4">
                 <p class="text-sm">Đa thức w(x): 
-                    <button class="copy-btn" data-copy-content="${data.w_calculation.coeffs.join(' ')}">Copy hệ số</button>
                     <span class="katex-render-inline" data-formula="w(x) = ${data.w_poly_str}"></span>
+                    <button class="copy-btn" data-copy-content="${data.w_calculation.coeffs.join(' ')}">Copy hệ số</button>
                 </p>
                 <div class="mt-4 space-y-4">`;
         
@@ -1389,12 +1395,12 @@ export function renderInterpolationSolution(container, data) {
                 <ul class="list-disc list-inside text-sm mt-2 space-y-1">
                     <li>Hằng số mẫu: <span class="katex-render-inline" data-formula="D_{${step.i}} = w'(${step.xi}) \\approx ${step.Di_value.toFixed(precision)}"></span></li>
                     <li>Đa thức tử: 
-                        <button class="copy-btn" data-copy-content="${step.w_over_x_minus_xi_coeffs.join(' ')}">Copy hệ số</button>
                         <span class="katex-render-inline" data-formula="\\frac{w(x)}{x - ${step.xi}} = ${step.w_over_x_minus_xi_str}"></span>
-                    </li>
+                         <button class="copy-btn" data-copy-content="${step.w_over_x_minus_xi_coeffs.join(' ')}">Copy hệ số</button>
+                        </li>
                     <li>Thành phần thứ ${step.i+1}: 
-                        <button class="copy-btn" data-copy-content="${step.term_coeffs.join(' ')}">Copy hệ số</button>
                         <span class="katex-render-inline" data-formula="\\frac{y_{${step.i}}}{D_{${step.i}}} \\cdot \\frac{w(x)}{x - x_{${step.i}}} = ${step.term_str}"></span>
+                        <button class="copy-btn" data-copy-content="${step.term_coeffs.join(' ')}">Copy hệ số</button>
                     </li>
                 </ul>
             </div>`;
@@ -1746,7 +1752,6 @@ export function renderInterpolationSolution(container, data) {
                                 <th class="p-2">i</th>
                                 <th class="p-2">Sai phân <span class="katex-render-inline" data-formula="d_i"></span></th>
                                 <th class="p-2">Giá trị <span class="katex-render-inline" data-formula="a_i = d_i/i!"></span></th>
-                                <th class="p-2">Copy</th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -1755,11 +1760,6 @@ export function renderInterpolationSolution(container, data) {
                             <td class="p-2 font-mono">${i}</td>
                             <td class="p-2 font-mono">${data.central_finite_diffs[i].toFixed(precision)}</td>
                             <td class="p-2 font-mono">${c_coeff.toFixed(precision)}</td>
-                            <td class="p-2">
-                                <button class="copy-button" data-clipboard-text="a_${i} = ${c_coeff.toFixed(precision)}">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </td>
                          </tr>`;
             });
             html += `</tbody></table></div>
@@ -1780,7 +1780,6 @@ export function renderInterpolationSolution(container, data) {
                              <tr>
                                 <th class="p-2" rowspan="2">Nhân tử (Factor)</th>
                                 <th class="p-2" colspan="${max_degree_w_central + 1}">Hệ số của wᵢ(${var_name}) (theo bậc giảm dần)</th>
-                                <th class="p-2" rowspan="2">Copy</th>
                             </tr>
                             <tr>`;
             html += `</tr>
@@ -1799,12 +1798,6 @@ export function renderInterpolationSolution(container, data) {
                     html += `<td class="p-2 font-mono">${coeff.toFixed(precision)}</td>`;
                 });
 
-                // Add copy button for each row
-                html += `<td class="p-2">
-                    <button class="copy-button" data-clipboard-text="w_${i}(${var_name}) = ${padded_coeffs.map(c => c.toFixed(precision)).join(', ')}">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </td>`;
                 
                 html += `</tr>`;
             });
@@ -1813,20 +1806,13 @@ export function renderInterpolationSolution(container, data) {
         // Hiển thị đa thức theo t hoặc u
         if (data.method === "Nội suy Bessel") {
             html += `<p class="font-semibold mt-4">4. Tổng hợp đa thức <span class="katex-render-inline" data-formula="P(u) = \\sum a_i w_i(u)"></span>:
-                        <button class="copy-button ml-2" data-clipboard-text="${data.polynomial_coeffs_u.join(' ')}">
-                            <i class="fas fa-copy"></i> Copy hệ số
-                        </button>
+                        <button class="copy-btn" data-copy-content="${data.polynomial_coeffs_u.join(' ')}">Copy hệ số</button>
                     </p>
                      <div class="text-center text-lg p-2 bg-yellow-50 rounded relative">
                         <span class="katex-render" data-formula="P(u) = ${data.polynomial_str_u}"></span>
-                        <button class="copy-button absolute right-2 top-2" data-clipboard-text="${data.polynomial_str_u}">
-                            <i class="fas fa-copy"></i>
-                        </button>
                      </div>
                      <p class="font-semibold mt-4">5. Đổi biến <span class="katex-render-inline" data-formula="t = u + 0.5"></span>:
-                        <button class="copy-button ml-2" data-clipboard-text="${data.polynomial_coeffs_t.join(' ')}">
-                            <i class="fas fa-copy"></i> Copy hệ số
-                        </button>
+                        <button class="copy-btn" data-copy-content="${data.polynomial_coeffs_t.join(' ')}">Copy hệ số</button>
                      </p>
                      <div class="text-center text-lg p-2 bg-yellow-50 rounded relative">
                         <span class="katex-render" data-formula="P(t) = ${data.polynomial_str_t}"></span>
@@ -1837,15 +1823,10 @@ export function renderInterpolationSolution(container, data) {
                      <p class="font-semibold mt-4">6. Đổi biến <span class="katex-render-inline" data-formula="x = x_0 + th"></span>:</p>`;
         } else {
             html += `<p class="font-semibold mt-4">4. Tổng hợp đa thức <span class="katex-render-inline" data-formula="P(t) = \\sum a_i w_i(t)"></span>:
-                        <button class="copy-button ml-2" data-clipboard-text="${data.polynomial_coeffs_t.join(' ')}">
-                            <i class="fas fa-copy"></i> Copy hệ số
-                        </button>
+                        <button class="copy-btn" data-copy-content="${data.polynomial_coeffs_t.join(' ')}">Copy hệ số</button>
                     </p>
                      <div class="text-center text-lg p-2 bg-yellow-50 rounded relative">
                         <span class="katex-render" data-formula="P(t) = ${data.polynomial_str_t}"></span>
-                        <button class="copy-button absolute right-2 top-2" data-clipboard-text="${data.polynomial_str_t}">
-                            <i class="fas fa-copy"></i>
-                        </button>
                      </div>
                      <p class="font-semibold mt-4">5. Đổi biến <span class="katex-render-inline" data-formula="x = x_0 + th = ${data.start_node.toFixed(precision)} + t \\cdot ${data.h.toFixed(precision)}"></span>:</p>`;
         }

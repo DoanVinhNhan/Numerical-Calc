@@ -59,6 +59,24 @@ def format_lagrange_interpolation_result(result):
     """
     Định dạng kết quả từ hàm nội suy Lagrange.
     """
+    
+    # --- THÊM ĐOẠN KIỂM TRA NÀY ---
+    # Xử lý trường hợp n=0 (không có mốc)
+    if not result.get('calculation_steps') and not result.get('w_calculation'):
+        poly_coeffs = result.get('polynomial_coeffs', [])
+        w_coeffs = result.get('w_coeffs', [1.0]) # Lấy từ trường hợp n=0
+        return {
+            "status": "success",
+            "method": "Nội suy Lagrange",
+            "message": "Không có điểm nội suy nào được cung cấp." if not poly_coeffs else "Tính toán thành công.",
+            "polynomial_str": _format_poly_str(poly_coeffs),
+            "polynomial_coeffs": poly_coeffs,
+            "w_poly_str": _format_poly_str(w_coeffs),
+            "w_calculation": {"coeffs": w_coeffs, "steps": []}, # Cung cấp giá trị mặc định
+            "calculation_steps": []
+        }
+    # --- KẾT THÚC ĐOẠN KIỂM TRA ---
+
     formatted_steps = []
     for step in result['calculation_steps']:
         formatted_steps.append({
@@ -66,7 +84,9 @@ def format_lagrange_interpolation_result(result):
             "xi": step['xi'],
             "yi": step['yi'],
             "Di_value": step['Di_value'],
+            "w_over_x_minus_xi_coeffs": step['w_over_x_minus_xi_coeffs'], # Giữ mảng hệ số
             "w_over_x_minus_xi_str": _format_poly_str(step['w_over_x_minus_xi_coeffs']),
+            "term_coeffs": step['term_coeffs'], # Giữ mảng hệ số
             "term_str": _format_poly_str(step['term_coeffs'])
         })
 
@@ -76,6 +96,7 @@ def format_lagrange_interpolation_result(result):
         "polynomial_str": _format_poly_str(result['polynomial_coeffs']),
         "polynomial_coeffs": result['polynomial_coeffs'],
         "w_poly_str": _format_poly_str(result['w_calculation']['coeffs']),
+        "w_calculation": result['w_calculation'],  # <-- **DÒNG QUAN TRỌNG ĐƯỢC THÊM VÀO**
         "calculation_steps": formatted_steps
     }
 
