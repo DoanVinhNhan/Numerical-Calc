@@ -140,11 +140,23 @@ def format_newton_interpolation_result(result):
         
         poly_sum_str = " ".join(terms_str).lstrip(" +")
 
+        # Tạo chuỗi nhân tử cho từng w_i
+        is_forward = details["start_node"] == result["forward_interpolation"]["start_node"]
+        w_factors_str = ['1']  # w_0
+        if len(details["w_polynomials_t"]) > 1:
+            w_factors_str.append("t")  # w_1
+            for i in range(1, len(details["w_polynomials_t"]) - 1):
+                if is_forward:
+                    w_factors_str.append(f"(t - {i})")  # Newton Tiến
+                else:
+                    w_factors_str.append(f"(t + {i})")  # Newton Lùi
+
         return {
             "start_node": details["start_node"],
             "diffs": [float(d) for d in details["diffs"]],
             "coeffs_scaled": [float(c) for c in details["coeffs_scaled"]],
             "w_polynomials_t": [[float(c) for c in p] for p in details["w_polynomials_t"]],
+            "w_factors_str": w_factors_str,  # Thêm danh sách nhân tử
             "polynomial_sum_str_t": poly_sum_str or "0",
             "polynomial_str_t": _format_poly_str(details["polynomial_coeffs_t"], variable='t'),
             "polynomial_coeffs_t": details["polynomial_coeffs_t"],
@@ -234,6 +246,16 @@ def format_central_gauss_i_result(result):
     polynomial_coeffs_t = [float(v) for v in result.get("polynomial_coeffs_t", [])]
     polynomial_coeffs_x = [float(v) for v in result.get("polynomial_coeffs_x", [])]
 
+    # Tạo chuỗi nhân tử cho Gauss I: [1, t, (t-1), (t+1), (t-2), (t+2), ...]
+    w_factors_str = ['1']
+    if len(w_table_coeffs_formatted) > 1:
+        w_factors_str.append('t')
+        for i in range(1, len(w_table_coeffs_formatted) - 1):
+            if i % 2 == 1:  # số lẻ
+                w_factors_str.append(f"(t - {(i + 1) // 2})")
+            else:  # số chẵn
+                w_factors_str.append(f"(t + {i // 2})")
+
     return {
         "status": "success",
         "method": "Nội suy trung tâm Gauss I",
@@ -244,7 +266,8 @@ def format_central_gauss_i_result(result):
         "finite_difference_table": finite_difference_table,
         "central_finite_diffs": central_finite_diffs,
         "c_coeffs": c_coeffs,
-        "w_table_coeffs": w_table_coeffs_formatted, 
+        "w_table_coeffs": w_table_coeffs_formatted,
+        "w_factors_str": w_factors_str,  # Thêm danh sách nhân tử 
         "polynomial_coeffs_t": polynomial_coeffs_t,
         "polynomial_str_t": _format_poly_str(polynomial_coeffs_t, variable='t'),
         "polynomial_coeffs_x": polynomial_coeffs_x,
@@ -270,6 +293,16 @@ def format_central_gauss_ii_result(result):
     polynomial_coeffs_t = [float(v) for v in result.get("polynomial_coeffs_t", [])]
     polynomial_coeffs_x = [float(v) for v in result.get("polynomial_coeffs_x", [])]
 
+    # Tạo chuỗi nhân tử cho Gauss II: [1, t, (t+1), (t-1), (t+2), (t-2), ...]
+    w_factors_str = ['1']
+    if len(w_table_coeffs_formatted) > 1:
+        w_factors_str.append('t')
+        for i in range(1, len(w_table_coeffs_formatted) - 1):
+            if i % 2 == 1:  # số lẻ
+                w_factors_str.append(f"(t + {(i + 1) // 2})")
+            else:  # số chẵn
+                w_factors_str.append(f"(t - {i // 2})")
+
     return {
         "status": "success",
         "method": "Nội suy trung tâm Gauss II",
@@ -280,7 +313,8 @@ def format_central_gauss_ii_result(result):
         "finite_difference_table": finite_difference_table,
         "central_finite_diffs": central_finite_diffs,
         "c_coeffs": c_coeffs,
-        "w_table_coeffs": w_table_coeffs_formatted, 
+        "w_table_coeffs": w_table_coeffs_formatted,
+        "w_factors_str": w_factors_str,  # Thêm danh sách nhân tử
         "polynomial_coeffs_t": polynomial_coeffs_t,
         "polynomial_str_t": _format_poly_str(polynomial_coeffs_t, variable='t'),
         "polynomial_coeffs_x": polynomial_coeffs_x,
@@ -305,6 +339,13 @@ def format_stirling_interpolation_result(result):
     polynomial_coeffs_t = [float(v) for v in result.get("polynomial_coeffs_t", [])]
     polynomial_coeffs_x = [float(v) for v in result.get("polynomial_coeffs_x", [])]
 
+    # Tạo chuỗi nhân tử cho Stirling: [1, t^2, (t^2-1^2), (t^2-2^2), (t^2-3^2), ...]
+    w_factors_str = ['1']
+    if len(w_table_coeffs_formatted) > 1:
+        w_factors_str.append('t^2')
+        for i in range(1, len(w_table_coeffs_formatted) - 1):
+            w_factors_str.append(f"(t^2 - {i}^2)")
+
     return {
         "status": "success",
         "method": "Nội suy Stirling",
@@ -316,6 +357,7 @@ def format_stirling_interpolation_result(result):
         "central_finite_diffs": central_finite_diffs,
         "c_coeffs": c_coeffs,
         "w_table_coeffs": w_table_coeffs_formatted,
+        "w_factors_str": w_factors_str,  # Thêm danh sách nhân tử
         "polynomial_coeffs_t": polynomial_coeffs_t,
         "polynomial_str_t": _format_poly_str(polynomial_coeffs_t, variable='t'),
         "polynomial_coeffs_x": polynomial_coeffs_x,
@@ -346,6 +388,14 @@ def format_bessel_interpolation_result(result):
     polynomial_coeffs_t = [float(v) for v in result.get("bessel_polynomial_coeffs_t", [])]
     polynomial_coeffs_x = [float(v) for v in result.get("bessel_polynomial_coeffs_x", [])]
 
+    # Tạo chuỗi nhân tử cho Bessel: [1, u^2, (u^2-0.25), (u^2-2.25), (u^2-6.25), ...]
+    w_factors_str = ['1']
+    if len(w_table_coeffs_formatted) > 1:
+        w_factors_str.append('u^2')
+        for i in range(1, len(w_table_coeffs_formatted) - 1):
+            factor_val = ((i + 0.5) ** 2)
+            w_factors_str.append(f"(u^2 - {factor_val:g})")
+
     return {
         "status": "success",
         "method": "Nội suy Bessel",
@@ -358,6 +408,7 @@ def format_bessel_interpolation_result(result):
         "central_finite_diffs": central_finite_diffs,
         "c_coeffs": c_coeffs,
         "w_table_coeffs": w_table_coeffs_formatted,
+        "w_factors_str": w_factors_str,  # Thêm danh sách nhân tử
         "polynomial_coeffs_u": polynomial_coeffs_u,
         "polynomial_str_u": _format_poly_str(polynomial_coeffs_u, variable='u'),
         "polynomial_coeffs_t": polynomial_coeffs_t,

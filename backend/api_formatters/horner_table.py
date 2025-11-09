@@ -90,6 +90,7 @@ def format_all_derivatives_result(result):
                 "step_index": i,
                 "division_table": division_table,
                 "quotient_str": q_x_str,
+                "quotient_coeffs": quotient_coeffs,  # Thêm hệ số của đa thức thương
                 "remainder": values[i]
             })
 
@@ -150,9 +151,11 @@ def format_w_function_result(result):
         formatted_steps.append({
             "step_index": step['step_index'],
             "w_k_str": w_k_str,
+            "w_k_coeffs": step['w_k_coeffs'],  # Thêm hệ số của w_k
             "root": step['root'],
             "reverse_table": step['reverse_table'],
-            "w_k_plus_1_str": w_k_plus_1_str
+            "w_k_plus_1_str": w_k_plus_1_str,
+            "w_k_plus_1_coeffs": step['w_k_plus_1_coeffs']  # Thêm hệ số của w_{k+1}
         })
         
     final_poly_str = _format_poly_str(final_coeffs)
@@ -192,6 +195,7 @@ def format_change_variables_result(result):
             "step_index": step_data['step_index'],
             "division_table": division_table,
             "quotient_str": q_x_str,
+            "quotient_coeffs": quotient_coeffs,  # Thêm hệ số của đa thức thương
             "remainder_dk": remainder
         })
 

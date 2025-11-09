@@ -1079,7 +1079,11 @@ export function renderAllDerivativesSolution(container, data) {
         html += `<details class="mb-4 bg-white p-3 rounded shadow-sm">
             <summary class="cursor-pointer text-md font-medium text-gray-800 hover:text-blue-600">Bước ${step.step_index + 1}: Chia Q_${step.step_index}(x) cho (x - ${data.root})</summary>
             <div class="mt-3">
-                <p class="text-xs mb-2">Đa thức thương: <span class="katex-render" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span>, Số dư: <span class="font-bold">${step.remainder.toFixed(precision)}</span></p>
+                <p class="text-xs mb-2">Đa thức thương: 
+                    <button class="copy-btn" data-copy-content="${step.quotient_coeffs.join(' ')}">Copy hệ số</button>
+                    <span class="katex-render" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span>
+                    <span class="ml-2">, Số dư: <span class="font-bold">${step.remainder.toFixed(precision)}</span></span>
+                </p>
                 <div class="overflow-x-auto flex justify-center">
                     ${renderHornerDivisionTable(step.division_table, data.root, precision)}
                 </div>
@@ -1181,7 +1185,10 @@ export function renderChangeVariablesSolution(container, data) {
                 Bước ${step.step_index + 1}: Chia Q_${step.step_index}(x) cho (x - ${data.root.toFixed(precision)}) ⇒ d_${step.step_index} = ${step.remainder_dk.toFixed(precision)}
             </summary>
             <div class="mt-3">
-                <p class="text-xs mb-2">Đa thức thương: <span class="katex-render-inline" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span></p>
+                <p class="text-xs mb-2">Đa thức thương: 
+                    <button class="copy-btn" data-copy-content="${step.quotient_coeffs.join(' ')}">Copy hệ số</button>
+                    <span class="katex-render-inline" data-formula="Q_{${step.step_index+1}}(x) = ${step.quotient_str}"></span>
+                </p>
                 <div class="overflow-x-auto flex justify-center">
                     ${renderHornerDivisionTable(step.division_table, data.root, precision)}
                 </div>
@@ -1269,8 +1276,14 @@ export function renderWFunctionSolution(container, data) {
                 Bước ${step.step_index + 1}: Nhân <span class="katex-render-inline" data-formula="w_{${step.step_index}}(x)"></span> với <span class="katex-render-inline" data-formula="(x - ${step.root})"></span>
             </summary>
             <div class="mt-3">
-                <p class="text-xs mb-2">Đa thức hiện tại: <span class="katex-render-inline" data-formula="w_{${step.step_index}}(x) = ${step.w_k_str}"></span></p>
-                <p class="text-xs mb-2">Đa thức mới: <span class="katex-render-inline" data-formula="w_{${step.step_index+1}}(x) = ${step.w_k_plus_1_str}"></span></p>
+                <p class="text-xs mb-2">Đa thức hiện tại: 
+                    <button class="copy-btn" data-copy-content="${step.w_k_coeffs.join(' ')}">Copy hệ số</button>
+                    <span class="katex-render-inline" data-formula="w_{${step.step_index}}(x) = ${step.w_k_str}"></span>
+                </p>
+                <p class="text-xs mb-2">Đa thức mới: 
+                    <button class="copy-btn" data-copy-content="${step.w_k_plus_1_coeffs.join(' ')}">Copy hệ số</button>
+                    <span class="katex-render-inline" data-formula="w_{${step.step_index+1}}(x) = ${step.w_k_plus_1_str}"></span>
+                </p>
                 <div class="overflow-x-auto flex justify-center mt-4">
                     ${renderHornerDivisionTable(step.reverse_table, step.root, precision)}
                 </div>
@@ -1364,7 +1377,10 @@ export function renderInterpolationSolution(container, data) {
         html += `<details class="mt-6 bg-gray-50 p-3 rounded-lg">
             <summary class="cursor-pointer font-semibold text-gray-700">Xem chi tiết các bước tính toán</summary>
             <div class="mt-4">
-                <p class="text-sm">Đa thức <span class="katex-render-inline" data-formula="w(x) = ${data.w_poly_str}"></span></p>
+                <p class="text-sm">Đa thức w(x): 
+                    <button class="copy-btn" data-copy-content="${data.w_calculation.coeffs.join(' ')}">Copy hệ số</button>
+                    <span class="katex-render-inline" data-formula="w(x) = ${data.w_poly_str}"></span>
+                </p>
                 <div class="mt-4 space-y-4">`;
         
         data.calculation_steps.forEach(step => {
@@ -1372,8 +1388,14 @@ export function renderInterpolationSolution(container, data) {
                 <p class="font-semibold text-blue-700">Bước ${step.i + 1}: Tính thành phần cho (x_${step.i}, y_${step.i})</p>
                 <ul class="list-disc list-inside text-sm mt-2 space-y-1">
                     <li>Hằng số mẫu: <span class="katex-render-inline" data-formula="D_{${step.i}} = w'(${step.xi}) \\approx ${step.Di_value.toFixed(precision)}"></span></li>
-                    <li>Đa thức tử: <span class="katex-render-inline" data-formula="\\frac{w(x)}{x - ${step.xi}} = ${step.w_over_x_minus_xi_str}"></span></li>
-                    <li>Thành phần thứ ${step.i+1}: <span class="katex-render-inline" data-formula="\\frac{y_{${step.i}}}{D_{${step.i}}} \\cdot \\frac{w(x)}{x - x_{${step.i}}} = ${step.term_str}"></span></li>
+                    <li>Đa thức tử: 
+                        <button class="copy-btn" data-copy-content="${step.w_over_x_minus_xi_coeffs.join(' ')}">Copy hệ số</button>
+                        <span class="katex-render-inline" data-formula="\\frac{w(x)}{x - ${step.xi}} = ${step.w_over_x_minus_xi_str}"></span>
+                    </li>
+                    <li>Thành phần thứ ${step.i+1}: 
+                        <button class="copy-btn" data-copy-content="${step.term_coeffs.join(' ')}">Copy hệ số</button>
+                        <span class="katex-render-inline" data-formula="\\frac{y_{${step.i}}}{D_{${step.i}}} \\cdot \\frac{w(x)}{x - x_{${step.i}}} = ${step.term_str}"></span>
+                    </li>
                 </ul>
             </div>`;
         });
@@ -1540,7 +1562,7 @@ export function renderInterpolationSolution(container, data) {
                 <table class="w-full text-sm text-center">
                     <thead class="bg-gray-200 text-xs text-gray-700">
                         <tr>
-                            <th class="p-2" rowspan="2">i</th>
+                            <th class="p-2" rowspan="2">Nhân tử (Factor)</th>
                             <th class="p-2" rowspan="2">Hệ số (${isEquidistant ? `${diff_label}^iy / i!` : 'Tỷ sai phân'})</th>
                             <th class="p-2" colspan="${max_degree_w + 1}">Hệ số của wᵢ(${variable}) (theo bậc giảm dần)</th>
                         </tr>
@@ -1555,7 +1577,7 @@ export function renderInterpolationSolution(container, data) {
             
             w_polynomials.forEach((w_poly, i) => {
                 w_table_html += `<tr class="border-b bg-white">
-                    <td class="p-2 font-mono">${i}</td>
+                    <td class="p-2 font-mono katex-render-inline" data-formula="${details.w_factors_str[i] || i}"></td>
                     <td class="p-2 font-mono">${coeffs_scaled_or_diffs[i].toFixed(precision)}</td>`;
                 
                 // Pad mảng hệ số với số 0 ở đầu để căn chỉnh
@@ -1581,11 +1603,15 @@ export function renderInterpolationSolution(container, data) {
                     ${w_table_html}`;
 
             if (isEquidistant) {
-               resultHtml += `<p class="text-sm font-semibold">2. Đa thức theo biến t:</p>
+               resultHtml += `<p class="text-sm font-semibold">2. Đa thức theo biến t:
+                    <button class="copy-btn" data-copy-content="${details.polynomial_coeffs_t.join(' ')}">Copy hệ số</button>
+               </p>
                     <div class="text-center text-lg katex-render" data-formula="P_n(t) = ${poly_str}"></div>
                     <p class="text-sm mt-2 font-semibold">3. Đổi biến <span class="katex-render-inline" data-formula="x = ${details.start_node} + t \\cdot ${h.toFixed(precision)}"></span> để có đa thức cuối cùng:</p>`;
             } else {
-                 resultHtml += `<p class="text-sm font-semibold">2. Tổng hợp đa thức P(x):</p>
+                 resultHtml += `<p class="text-sm font-semibold">2. Tổng hợp đa thức P(x):
+                    <button class="copy-btn" data-copy-content="${details.polynomial_coeffs_x.join(' ')}">Copy hệ số</button>
+                 </p>
                  <p class="text-xs text-center">(Cộng các tích [Hệ số * Đa thức cơ sở])</p>`;
             }
             resultHtml += `<div class="text-lg text-center p-3 bg-green-50 rounded-md">
@@ -1707,7 +1733,11 @@ export function renderInterpolationSolution(container, data) {
         data.central_finite_diffs.forEach((diff, i) => {
              html += `<span class="katex-render-inline" data-formula="d_{${i}} \\approx ${diff.toFixed(precision)}"></span>`;
         });
-        html += `</div>
+        // Add copy button for central differences
+        html += `<button class="copy-button ml-2" data-clipboard-text="${data.central_finite_diffs.map((diff, i) => `d_${i} ≈ ${diff.toFixed(precision)}`).join(', ')}">
+                    <i class="fas fa-copy"></i>
+                </button>
+                </div>
 
                 <p class="font-semibold mt-4">2. Tính các hệ số <span class="katex-render-inline" data-formula="a_i = d_i / i!"></span>:</p> 
                     <table class="w-full text-sm text-center">
@@ -1716,6 +1746,7 @@ export function renderInterpolationSolution(container, data) {
                                 <th class="p-2">i</th>
                                 <th class="p-2">Sai phân <span class="katex-render-inline" data-formula="d_i"></span></th>
                                 <th class="p-2">Giá trị <span class="katex-render-inline" data-formula="a_i = d_i/i!"></span></th>
+                                <th class="p-2">Copy</th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -1724,13 +1755,18 @@ export function renderInterpolationSolution(container, data) {
                             <td class="p-2 font-mono">${i}</td>
                             <td class="p-2 font-mono">${data.central_finite_diffs[i].toFixed(precision)}</td>
                             <td class="p-2 font-mono">${c_coeff.toFixed(precision)}</td>
+                            <td class="p-2">
+                                <button class="copy-button" data-clipboard-text="a_${i} = ${c_coeff.toFixed(precision)}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
                          </tr>`;
             });
             html += `</tbody></table></div>
                  <div class="overflow-x-auto my-2">
                     <table class="w-full text-sm text-center">
                         <thead class="bg-gray-200 text-xs text-gray-700">
-                            <tr><th class="p-2">i</th><th class="p-2">Đa thức cơ sở wᵢ</th></tr>
+                            <tr><th class="p-2">i</th><th class="p-2">Bảng tích wᵢ</th></tr>
                         </thead>
                         <tbody>`;
                         const var_name = (data.method === "Nội suy Bessel") ? 'u' : 't';
@@ -1742,49 +1778,85 @@ export function renderInterpolationSolution(container, data) {
                     <table class="w-full text-sm text-center">
                         <thead class="bg-gray-200 text-xs text-gray-700">
                              <tr>
-                                <th class="p-2" rowspan="2">i</th>
+                                <th class="p-2" rowspan="2">Nhân tử (Factor)</th>
                                 <th class="p-2" colspan="${max_degree_w_central + 1}">Hệ số của wᵢ(${var_name}) (theo bậc giảm dần)</th>
+                                <th class="p-2" rowspan="2">Copy</th>
                             </tr>
                             <tr>`;
-            // Tạo các cột bậc
-            for (let k = max_degree_w_central; k >= 0; k--) {
-                html += `<th class="p-2 font-mono">${var_name}<sup>${k}</sup></th>`;
-            }
             html += `</tr>
                         </thead>
                         <tbody>`;
             
             w_polynomials_central.forEach((w_poly, i) => {
-                 html += `<tr class="border-b bg-white">
-                            <td class="p-2 font-mono">${i}</td>`;
-                 
-                 // Pad mảng hệ số với số 0 ở đầu để căn chỉnh
+                html += `<tr class="border-b bg-white">
+                    <td class="p-2 font-mono katex-render-inline" data-formula="\\times ${(data.w_factors_str && data.w_factors_str[i]) ? data.w_factors_str[i] : i}"></td>`;
+                
+                // Pad mảng hệ số với số 0 ở đầu để căn chỉnh
                 const padding_len = (max_degree_w_central + 1) - w_poly.length;
                 const padded_coeffs = Array(padding_len).fill(0).concat(w_poly);
 
                 padded_coeffs.forEach(coeff => {
                     html += `<td class="p-2 font-mono">${coeff.toFixed(precision)}</td>`;
                 });
-                 
-                 html += `</tr>`;
+
+                // Add copy button for each row
+                html += `<td class="p-2">
+                    <button class="copy-button" data-clipboard-text="w_${i}(${var_name}) = ${padded_coeffs.map(c => c.toFixed(precision)).join(', ')}">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </td>`;
+                
+                html += `</tr>`;
             });
             html += `</tbody></table></div>`;
 
         // Hiển thị đa thức theo t hoặc u
         if (data.method === "Nội suy Bessel") {
-            html += `<p class="font-semibold mt-4">4. Tổng hợp đa thức <span class="katex-render-inline" data-formula="P(u) = \\sum a_i w_i(u)"></span>:</p>
-                     <div class="text-center text-lg p-2 bg-yellow-50 rounded katex-render" data-formula="P(u) = ${data.polynomial_str_u}"></div>
-                     <p class="font-semibold mt-4">5. Đổi biến <span class="katex-render-inline" data-formula="t = u + 0.5"></span>:</p>
-                     <div class="text-center text-lg p-2 bg-yellow-50 rounded katex-render" data-formula="P(t) = ${data.polynomial_str_t}"></div>
+            html += `<p class="font-semibold mt-4">4. Tổng hợp đa thức <span class="katex-render-inline" data-formula="P(u) = \\sum a_i w_i(u)"></span>:
+                        <button class="copy-button ml-2" data-clipboard-text="${data.polynomial_coeffs_u.join(' ')}">
+                            <i class="fas fa-copy"></i> Copy hệ số
+                        </button>
+                    </p>
+                     <div class="text-center text-lg p-2 bg-yellow-50 rounded relative">
+                        <span class="katex-render" data-formula="P(u) = ${data.polynomial_str_u}"></span>
+                        <button class="copy-button absolute right-2 top-2" data-clipboard-text="${data.polynomial_str_u}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                     </div>
+                     <p class="font-semibold mt-4">5. Đổi biến <span class="katex-render-inline" data-formula="t = u + 0.5"></span>:
+                        <button class="copy-button ml-2" data-clipboard-text="${data.polynomial_coeffs_t.join(' ')}">
+                            <i class="fas fa-copy"></i> Copy hệ số
+                        </button>
+                     </p>
+                     <div class="text-center text-lg p-2 bg-yellow-50 rounded relative">
+                        <span class="katex-render" data-formula="P(t) = ${data.polynomial_str_t}"></span>
+                        <button class="copy-button absolute right-2 top-2" data-clipboard-text="${data.polynomial_str_t}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                     </div>
                      <p class="font-semibold mt-4">6. Đổi biến <span class="katex-render-inline" data-formula="x = x_0 + th"></span>:</p>`;
         } else {
-            html += `<p class="font-semibold mt-4">4. Tổng hợp đa thức <span class="katex-render-inline" data-formula="P(t) = \\sum a_i w_i(t)"></span>:</p>
-                     <div class="text-center text-lg p-2 bg-yellow-50 rounded katex-render" data-formula="P(t) = ${data.polynomial_str_t}"></div>
+            html += `<p class="font-semibold mt-4">4. Tổng hợp đa thức <span class="katex-render-inline" data-formula="P(t) = \\sum a_i w_i(t)"></span>:
+                        <button class="copy-button ml-2" data-clipboard-text="${data.polynomial_coeffs_t.join(' ')}">
+                            <i class="fas fa-copy"></i> Copy hệ số
+                        </button>
+                    </p>
+                     <div class="text-center text-lg p-2 bg-yellow-50 rounded relative">
+                        <span class="katex-render" data-formula="P(t) = ${data.polynomial_str_t}"></span>
+                        <button class="copy-button absolute right-2 top-2" data-clipboard-text="${data.polynomial_str_t}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                     </div>
                      <p class="font-semibold mt-4">5. Đổi biến <span class="katex-render-inline" data-formula="x = x_0 + th = ${data.start_node.toFixed(precision)} + t \\cdot ${data.h.toFixed(precision)}"></span>:</p>`;
         }
         
         // Đa thức P(x) cuối cùng (lặp lại từ trên nhưng nằm trong details)
-        html += `<div class="text-center text-lg p-3 bg-green-100 rounded border border-green-300 katex-render" data-formula="P(x) = ${data.polynomial_str_x}"></div>
+        html += `<div class="text-center text-lg p-3 bg-green-100 rounded border border-green-300 relative">
+                    <span class="katex-render" data-formula="P(x) = ${data.polynomial_str_x}"></span>
+                    <button class="copy-button absolute right-2 top-2" data-clipboard-text="${data.polynomial_str_x}">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                 </div>
             </div>
         </details>`;
     }
