@@ -337,7 +337,7 @@ def bessel_interpolation(x_nodes, y_nodes):
         c_coeffs.append(central_finite_diffs[i] / np.math.factorial(i))
 
     # Đổi biến t = (x - x0) / h
-    t_nodes = (x_nodes - x_nodes[start_row_i]) / h
+    t_nodes = (x_nodes - x_nodes[start_row_ii]) / h
     # Đổi biến u = t - 0.5
     u_nodes = t_nodes - 0.5
     # Bảng tích w_i(u)
@@ -345,7 +345,7 @@ def bessel_interpolation(x_nodes, y_nodes):
     w_coeffs = [1.0]
     w.append(w_coeffs.copy())
     for i in range((n)//2 - 1):
-        new_w_result = reverse_horner(w_coeffs, u_nodes[start_row_i + i+1]**2)
+        new_w_result = reverse_horner(w_coeffs, u_nodes[start_row_ii + i+1]**2)
         w_coeffs = new_w_result['coeffs']
         w.append(w_coeffs.copy())
     w = [[0.0]*(len(w)-i-1)+w[i] for i in range(len(w))]
@@ -363,9 +363,9 @@ def bessel_interpolation(x_nodes, y_nodes):
     bessel_polynomial_t = change_variables(bessel_polynomial_u, a=1, b=0.5)['variables_coeffs']
 
     # Tính đa thức nội suy Bessel theo biến x
-    bessel_polynomial_x = change_variables(bessel_polynomial_t, a=h, b=x_nodes[start_row_i])['variables_coeffs']
+    bessel_polynomial_x = change_variables(bessel_polynomial_t, a=h, b=x_nodes[start_row_ii])['variables_coeffs']
     return {
-        "start_node": x_nodes[start_row_i],
+        "start_node": x_nodes[start_row_ii],
         "h": h,
         "finite_difference_table": finite_diff_table,
         "central_finite_diffs_i": central_finite_diffs_i,
